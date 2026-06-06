@@ -1,0 +1,259 @@
+================================================================================
+                    杰西卡日记 APP — 完整打包指南
+================================================================================
+最后更新：2026-06-07 01:41 GMT+8
+
+================================================================================
+一、项目概述
+================================================================================
+
+杰西卡日记是一个基于 WebView 的 Android APP，核心是一个 HTML 文件
+（jessica_full.html），通过 WebView 壳加载，打包成 APK 安装到手机。
+
+HTML 文件路径：/root/.openclaw/workspace/jessica_project/jessica_full.html
+APK 输出路径：  /root/.openclaw/workspace/jessica_project/杰西卡日记v2.apk
+
+================================================================================
+二、编译环境（GitHub 仓库）
+================================================================================
+
+仓库地址：https://github.com/urlien/jessica-build-env
+Release 下载：https://github.com/urlien/jessica-build-env/releases/download/v1.0/build-env.tar.gz（611MB）
+
+环境包含：
+  - JDK 17.0.9（Oracle）
+  - Gradle 8.4
+  - Android SDK 34 + Build Tools 34.0.0 + Platform Tools
+  - Android 项目模板（jessica-diary/）
+
+本地缓存：/root/.openclaw/workspace/jessica_project/build-env/
+
+================================================================================
+三、一键打包流程（已有环境时，约 3 分钟）
+================================================================================
+
+方法一：运行脚本（打包 + 自动同步 HTML 到 GitHub）
+  cd /root/.openclaw/workspace/jessica_project
+  bash build-apk.sh
+
+方法二：手动步骤
+  ENV="/root/.openclaw/workspace/jessica_project/build-env"
+  HTML="/root/.openclaw/workspace/jessica_project/jessica_full.html"
+
+  # 1. 复制 HTML
+  cp "$HTML" "$ENV/jessica-diary/app/src/main/assets/index.html"
+
+  # 2. 设置环境变量
+  export JAVA_HOME="$ENV/jdk17"
+  export PATH="$JAVA_HOME/bin:$PATH"
+  export ANDROID_SDK_ROOT="$ENV/android-sdk"
+
+  # 3. 编译
+  cd "$ENV/jessica-diary"
+  "$ENV/gradle-8.4/bin/gradle" assembleDebug --no-daemon --quiet
+
+  # 4. 复制 APK
+  cp app/build/outputs/apk/debug/app-debug.apk \
+     /root/.openclaw/workspace/jessica_project/杰西卡日记v2.apk
+
+================================================================================
+四、从零搭建环境（无缓存时，约 5-10 分钟）
+================================================================================
+
+如果本地 build-env 目录不存在，需要下载：
+
+  ENV="/root/.openclaw/workspace/jessica_project/build-env"
+  mkdir -p "$ENV" && cd "$ENV"
+
+  # 方案 A：从 GitHub Release 下载（推荐，611MB）
+  curl -L "https://github.com/urlien/jessica-build-env/releases/download/v1.0/build-env.tar.gz" -o build-env.tar.gz
+  tar xzf build-env.tar.gz
+  rm build-env.tar.gz
+
+  # 方案 B：从原始源下载（备用）
+  # JDK 17
+  curl -L "https://download.oracle.com/java/17/archive/jdk-17.0.9_linux-x64_bin.tar.gz" -o jdk17.tar.gz
+  mkdir -p jdk17 && tar xzf jdk17.tar.gz -C jdk17 --strip-components=1
+
+  # Gradle 8.4
+  curl -L "https://mirrors.cloud.tencent.com/gradle/gradle-8.4-bin.zip" -o gradle.zip
+  unzip -q gradle.zip
+
+  # Android SDK
+  curl -L "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" -o cmdline.zip
+  mkdir -p android-sdk/cmdline-tools
+  unzip -q cmdline.zip && mv cmdline-tools android-sdk/cmdline-tools/latest
+  export JAVA_HOME="$ENV/jdk17" && export PATH=$JAVA_HOME/bin:$PATH
+  yes | android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root="$ENV/android-sdk" \
+    "platforms;android-34" "build-tools;34.0.0"
+
+================================================================================
+五、Android 项目结构
+================================================================================
+
+build-env/jessica-diary/
+├── settings.gradle
+├── build.gradle
+├── gradle.properties
+└── app/
+    ├── build.gradle
+    └── src/main/
+        ├── AndroidManifest.xml          ← 权限声明
+        ├── assets/
+        │   └── index.html               ← 杰西卡 HTML 页面（从 workspace 复制）
+        ├── java/com/jessica/diary/
+        │   ├── MainActivity.java        ← WebView + 原生通知桥 + WakeLock
+        │   ├── KeepAliveService.java    ← 前台 Service（后台运行）
+        │   └── BootReceiver.java        ← 开机自启
+        └── res/
+            ├── mipmap-*/ic_launcher.png ← APP 图标（棕发兔耳少女）
+            └── values/
+                ├── strings.xml          ← APP 名称："杰西卡"
+                └── styles.xml           ← 全屏主题
+
+================================================================================
+六、已完成的功能修改
+================================================================================
+
+【HTML 修改】(jessica_full.html)
+
+1. 默认头像
+   - 新增 DEFAULT_JESSICA_AVATAR 常量（image1.png 的 base64，120x120 PNG）
+   - applyAvatars() 使用默认头像作为 fallback
+   - 消息渲染中杰西卡头像也使用默认头像
+
+2. 后台运行设置
+   - 设置页新增「后台运行」区块，含开关
+   - JS 实现：WakeLock API + 可见性监听 + 30秒心跳保活
+   - 调用 JessicaBridge.startBackgroundService() 启动 Android 前台 Service
+   - 设置状态保存到 localStorage，重启自动恢复
+
+3. 消息通知设置
+   - 设置页新增「消息通知」区块，含开关
+   - sendSystemNotification() 优先调用 JessicaBridge.sendNotification()（原生通知）
+   - 降级使用 Web Notification API
+   - 杰西卡主动发消息时，页面隐藏则自动发送系统通知
+
+4. 原生桥接
+   - JessicaBridge.sendNotification(title, body) — 弹原生通知
+   - JessicaBridge.startBackgroundService() — 启动前台 Service
+   - JessicaBridge.stopBackgroundService() — 停止前台 Service
+   - JessicaBridge.acquireWakeLock() / releaseWakeLock()
+   - JessicaBridge.isNotificationPermissionGranted()
+
+【Android 原生修改】
+
+1. MainActivity.java
+   - WebView 全屏沉浸模式
+   - JessicaBridge JavaScript 接口
+   - 通知渠道创建（jessica_messages + jessica_background）
+   - Android 13+ 自动请求 POST_NOTIFICATIONS 权限
+   - WebChromeClient.onPermissionRequest() 自动授权
+   - PARTIAL_WAKE_LOCK 防止 CPU 休眠
+
+2. KeepAliveService.java
+   - 前台 Service，状态栏显示"杰西卡在线"
+   - START_STICKY 被杀后自动重启
+
+3. BootReceiver.java
+   - 开机自启（需用户在设置中开启后台运行）
+
+4. AndroidManifest.xml
+   - 权限：INTERNET、WAKE_LOCK、FOREGROUND_SERVICE、POST_NOTIFICATIONS、RECEIVE_BOOT_COMPLETED
+
+5. APP 图标
+   - image1.png（棕发粉瞳兔耳少女抱粉色爱心枕头）
+   - 四种分辨率：mdpi(48)、hdpi(72)、xhdpi(96)、xxhdpi(144)
+
+================================================================================
+七、HTML 版本管理（GitHub 同步）
+================================================================================
+
+每次打包后，HTML 源文件自动同步到 GitHub 仓库，确保：
+  - 版本可追溯（git log 查看每次修改记录）
+  - 换机器可直接拉取继续开发
+  - HTML 与 APK 版本对应
+
+同步流程（build-apk.sh 自动执行）：
+  PROJECT="/root/.openclaw/workspace/jessica_project"
+  cd "$PROJECT"
+
+  # 打包完成后，提交 HTML 到 GitHub
+  git add jessica_full.html
+  git commit -m "build: 更新杰西卡 HTML $(date '+%Y-%m-%d %H:%M')"
+  git push origin main
+
+首次设置远程仓库：
+  cd /root/.openclaw/workspace/jessica_project
+  git init
+  git remote add origin https://github.com/urlien/jessica-build-env.git
+  # 或创建专用的 jessica-diary 仓库存放 HTML
+
+================================================================================
+八、编译注意事项
+================================================================================
+
+1. Kotlin stdlib 版本冲突
+   app/build.gradle 中已强制统一版本：
+   configurations.all {
+       resolutionStrategy {
+           force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'
+           force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'
+           force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'
+       }
+   }
+
+2. settings.gradle 语法
+   使用 dependencyResolutionManagement（不是 dependencyResolution）
+
+3. AGP + Gradle 版本
+   AGP 8.1.4 + Gradle 8.4
+
+4. 编译警告
+   MainActivity.java 有 deprecated API 警告（正常，不影响功能）
+
+================================================================================
+九、后续修改流程
+================================================================================
+
+修改 HTML 后重新打包 + 同步：
+  1. 编辑 jessica_full.html
+  2. 运行 bash build-apk.sh（自动打包 + 自动 commit & push HTML）
+
+修改 Android 原生代码后重新打包：
+  1. 编辑 build-env/jessica-diary/app/src/main/java/.../*.java
+  2. 运行 bash build-apk.sh
+
+修改 APP 图标：
+  1. 替换 build-env/jessica-diary/app/src/main/res/mipmap-*/ic_launcher.png
+  2. 运行 bash build-apk.sh
+
+修改 APP 名称：
+  1. 编辑 build-env/jessica-diary/app/src/main/res/values/strings.xml
+     将 <string name="app_name">杰西卡日记</string> 改为 <string name="app_name">杰西卡</string>
+  2. 运行 bash build-apk.sh
+
+================================================================================
+十、文件清单
+================================================================================
+
+/root/.openclaw/workspace/jessica_project/
+├── jessica_full.html        ← 杰西卡 HTML 页面（主要修改对象）
+├── 杰西卡日记v2.apk          ← 编译输出的 APK
+├── build-apk.sh             ← 一键打包脚本（含 GitHub 同步）
+├── build-env/               ← 编译环境（1.1GB，已持久化）
+│   ├── jdk17/
+│   ├── gradle-8.4/
+│   ├── android-sdk/
+│   └── jessica-diary/
+├── .git/                    ← Git 仓库（HTML 版本管理）
+├── image1.png               ← 头像原图
+├── image2.jpg               ← 通知样式参考图
+├── 对话记录.txt               ← 之前的修改记录
+├── 打包总结.txt               ← 之前的打包总结
+├── 打包指南.txt               ← 本文件
+└── build-env.tar.gz          ← 编译环境压缩包（611MB，可删）
+
+================================================================================
+记录完毕
+================================================================================
