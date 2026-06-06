@@ -33,6 +33,15 @@ fi
 echo "📋 复制 HTML..."
 cp "$HTML" "$ENV/jessica-diary/app/src/main/assets/index.html"
 
+# 确保 APP 名称为"杰西卡"（而不是"杰西卡日记"）
+STRINGS_XML="$ENV/jessica-diary/app/src/main/res/values/strings.xml"
+if [ -f "$STRINGS_XML" ]; then
+    if grep -q '>杰西卡日记<' "$STRINGS_XML"; then
+        echo "📛 修改 APP 名称: 杰西卡日记 → 杰西卡"
+        sed -i 's/>杰西卡日记</>杰西卡</' "$STRINGS_XML"
+    fi
+fi
+
 echo "🔧 设置环境变量..."
 export JAVA_HOME="$ENV/jdk17"
 export PATH="$JAVA_HOME/bin:$PATH"
