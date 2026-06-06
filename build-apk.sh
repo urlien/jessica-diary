@@ -1,5 +1,5 @@
 #!/bin/bash
-# 杰西卡日记 APP 一键打包脚本
+# 杰西卡 APP 一键打包脚本
 # 用法: bash build-apk.sh
 # 功能: 编译 APK + 自动同步 HTML 到 GitHub
 
@@ -8,10 +8,13 @@ set -e
 PROJECT="/root/.openclaw/workspace/jessica_project"
 ENV="$PROJECT/build-env"
 HTML="$PROJECT/jessica_full.html"
-APK_OUT="$PROJECT/杰西卡日记v2.apk"
+
+# 从 build.gradle 读取版本号
+VERSION=$(grep 'versionName' "$ENV/jessica-diary/app/build.gradle" | sed 's/.*"\(.*\)".*/\1/')
+APK_OUT="$PROJECT/杰西卡v${VERSION}.apk"
 
 echo "=========================================="
-echo "  杰西卡日记 APP — 一键打包"
+echo "  杰西卡 APP v${VERSION} — 一键打包"
 echo "=========================================="
 
 # 检查编译环境
@@ -43,14 +46,15 @@ echo "📦 复制 APK..."
 cp app/build/outputs/apk/debug/app-debug.apk "$APK_OUT"
 
 echo "✅ APK 编译完成: $APK_OUT"
+echo "   版本: v${VERSION}"
 
-# 自动同步 HTML 到 GitHub
+# 自动同步到 GitHub
 echo ""
-echo "📤 同步 HTML 到 GitHub..."
+echo "📤 同步到 GitHub..."
 cd "$PROJECT"
 if [ -d ".git" ]; then
     git add jessica_full.html CHANGELOG.md
-    git commit -m "build: 更新杰西卡 HTML $(date '+%Y-%m-%d %H:%M')" 2>/dev/null || true
+    git commit -m "build: v${VERSION} $(date '+%Y-%m-%d %H:%M')" 2>/dev/null || true
     git push origin main 2>/dev/null && echo "✅ 已推送到 GitHub" || echo "⚠️ 推送失败（可能需要认证）"
 else
     echo "⚠️ 未初始化 Git 仓库，跳过同步"

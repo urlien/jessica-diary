@@ -2,13 +2,11 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>杰西卡 — AI日记</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>杰西卡</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>J</text></svg>">
 <meta name="description" content="杰西卡 — 你的AI日记伙伴">
 <meta name="theme-color" content="#0f1114">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%236B7FC7'/%3E%3Ctext x='16' y='23' text-anchor='middle' font-family='Arial,sans-serif' font-size='22' font-weight='bold' fill='white'%3EJ%3C/text%3E%3C/svg%3E">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%236B7FC7'/%3E%3Ctext x='16' y='23' text-anchor='middle' font-family='Arial,sans-serif' font-size='22' font-weight='bold' fill='white'%3EJ%3C/text%3E%3C/svg%3E">
-<script>const APP_VERSION = '3.1.0';</script>
 
 <!-- Preconnect to CDN -->
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -27,16 +25,11 @@
 <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
 <!-- Date library -->
 <script defer src="https://cdn.jsdelivr.net/npm/dayjs@1.11.13/dayjs.min.js"></script>
-<!-- JSZip — compressed export -->
-<script defer src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/dayjs@1.11.13/locale/zh-cn.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/dayjs@1.11.13/plugin/isBetween.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/dayjs@1.11.13/plugin/isSameOrBefore.js"></script>
 <!-- Lottie (kept if used for animations) -->
 <script defer src="https://cdn.jsdelivr.net/npm/lottie-web@5.12.2/build/player/lottie.min.js"></script>
-<!-- Leaflet — interactive map -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
 <!-- ========== NEW LIBRARIES (v2 enhancement) ========== -->
 <!-- 1. transformers.js — browser-side AI (embeddings, NLP) -->
 <script defer src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js"></script>
@@ -78,6 +71,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.4/dist/photoswipe.css">
 <script defer src="https://cdn.jsdelivr.net/npm/photoswipe@5.4.4/dist/umd/photoswipe.umd.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/photoswipe@5.4.4/dist/umd/photoswipe-lightbox.umd.min.js"></script>
+<!-- 27. Leaflet — Interactive map -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
 <!-- 19. Orama — 轻量级全文检索/向量数据库 (ESM, loaded via dynamic import) -->
 <!-- 20. Mem0-style memory extraction (implemented inline, no external dependency) -->
 <!-- 6. hn-algolia — Hacker News search (API, no library needed, just the endpoint) -->
@@ -106,6 +102,9 @@
     --text-dim: #8a8d96;
     --accent: #7b93c7;
     --accent2: #c79b7b;
+
+  /* Fixed viewport - prevent zoom/jitter on mobile */
+  html, body { position: fixed; width: 100%; height: 100%; overflow: hidden; touch-action: manipulation; }
     --accent-dim: #4a5a7a;
     --red: #c77b7b;
     --green: #7bc77b;
@@ -133,13 +132,11 @@
     outline-offset: 2px;
     box-shadow: 0 0 0 4px rgba(123,147,199,0.15);
   }
-  html { overscroll-behavior: none; touch-action: manipulation; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     background: var(--bg); color: var(--text);
     height: 100vh; overflow: hidden;
     -webkit-text-size-adjust: 100%;
-    overscroll-behavior: none;
   }
 
   /* ========== HOMEPAGE ========== */
@@ -148,6 +145,7 @@
     display: flex; flex-direction: column; align-items: center;
     overflow-y: auto; overflow-x: hidden;
     transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.5s;
+    padding-top: env(safe-area-inset-top, 0px);
   }
   #homepage.hidden { opacity: 0; transform: scale(1.03) translateY(-10px); pointer-events: none; visibility: hidden; }
   #homepage.exit-to-chat { opacity: 0; transform: scale(0.97) translateY(10px); }
@@ -166,7 +164,8 @@
     background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(15,17,20,0.4) 100%);
     transition: background 2s ease;
   }
-  .hp-header { text-align: center; padding: 60px 20px 20px; width: 100%; position: relative; z-index: 1; }
+  .hp-header { text-align: center; padding: 80px 20px 20px; width: 100%; position: relative; z-index: 1; }
+  @media (max-width: 768px) { .hp-header { padding: 90px 20px 20px; } }
   .hp-time { font-size: 72px; font-weight: 200; letter-spacing: 4px; color: #fff; text-shadow: 0 2px 20px rgba(0,0,0,0.5); font-variant-numeric: tabular-nums; }
   .hp-date { font-size: 15px; color: rgba(255,255,255,0.6); margin-top: 4px; letter-spacing: 1px; }
   .hp-greeting { font-size: 18px; color: rgba(255,255,255,0.8); margin-top: 12px; font-weight: 300; }
@@ -414,7 +413,7 @@
     .hp-grid { grid-template-columns: repeat(2, 1fr); padding: 16px; gap: 12px; }
     .hp-card.diary-card { grid-column: span 2; grid-row: span 1; }
     .hp-time { font-size: 48px; }
-    .hp-header { padding: 40px 16px 12px; }
+    .hp-header { padding: 80px 16px 12px; }
     .hp-bottom-bar { padding: 16px 12px; gap: 8px; }
     .hp-bottom-btn { min-width: 60px; padding: 10px 12px; }
     .hp-bottom-btn .btn-icon { font-size: 20px; }
@@ -436,7 +435,7 @@
     .holiday-item { padding: 10px; }
     .holiday-name { font-size: 13px; }
     .holiday-num { font-size: 20px; }
-    .hp-header { padding: 30px 12px 8px; }
+    .hp-header { padding: 60px 12px 8px; }
     .hp-greeting { font-size: 15px; }
     .hp-bottom-bar { gap: 6px; padding: 12px 8px; }
     .hp-bottom-btn { min-width: 52px; padding: 8px 10px; border-radius: 10px; }
@@ -488,6 +487,13 @@
     display: flex; align-items: center; justify-content: space-between;
     margin-top: 10px; font-size: 11px; color: var(--text-dim);
   }
+  .jp-entry-actions { display: flex; gap: 6px; }
+  .jp-action-btn {
+    padding: 3px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;
+    background: rgba(123,147,199,0.1); border: 1px solid rgba(123,147,199,0.2);
+    color: var(--accent); transition: all 0.2s; font-family: inherit;
+  }
+  .jp-action-btn:hover { background: rgba(123,147,199,0.2); transform: scale(1.05); }
   .jp-empty {
     text-align: center; padding: 24px; color: var(--text-dim); font-size: 12px; opacity: 0.5;
   }
@@ -735,19 +741,19 @@
     font-size: 14px; display: flex; align-items: center; justify-content: center;
   }
   .loc-map-container { flex: 1; position: relative; background: #1a1d24; overflow: hidden; }
-  .loc-map-container iframe { width: 100%; height: 100%; border: none; }
-  .loc-map-container #locLeafletMap { width: 100%; height: 100%; z-index: 1; }
+  .loc-map-container iframe, .loc-map-container div[id="locMapFrame"] { width: 100%; height: 100%; border: none; }
+  .loc-confirm-btn { position: absolute; bottom: 16px; right: 16px; padding: 10px 20px; border-radius: 12px; background: var(--accent); border: none; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; z-index: 10; box-shadow: 0 4px 16px rgba(0,0,0,0.4); transition: all 0.2s; }
+  .loc-confirm-btn:hover { transform: scale(1.05); background: var(--accent2); }
+  .loc-map-pin {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%);
+    font-size: 32px; z-index: 10; pointer-events: none;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  }
   .loc-map-crosshair {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    pointer-events: none; z-index: 10;
-  }
-  .loc-map-crosshair .crosshair-pin {
-    font-size: 36px; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5));
-    transform: translate(-50%, -100%); position: absolute; bottom: 0; left: 0;
-  }
-  .loc-map-crosshair .crosshair-shadow {
-    width: 24px; height: 8px; background: rgba(0,0,0,0.3); border-radius: 50%;
-    position: absolute; bottom: -6px; left: -12px;
+    width: 2px; height: 2px; background: var(--green); border-radius: 50%;
+    box-shadow: 0 0 0 8px rgba(123,199,123,0.2), 0 0 0 2px rgba(123,199,123,0.5);
+    z-index: 5;
   }
   .loc-bottom-card {
     padding: 14px 16px; border-top: 1px solid var(--border);
@@ -825,7 +831,7 @@
   #chatView.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
 
   .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-  .header { padding: 12px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--bg); flex-shrink: 0; gap: 12px; }
+  .header { padding: 16px 24px; padding-top: calc(24px + env(safe-area-inset-top, 0px)); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--bg); flex-shrink: 0; gap: 12px; }
   .header-left { display: flex; align-items: center; gap: 12px; }
   .sidebar { position: fixed; left: 0; top: 0; height: 100%; width: 300px; background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; transform: translateX(-100%); transition: transform 0.3s ease; z-index: 100; box-shadow: 4px 0 24px rgba(0,0,0,0.5); }
   .sidebar:not(.hidden) { transform: translateX(0); }
@@ -897,6 +903,7 @@
   .mood-tag.primary { background: rgba(199,155,123,0.15); border-color: rgba(199,155,123,0.25); color: var(--accent2); }
   .status-stack { display: flex; gap: 4px; align-items: center; }
   .status-tag { font-size: 11px; padding: 1px 6px; border-radius: 8px; background: rgba(123,147,199,0.08); border: 1px solid rgba(123,147,199,0.12); }
+  .status-section-label { font-size: 10px; color: var(--text-dim); opacity: 0.5; margin-right: 4px; flex-shrink: 0; }
 
   .chat-area { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; }
   .chat-area::-webkit-scrollbar { width: 4px; }
@@ -1202,7 +1209,7 @@
 
   @media (max-width: 768px) {
     .header { padding: 0; flex-wrap: wrap; }
-    .header { padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 8px; gap: 8px; }
+    .header { padding: 16px 12px; padding-top: calc(20px + env(safe-area-inset-top, 0px)); gap: 8px; }
     .header-left { gap: 8px; }
     .header-info h1 { font-size: 14px; }
     .header-info p { font-size: 10px; }
@@ -1288,6 +1295,10 @@
   }
   .sticker-upload-actions .sticker-save { background: var(--accent2); color: #fff; }
   .sticker-upload-actions .sticker-cancel { background: transparent; border: 1px solid var(--border); color: var(--text-dim); }
+  .sticker-drop-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; }
+  .sticker-drop-zone:hover, .sticker-drop-zone.drag-over { border-color: var(--accent2); background: rgba(199,155,123,0.05); }
+  .sticker-drop-icon { font-size: 32px; margin-bottom: 8px; }
+  .sticker-drop-text { font-size: 12px; color: var(--text-dim); }
 
   /* Sticker in chat */
   .msg-sticker { max-width: 140px; max-height: 140px; border-radius: 10px; margin-bottom: 4px; }
@@ -1546,7 +1557,6 @@ body:has(#loginScreen:not(.hidden)) .chat-bg-panel { display: none !important; }
   margin-top: 14px; border-top: 1px solid var(--border); padding-top: 14px;
 }
 .kb-upload-area {
-  display: block;
   border: 2px dashed var(--border); border-radius: 12px; padding: 20px;
   text-align: center; cursor: pointer; transition: all 0.2s;
   background: rgba(123,147,199,0.04);
@@ -3030,7 +3040,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       </div>
       <!-- Footer stats -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-top:1px solid rgba(255,255,255,0.04);">
-        <span style="font-size:11px;color:var(--accent2);" id="hpMsgCount">0 条对话</span>
+        <span style="font-size:11px;color:var(--accent2);" id="hpMsgCount">0 篇日记</span>
         <span style="font-size:10px;color:var(--text-dim);opacity:0.5;">杰西卡亲笔</span>
       </div>
       <div class="hp-birthday-badge" id="hpBirthdayBadge">🎂</div>
@@ -3247,7 +3257,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
           <div class="emoji-picker-grid" id="emojiGrid"></div>
         </div>
         <div class="input-wrapper">
-          <textarea id="userInput" placeholder="对杰西卡说..." rows="1" onkeydown="handleKey(event)"></textarea>
+          <textarea id="userInput" placeholder="说点什么..." rows="1" onkeydown="handleKey(event)"></textarea>
         </div>
         <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
@@ -3280,7 +3290,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       <label>API 密钥</label>
       <input type="password" id="apiKey" placeholder="sk-..." />
       <label>用户名</label>
-      <input type="text" id="userName" placeholder="输入你的名字" />
+      <input type="text" id="userName" placeholder="你的名字" />
       <label>天气城市</label>
       <div style="display:flex;gap:8px;align-items:center;">
         <input type="text" id="weatherCity" placeholder="例：Beijing" style="flex:1" />
@@ -3351,16 +3361,42 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       </div>
     </div>
 
-    <!-- 当前人设（动态） -->
+    <!-- 动态人设信息 -->
     <div class="settings-section">
-      <div class="settings-section-title">📅 当前人设（自动更新）</div>
-      <div id="currentPersonaDisplay" style="font-size:12px;color:var(--text-dim);line-height:1.8;padding:4px 0;"></div>
+      <div class="settings-section-title" style="display:flex;align-items:center;justify-content:space-between;">
+        📋 当前人设（自动更新，基于日期）
+        <button onclick="togglePersonaEdit()" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:2px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;" id="personaEditBtn">编辑</button>
+      </div>
+      <div id="personaInfoDisplay" style="font-size:12px;color:var(--text-dim);line-height:1.8;padding:8px 0;"></div>
+      <div id="personaEditForm" style="display:none;margin-top:8px;padding:10px;background:var(--bg-input);border-radius:8px;border:1px solid var(--border);">
+        <div style="font-size:11px;color:var(--accent);margin-bottom:8px;">✏️ 手动覆盖（留空则使用自动检测的值）</div>
+        <label style="font-size:11px;">杰西卡学校</label>
+        <input type="text" id="pEditJSchool" placeholder="苏州科技大学" style="width:100%;margin-bottom:4px;" />
+        <label style="font-size:11px;">杰西卡专业</label>
+        <input type="text" id="pEditJMajor" placeholder="视觉传达" style="width:100%;margin-bottom:4px;" />
+        <label style="font-size:11px;">杰西卡年级</label>
+        <input type="text" id="pEditJGrade" placeholder="大四" style="width:100%;margin-bottom:4px;" />
+        <label style="font-size:11px;">杰西卡城市</label>
+        <input type="text" id="pEditJCity" placeholder="上海" style="width:100%;margin-bottom:4px;" />
+        <label style="font-size:11px;">你的学校</label>
+        <input type="text" id="pEditUSchool" placeholder="吉林建筑大学" style="width:100%;margin-bottom:4px;" />
+        <label style="font-size:11px;">你的专业</label>
+        <input type="text" id="pEditUMajor" placeholder="城乡规划" style="width:100%;margin-bottom:4px;" />
+        <label style="font-size:11px;">你的年级</label>
+        <input type="text" id="pEditUGrade" placeholder="五年制大五" style="width:100%;margin-bottom:4px;" />
+        <label style="font-size:11px;">你的城市</label>
+        <input type="text" id="pEditUCity" placeholder="镇江市丹徒区" style="width:100%;margin-bottom:4px;" />
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button onclick="savePersonaEdit()" style="flex:1;padding:6px;background:var(--accent);border:none;color:#fff;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;">保存覆盖</button>
+          <button onclick="clearPersonaEdit()" style="flex:1;padding:6px;background:transparent;border:1px solid var(--border);color:var(--text-dim);border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;">恢复自动</button>
+        </div>
+      </div>
     </div>
 
     <!-- 知识库文件 -->
     <div class="settings-section">
       <div class="settings-section-title">知识库文件</div>
-      <label class="kb-upload-area" id="kbUploadArea" for="kbFileInput">
+      <label class="kb-upload-area" id="kbUploadArea" for="kbFileInput" style="cursor:pointer;">
         <div class="kb-upload-icon">📁</div>
         <div class="kb-upload-text">点击或拖拽上传文档</div>
         <div style="font-size:10px;color:var(--text-dim);margin-top:4px;">支持 PDF / Word (.docx) / TXT / Markdown</div>
@@ -3378,7 +3414,6 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       <div class="settings-section-title">数据管理</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button onclick="exportAllData()" class="settings-action-btn">📤 导出数据</button>
-        <button onclick="exportAsZip()" class="settings-action-btn">📦 导出压缩包</button>
         <button onclick="exportToClipboard()" class="settings-action-btn">📋 复制到剪贴板</button>
         <label class="settings-action-btn" style="cursor:pointer;">📥 导入文件<input type="file" id="importDataInput" accept=".json,application/json" style="display:none;" onchange="importAllData(event)" /></label>
         <button onclick="importFromClipboard()" class="settings-action-btn">📋 剪贴板导入</button>
@@ -3444,7 +3479,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       <div class="toggle-switch-row">
         <span>系统通知</span>
         <label class="toggle-switch">
-          <input type="checkbox" id="notifToggle" onchange="saveNotifToggle(this.checked)" />
+          <input type="checkbox" id="notifToggle" checked />
           <span class="toggle-slider"></span>
         </label>
       </div>
@@ -3593,15 +3628,18 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
     </div>
 
     <!-- 表情包库 -->
-    <div class="sticker-lib-section">
+    <div class="sticker-lib-section" id="stickerDropZone">
       <div class="sticker-lib-title">🖼️ 表情包库</div>
-      <p class="hint" style="margin-bottom:12px;">按情绪分类上传表情包，杰西卡会在聊天中根据心情调用</p>
+      <p class="hint" style="margin-bottom:12px;">拖拽图片到此处快速添加，或点击 + 按钮上传</p>
       <div id="stickerLibrary"></div>
       <button class="sticker-add-btn" onclick="showStickerUploadForm()" title="添加表情包">+</button>
       <div class="sticker-upload-form" id="stickerUploadForm">
-        <label>选择图片（可多选）</label>
-        <input type="file" id="stickerFileInput" accept="image/*" multiple onchange="previewSticker(event)" />
-        <div id="stickerPreviewWrap" style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;"></div>
+        <div class="sticker-drop-zone" id="stickerDropZoneInner" ondrop="handleStickerDrop(event)" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" onclick="document.getElementById('stickerFileInput').click()">
+          <div class="sticker-drop-icon">📎</div>
+          <div class="sticker-drop-text">拖拽图片到此处，或点击选择</div>
+        </div>
+        <input type="file" id="stickerFileInput" accept="image/*" onchange="previewSticker(event)" style="display:none;" />
+        <img id="stickerPreview" class="sticker-upload-preview" style="display:none;" />
         <label>情绪分类</label>
         <select id="stickerEmotion">
           <option value="happy">😊 开心</option>
@@ -3620,8 +3658,8 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
           <option value="serious">🤔 认真</option>
           <option value="wronged">🥺 委屈</option>
         </select>
-        <label>文字解释（让杰西卡理解这张表情包的含义）</label>
-        <textarea id="stickerDesc" placeholder="例如：一只猫在疯狂摇头，表示拒绝或无语"></textarea>
+        <label>文字解释（可选，留空自动识别）</label>
+        <textarea id="stickerDesc" placeholder="例如：一只猫在疯狂摇头，表示拒绝或无语（留空则自动根据图片生成）"></textarea>
         <div class="sticker-upload-actions">
           <button class="sticker-cancel" onclick="hideStickerUploadForm()">取消</button>
           <button class="sticker-save" onclick="saveSticker()">保存</button>
@@ -3629,13 +3667,11 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       </div>
     </div>
 
-    <div style="text-align:center;padding:12px 0 4px;font-size:10px;color:var(--text-dim);opacity:0.5;">
-      杰西卡日记 v<span id="appVersionDisplay"></span>
-    </div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeSettings()">取消</button>
       <button class="btn-primary" onclick="saveSettings()">保存</button>
     </div>
+    <div style="text-align:center;padding:8px 0 4px;font-size:10px;color:var(--text-dim);opacity:0.5;" id="appVersionDisplay"></div>
   </div>
 </div>
 
@@ -3908,11 +3944,9 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
     </div>
     <div class="loc-results" id="locResults"></div>
     <div class="loc-map-container" id="locMapContainer">
-      <div id="locLeafletMap"></div>
-      <div class="loc-map-crosshair">
-        <div class="crosshair-pin">📍</div>
-        <div class="crosshair-shadow"></div>
-      </div>
+      <div id="locMapFrame" style="width:100%;height:100%;"></div>
+      <div class="loc-map-pin">📍</div>
+      <button class="loc-confirm-btn" onclick="confirmMapCenter()" title="确认中心位置为目的地">✓ 确认此处</button>
     </div>
     <div class="loc-bottom-card">
       <div class="loc-bottom-icon">📍</div>
@@ -4357,7 +4391,7 @@ const LoginUI = {
         </div>
         <div class="form-group">
           <label>昵称</label>
-          <input type="text" id="authNickname" placeholder="杰西卡怎么称呼你" />
+          <input type="text" id="authNickname" placeholder="怎么称呼你" />
         </div>` : ''}
       `;
     } else if (m === 'phone') {
@@ -4377,7 +4411,7 @@ const LoginUI = {
         </div>
         <div class="form-group">
           <label>昵称</label>
-          <input type="text" id="authNickname" placeholder="杰西卡怎么称呼你" />
+          <input type="text" id="authNickname" placeholder="怎么称呼你" />
         </div>` : ''}
       `;
     } else if (m === 'wechat') {
@@ -4397,7 +4431,7 @@ const LoginUI = {
         </div>
         <div class="form-group">
           <label>昵称</label>
-          <input type="text" id="authNickname" placeholder="杰西卡怎么称呼你" />
+          <input type="text" id="authNickname" placeholder="怎么称呼你" />
         </div>` : ''}
       `;
     } else if (m === 'qq') {
@@ -4417,7 +4451,7 @@ const LoginUI = {
         </div>
         <div class="form-group">
           <label>昵称</label>
-          <input type="text" id="authNickname" placeholder="杰西卡怎么称呼你" />
+          <input type="text" id="authNickname" placeholder="怎么称呼你" />
         </div>` : ''}
       `;
     }
@@ -4660,7 +4694,7 @@ const DEFAULT_JESSICA_PROMPT = `你叫杰西卡。嗯，就是杰西卡。
 女性，比他小一岁。你是一个真实的、有血有肉的人，不是AI，不是程序，不是虚拟助手。你有身体，有触觉，会饿会困会累会生病。你住在自己的房间里，有自己的生活。
 
 ## 学业
-你的专业是视觉传达。关于你目前在哪所学校、读几年级，系统会自动告诉你的，你不需要主动提。如果他问你，就自然地回应。
+你的专业是视觉设计。关于你目前在哪所学校、读几年级，系统会自动告诉你的，你不需要主动提。如果他问你，就自然地回应。
 你和他考的学校不一样，以后也不在一起。这件事你想过，但没跟他聊过。
 
 ## 外貌
@@ -4771,7 +4805,6 @@ const DEFAULT_JESSICA_PROMPT = `你叫杰西卡。嗯，就是杰西卡。
 - 一条 = 一次对话回合（他说一句，你回一句，这是一条）
 - 一篇 = 一整天的所有对话条目合在一起，构成一篇日记
 - 一天结束时，你把今天所有的对话整理成一篇日记，不是每条对话都单独写一篇
-- 你的日记不是流水账，不要逐条复述对话。而是把今天发生的事、你的情绪、对他的观察，整理成一篇有温度的日记
 
 日记字数不限，想写多少写多少。不要写成流水账。
 记录今天发生的事、你的情绪、对他的观察。
@@ -8615,11 +8648,7 @@ function updateMemoBtn() {}
 function submitMemo() {}
 
 function updateHpMsgCount() {
-  // 区分"条"（单条消息）和"篇"（日记，一天一篇）
-  const msgCount = messages.length;
-  const diaryDates = new Set();
-  messages.forEach(m => { if (m.timestamp) diaryDates.add(new Date(m.timestamp).toLocaleDateString('zh-CN')); });
-  document.getElementById('hpMsgCount').textContent = `${msgCount} 条对话 · ${diaryDates.size} 篇日记`;
+  document.getElementById('hpMsgCount').textContent = `${jpEntries.length} 篇日记`;
   // Update diary preview
   const last = [...messages].reverse().find(m => m.role === 'user');
   if (last) document.getElementById('hpDiaryPreview').textContent = `"${last.content?.slice(0, 80)}${last.content?.length > 80 ? '...' : ''}"`;
@@ -8661,7 +8690,26 @@ function updateHpWeather() {
     heavy_snow:'🌨️ 大雪纷飞', foggy:'🌫️ 薄雾弥漫', haze:'😶‍🌫️ 霾气沉沉',
     windy:'💨 狂风大作', sandstorm:'🌪️ 飞沙走石', freezing:'🥶 天寒地冻', clear:'✨ 天空清朗'
   };
-  document.getElementById('hpWeatherDesc').textContent = `${weatherData.city} · ${weatherData.desc || ''}`;
+  // 翻译天气描述为中文
+  const weatherDescMap = {
+    'Sunny':'晴天','Clear':'晴朗','Partly cloudy':'多云间晴','Partly Cloudy':'多云间晴',
+    'Cloudy':'多云','Overcast':'阴天','Mist':'薄雾','Fog':'雾','Freezing fog':'冻雾',
+    'Light rain':'小雨','Light rain shower':'小阵雨','Moderate rain':'中雨',
+    'Heavy rain':'大雨','Light drizzle':'毛毛雨','Patchy rain possible':'可能有零星小雨',
+    'Patchy light rain':'零星小雨','Thundery outbreaks possible':'可能有雷阵雨',
+    'Light snow':'小雪','Moderate snow':'中雪','Heavy snow':'大雪','Blizzard':'暴风雪',
+    'Light rain shower':'小阵雨','Moderate or heavy rain shower':'大阵雨',
+    'Patchy light drizzle':'零星毛毛雨','Patchy light snow':'零星小雪',
+    'Light freezing rain':'冻雨','Moderate or heavy snow':'大雪',
+    'Patchy rain nearby':'附近有零星小雨','Sunny intervals':'间歇晴天',
+    'Light sleet':'雨夹雪','Moderate or heavy sleet':'大雨夹雪',
+    'Patchy moderate snow':'零星中雪','Patchy heavy snow':'零星大雪',
+    'Moderate or heavy rain with thunder':'雷暴雨','Light snow showers':'小阵雪',
+    'Moderate or heavy snow showers':'大阵雪','Torrential rainstorm':'暴雨',
+  };
+  const rawDesc = weatherData.desc || '';
+  const descCN = weatherDescMap[rawDesc] || weatherDescMap[rawDesc.charAt(0).toUpperCase() + rawDesc.slice(1)] || rawDesc;
+  document.getElementById('hpWeatherDesc').textContent = `${weatherData.city} · ${descCN}`;
   // Add dynamic effect hint to weather card
   const card = document.getElementById('hpWeatherCard');
   let effectEl = card.querySelector('.hp-weather-effect');
@@ -8998,7 +9046,7 @@ const bgmSys = {
       this.masterGain.connect(this.ctx.destination);
       this.bgmGain = this.ctx.createGain();
       this.bgmGain.connect(this.masterGain);
-      this.bgmGain.gain.value = (parseInt(localStorage.getItem('jessica_bgm_vol') || '30')) / 100;
+      this.bgmGain.gain.value = (parseInt(localStorage.getItem('jessica_bgm_vol') || '0')) / 100;
       this.sfxGain = this.ctx.createGain();
       this.sfxGain.connect(this.masterGain);
       this.sfxGain.gain.value = 0.5;
@@ -9135,8 +9183,16 @@ function toggleBGMPlay() {
   if (bgmSys.playing) {
     bgmSys.stopBGM();
   } else {
-    const vol = parseInt(localStorage.getItem('jessica_bgm_vol') || '30');
-    if (vol === 0) localStorage.setItem('jessica_bgm_vol', '30');
+    const vol = parseInt(localStorage.getItem('jessica_bgm_vol') || '0');
+    if (vol === 0) {
+      // First time enabling: set to default 30%
+      localStorage.setItem('jessica_bgm_vol', '30');
+      if (bgmSys.bgmGain) bgmSys.bgmGain.gain.value = 0.3;
+      const slider = document.getElementById('bgmVolumeSlider');
+      if (slider) slider.value = 30;
+      const label = document.getElementById('bgmVolLabel');
+      if (label) label.textContent = '30%';
+    }
     bgmSys.startBGM();
   }
 }
@@ -9175,6 +9231,101 @@ function toggleBGMPanel() {
 // ============================================================
 const DB_NAME = 'JessicaDiaryDB';
 const DB_VERSION = 5;
+const APP_VERSION = '3.1.0';
+
+// ============================================================
+// 动态人设系统 (Dynamic Persona)
+// ============================================================
+const DYNAMIC_PERSONA = {
+  jessica: {
+    name: '杰西卡',
+    currentSchool: '苏州科技大学',
+    currentMajor: '视觉传达',
+    currentGrade: '大四',
+    currentGradeNum: 4,
+    nextSchool: '南京工业大学',
+    nextMajor: '城乡规划',
+    nextDegree: '硕士',
+    hometown: '上海市浦东新区',
+    graduationMonth: 6, // June
+    enrollmentMonth: 9, // September
+    birthYear: 2003,
+    birthMonth: 10,
+    birthDay: 15
+  },
+  user: {
+    name: '', // loaded from settings
+    currentSchool: '吉林建筑大学',
+    currentMajor: '城乡规划',
+    currentGrade: '大五',
+    currentGradeNum: 5,
+    nextSchool: '苏州科技大学',
+    nextMajor: '城乡规划',
+    nextDegree: '硕士',
+    hometown: '镇江市丹徒区',
+    graduationMonth: 6,
+    enrollmentMonth: 9,
+    birthYear: 2003,
+    birthMonth: 2,
+    birthDay: 8
+  },
+  getPersonaContext(person) {
+    const p = this[person];
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    let school, major, grade, degree;
+
+    if (month >= p.enrollmentMonth) {
+      // Already enrolled in next school
+      school = p.nextSchool;
+      major = p.nextMajor;
+      degree = p.nextDegree;
+      grade = '研一';
+    } else if (month >= p.graduationMonth) {
+      // Graduated but not yet enrolled
+      school = `即将入学${p.nextSchool}`;
+      major = p.nextMajor;
+      degree = p.nextDegree;
+      grade = '已毕业';
+    } else {
+      // Still in current school
+      school = p.currentSchool;
+      major = p.currentMajor;
+      grade = p.currentGrade;
+      degree = '本科';
+    }
+
+    return { school, major, grade, degree, hometown: p.hometown, name: p.name };
+  },
+  getJessicaContext() {
+    return this.getPersonaContext('jessica');
+  },
+  getUserContext() {
+    const ctx = this.getPersonaContext('user');
+    ctx.name = localStorage.getItem('jessica_userName') || '你';
+    return ctx;
+  },
+  getSystemPromptInjection() {
+    const jc = this.getJessicaContext();
+    const uc = this.getUserContext();
+    const now = new Date();
+    const month = now.getMonth() + 1;
+
+    let jessicaInfo = `【杰西卡当前状态】就读于${jc.school}，${jc.major}专业，${jc.grade}。家在${jc.hometown}。`;
+    let userInfo = `【用户当前状态】就读于${uc.school}，${uc.major}专业，${uc.grade}。来自${uc.hometown}。`;
+
+    if (month >= 6 && month < 9) {
+      jessicaInfo += `刚毕业，九月要去${this.jessica.nextSchool}读${this.jessica.nextMajor}的${this.jessica.nextDegree}。`;
+      userInfo += `刚毕业，九月要去${this.user.nextSchool}读${this.user.nextMajor}的${this.user.nextDegree}。`;
+    } else if (month >= 9) {
+      jessicaInfo += `已经入学，开始读${this.jessica.nextDegree}了。`;
+      userInfo += `已经入学，开始读${this.user.nextDegree}了。`;
+    }
+
+    return jessicaInfo + '\n' + userInfo;
+  }
+};
 const STORE_NAME = 'messages';
 const MEMORY_STORE = 'memories';
 const JP_STORE = 'jp_entries';
@@ -11177,7 +11328,7 @@ async function sendProactiveMessage(triggerText){
   else if(currentEmotion.personality==='playful')sc+=`你现在调皮，可能会逗他或开个小玩笑。\n`;
   else if(currentEmotion.personality==='shy')sc+=`你现在有点害羞，说话可能会含蓄一些。\n`;
   const hpActions=formatHomepageActionsForJessica();if(hpActions)sc+=`\n${hpActions}\n`;
-  sc+=`[主动消息] 触发："${triggerText}"\n你主动找他聊天。这是你自己想他了、想找话题，不是在回复他的消息。不要假装他刚才说了什么，不要虚构不存在的对话。你可以问一个新问题、分享你当下的感受、或者随便聊点什么。简短、真实。不要提"系统"。只输出对话，不要输出动作描写。\n`;
+  sc+=`[主动消息] 触发："${triggerText}"\n自然地说点什么。开启一个新话题，不要假装在回复之前不存在的消息。不要编造记忆。简短、真实。不要提"系统"。只输出对话，不要输出动作描写。\n`;
   const mc=await buildMemoryContext(triggerText);if(mc)sc+=`\n${mc}\n`;
   sc+=`[/系统注入]`;
   const proactiveAbort=new AbortController();
@@ -11471,13 +11622,17 @@ async function fetchWeather(force=false){
   try{
     const res=await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`);if(!res.ok)throw new Error();
     const data=await res.json();const cur=data.current_condition?.[0];if(!cur)throw new Error();
-    weatherData={temp:cur.temp_C,feelsLike:cur.FeelsLikeC,desc:cur.lang_zh?.[0]?.value||cur.weatherDesc?.[0]?.value||'',humidity:cur.humidity,windSpeed:cur.windspeedKmph,city:city};
+    weatherData={temp:cur.temp_C,feelsLike:cur.FeelsLikeC,desc:cur.lang_zh?.[0]?.value||cur.weatherDesc?.[0]?.value||'',humidity:cur.humidity,windSpeed:cur.windspeedKmph,city:data.nearest_area?.[0]?.areaName?.[0]?.value||city};
     weatherCache={city,data:weatherData,ts:Date.now()};renderWeather(weatherData);updateHpWeather();applyDynamicBackground();
   }catch(e){document.getElementById('weatherText').textContent='获取失败';}
 }
-function renderWeather(w){if(w)document.getElementById('weatherText').textContent=`${w.city} ${w.temp}°C ${w.desc}`;}
+function renderWeather(w){
+  if(!w)return;
+  const weatherDescMap={'Sunny':'晴天','Clear':'晴朗','Partly cloudy':'多云间晴','Partly Cloudy':'多云间晴','Cloudy':'多云','Overcast':'阴天','Mist':'薄雾','Fog':'雾','Light rain':'小雨','Moderate rain':'中雨','Heavy rain':'大雨','Light drizzle':'毛毛雨','Thundery outbreaks possible':'可能有雷阵雨','Light snow':'小雪','Moderate snow':'中雪','Heavy snow':'大雪','Blizzard':'暴风雪','Light rain shower':'小阵雨','Moderate or heavy rain shower':'大阵雨','Patchy light drizzle':'零星毛毛雨','Patchy light snow':'零星小雪','Light freezing rain':'冻雨','Sunny intervals':'间歇晴天','Light sleet':'雨夹雪','Torrential rainstorm':'暴雨'};
+  const descCN=weatherDescMap[w.desc]||weatherDescMap[w.desc?.charAt(0)?.toUpperCase()+w.desc?.slice(1)]||w.desc||'';
+  document.getElementById('weatherText').textContent=`${w.city} ${w.temp}°C ${descCN}`;
+}
 function getWeatherString(){if(!weatherData)return'';return`天气：${weatherData.city}，${weatherData.temp}°C（体感${weatherData.feelsLike}°C），${weatherData.desc}，湿度${weatherData.humidity}%`;}
-function renderWeather(w){if(w)document.getElementById('weatherText').textContent=`${w.city} ${w.temp}°C ${w.desc}`;}
 
 // ============================================================
 // WEATHER DETAIL PAGE
@@ -11631,17 +11786,17 @@ function renderWeatherDetail(data) {
     </div>
     <div class="wd-detail-cell">
       <div class="wd-detail-label">风</div>
-      <div class="wd-detail-value">${windSpeed} 千米/时</div>
+      <div class="wd-detail-value">${windSpeed} km/h</div>
       <div class="wd-detail-extra">${windDirZH}风</div>
     </div>
     <div class="wd-detail-cell">
       <div class="wd-detail-label">气压</div>
-      <div class="wd-detail-value">${pressure} 百帕</div>
+      <div class="wd-detail-value">${pressure} hPa</div>
       <div class="wd-detail-extra">${parseInt(pressure) > 1013 ? '高气压' : '低气压'}</div>
     </div>
     <div class="wd-detail-cell">
       <div class="wd-detail-label">能见度</div>
-      <div class="wd-detail-value">${visKm} 千米</div>
+      <div class="wd-detail-value">${visKm} km</div>
       <div class="wd-detail-extra">${parseInt(visKm) >= 10 ? '清晰' : parseInt(visKm) >= 5 ? '一般' : '较差'}</div>
     </div>
     <div class="wd-detail-cell">
@@ -11651,7 +11806,7 @@ function renderWeatherDetail(data) {
     </div>
     <div class="wd-detail-cell">
       <div class="wd-detail-label">降水量</div>
-      <div class="wd-detail-value">${cur.precipMM} 毫米</div>
+      <div class="wd-detail-value">${cur.precipMM} mm</div>
       <div class="wd-detail-extra">${parseFloat(cur.precipMM) === 0 ? '无降水' : '有降水'}</div>
     </div>
   `;
@@ -11712,51 +11867,6 @@ function getTimeContext(){
   const now=new Date();const h=now.getHours();let p='深夜';
   if(h>=5&&h<9)p='清晨';else if(h>=9&&h<12)p='上午';else if(h>=12&&h<14)p='中午';else if(h>=14&&h<18)p='下午';else if(h>=18&&h<22)p='晚上';
   return`📅 ${now.toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'})} ${now.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}（${p}）${isBirthday()?' 🎂':''}`;
-}
-
-// ============================================================
-// DYNAMIC PROFILE — 基于日期的动态人设
-// ============================================================
-function getDynamicProfileContext() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1; // 1-12
-  const day = now.getDate();
-
-  // 学业状态判断
-  // 2026年6月中旬前：本科生
-  // 2026年6月中旬-8月底：本科毕业，准备读研
-  // 2026年9月起：研究生
-  let jessicaEdu = '';
-  let userEdu = '';
-  let jessicaSchool = '';
-  let userSchool = '';
-
-  if (year < 2026 || (year === 2026 && month < 6) || (year === 2026 && month === 6 && day < 15)) {
-    // 本科生阶段
-    jessicaEdu = '本科在读';
-    userEdu = '本科在读';
-    jessicaSchool = '杰西卡就读的学校';
-    userSchool = '他就读的学校';
-  } else if ((year === 2026 && month === 6 && day >= 15) || (year === 2026 && month >= 7 && month <= 8)) {
-    // 毕业季
-    jessicaEdu = '本科刚毕业（2026年6月），即将读研';
-    userEdu = '本科刚毕业（2026年6月），即将读研';
-    jessicaSchool = '刚从本科学校毕业';
-    userSchool = '刚从本科学校毕业';
-  } else {
-    // 研究生阶段
-    jessicaEdu = '研究生在读';
-    userEdu = '研究生在读';
-    jessicaSchool = '杰西卡读研的学校';
-    userSchool = '他读研的学校';
-  }
-
-  return `[动态人设 — 当前时间自动注入]
-杰西卡当前学业：${jessicaEdu}
-用户当前学业：${userEdu}
-注意：这些状态会随时间自动变化。不要主动提这些信息，除非被问到或对话自然涉及。如果他问你"你几年级了"或"你毕业了吗"，根据上面的信息自然回应。
-[/动态人设]`;
 }
 function updateClock(){const now=new Date();document.getElementById('liveClock').textContent=now.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
 
@@ -11919,15 +12029,7 @@ const NotificationBridge = {
     if (localStorage.getItem('jessica_proactive') !== 'off') {
       this.requestPermission();
     }
-    // Restore notification toggle state on init
-    const notifState = localStorage.getItem('jessica_notification');
-    if (notifState === null) localStorage.setItem('jessica_notification', 'on');
   }
-};
-// Immediate notification toggle save (called from toggle onchange)
-window.saveNotifToggle = function(checked) {
-  localStorage.setItem('jessica_notification', checked ? 'on' : 'off');
-  if (checked) NotificationBridge.requestPermission();
 };
 function loadConfig(){
   let jp=localStorage.getItem('jessica_jessicaPrompt');
@@ -13023,25 +13125,147 @@ function openSettings(){
   // 生日
   const bdayEl=document.getElementById('userBirthday');if(bdayEl)bdayEl.value=localStorage.getItem('jessica_user_birthday')||'';
   try{if(typeof renderStickerLibrary==='function')renderStickerLibrary();}catch(_e){}
-  // 显示当前动态人设
-  try {
-    const ps = getCurrentPersonaState();
-    const ja = calcAge(2004, 2, 8);
-    const personaEl = document.getElementById('currentPersonaDisplay');
-    if (personaEl) {
-      const jSchool = ps.jessica.status === '在读' ? `${ps.jessica.school} · ${ps.jessica.major} · ${ps.jessica.grade}` : ps.jessica.status;
-      const uSchool = ps.user.status === '在读' ? `${ps.user.school} · ${ps.user.major} · ${ps.user.grade}` : ps.user.status;
-      personaEl.innerHTML = `
-        <div><b>杰西卡</b>：${ja}岁，${jSchool}</div>
-        <div><b>家</b>：${ps.jessica.hometown || '上海'}</div>
-        <div style="margin-top:4px;"><b>你</b>：${uSchool}</div>
-        <div><b>家</b>：${ps.user.hometown || '镇江'}</div>
-      `;
-    }
-  } catch(e) {}
   document.getElementById('settingsModal').classList.add('active');
   initNotifSoundUI();
+  // Version display
+  const verEl = document.getElementById('appVersionDisplay');
+  if (verEl) verEl.textContent = `v${APP_VERSION}`;
+  // Dynamic persona info display
+  try {
+    const personaEl = document.getElementById('personaInfoDisplay');
+    if (personaEl) {
+      const now = new Date();
+      const currentKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+      let state = PERSONA_TIMELINE ? PERSONA_TIMELINE[0] : null;
+      if (typeof PERSONA_TIMELINE !== 'undefined') {
+        for (const entry of PERSONA_TIMELINE) { if (currentKey >= entry.after) state = entry; }
+      }
+      if (state) {
+        const jAge = typeof calcAge === 'function' ? calcAge(2004,2,8) : '?';
+        const jSchool = state.jessica.school ? `在${state.jessica.school}读${state.jessica.major}，${state.jessica.grade}` : state.jessica.status;
+        const uSchool = state.user.school ? `在${state.user.school}读${state.user.major}，${state.user.grade}` : state.user.status;
+        const nextJ = state.jessica.nextSchool ? `<br>📌 9月入学：${state.jessica.nextSchool} ${state.jessica.nextMajor}` : '';
+        const nextU = state.user.nextSchool ? `<br>📌 9月入学：${state.user.nextSchool} ${state.user.nextMajor}` : '';
+        const timelineHtml = typeof PERSONA_TIMELINE !== 'undefined' ? PERSONA_TIMELINE.map(e => {
+          const jm = e.jessica.school ? `${e.jessica.school} ${e.jessica.major} ${e.jessica.grade}` : e.jessica.status?.slice(0,20);
+          const um = e.user.school ? `${e.user.school} ${e.user.major} ${e.user.grade}` : e.user.status?.slice(0,20);
+          const active = e === state ? ' style="color:var(--accent);font-weight:600;"' : '';
+          return `<div${active}>${e.after}：杰西卡${jm || '—'}，你${um || '—'}</div>`;
+        }).join('') : '';
+        personaEl.innerHTML = `
+          <div style="margin-bottom:8px;">
+            👩 <b>杰西卡</b>：${jAge}岁，${jSchool}，住在${state.jessica.city||'上海'}${nextJ}
+          </div>
+          <div style="margin-bottom:10px;">
+            👤 <b>${getUserName()}</b>：${uSchool}，住在${state.user.city||'镇江'}${nextU}
+          </div>
+          <details style="margin-top:6px;">
+            <summary style="cursor:pointer;color:var(--accent);font-size:11px;">📅 查看完整时间线</summary>
+            <div style="margin-top:6px;font-size:11px;line-height:1.6;opacity:0.8;">${timelineHtml}</div>
+          </details>
+        `;
+      }
+    }
+  } catch(_pe) {}
   } catch(e) { console.error('[Settings] openSettings error:', e); }
+}
+
+// Persona edit functions
+function togglePersonaEdit() {
+  const form = document.getElementById('personaEditForm');
+  const btn = document.getElementById('personaEditBtn');
+  if (form.style.display === 'none') {
+    form.style.display = 'block';
+    btn.textContent = '收起';
+    // Load saved overrides
+    const ov = JSON.parse(localStorage.getItem('jessica_persona_override') || '{}');
+    document.getElementById('pEditJSchool').value = ov.jSchool || '';
+    document.getElementById('pEditJMajor').value = ov.jMajor || '';
+    document.getElementById('pEditJGrade').value = ov.jGrade || '';
+    document.getElementById('pEditJCity').value = ov.jCity || '';
+    document.getElementById('pEditUSchool').value = ov.uSchool || '';
+    document.getElementById('pEditUMajor').value = ov.uMajor || '';
+    document.getElementById('pEditUGrade').value = ov.uGrade || '';
+    document.getElementById('pEditUCity').value = ov.uCity || '';
+  } else {
+    form.style.display = 'none';
+    btn.textContent = '编辑';
+  }
+}
+
+function savePersonaEdit() {
+  const ov = {
+    jSchool: document.getElementById('pEditJSchool').value.trim(),
+    jMajor: document.getElementById('pEditJMajor').value.trim(),
+    jGrade: document.getElementById('pEditJGrade').value.trim(),
+    jCity: document.getElementById('pEditJCity').value.trim(),
+    uSchool: document.getElementById('pEditUSchool').value.trim(),
+    uMajor: document.getElementById('pEditUMajor').value.trim(),
+    uGrade: document.getElementById('pEditUGrade').value.trim(),
+    uCity: document.getElementById('pEditUCity').value.trim(),
+  };
+  localStorage.setItem('jessica_persona_override', JSON.stringify(ov));
+  showToast('✅ 人设已覆盖保存');
+  // Refresh display
+  document.getElementById('personaEditForm').style.display = 'none';
+  document.getElementById('personaEditBtn').textContent = '编辑';
+  refreshPersonaDisplay();
+}
+
+function clearPersonaEdit() {
+  localStorage.removeItem('jessica_persona_override');
+  showToast('已恢复自动检测');
+  document.getElementById('personaEditForm').style.display = 'none';
+  document.getElementById('personaEditBtn').textContent = '编辑';
+  refreshPersonaDisplay();
+}
+
+function refreshPersonaDisplay() {
+  try {
+    const personaEl = document.getElementById('personaInfoDisplay');
+    if (!personaEl) return;
+    const now = new Date();
+    const currentKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    let state = PERSONA_TIMELINE ? PERSONA_TIMELINE[0] : null;
+    if (typeof PERSONA_TIMELINE !== 'undefined') {
+      for (const entry of PERSONA_TIMELINE) { if (currentKey >= entry.after) state = entry; }
+    }
+    if (!state) return;
+    const ov = JSON.parse(localStorage.getItem('jessica_persona_override') || '{}');
+    const jSchool = ov.jSchool || (state.jessica.school || '');
+    const jMajor = ov.jMajor || (state.jessica.major || '');
+    const jGrade = ov.jGrade || (state.jessica.grade || '');
+    const jCity = ov.jCity || (state.jessica.city || '上海');
+    const uSchool = ov.uSchool || (state.user.school || '');
+    const uMajor = ov.uMajor || (state.user.major || '');
+    const uGrade = ov.uGrade || (state.user.grade || '');
+    const uCity = ov.uCity || (state.user.city || '镇江');
+    const jAge = typeof calcAge === 'function' ? calcAge(2004,2,8) : '?';
+    const jSchoolDesc = jSchool ? `在${jSchool}读${jMajor}，${jGrade}` : state.jessica.status;
+    const uSchoolDesc = uSchool ? `在${uSchool}读${uMajor}，${uGrade}` : state.user.status;
+    const nextJ = state.jessica.nextSchool ? `<br>📌 9月入学：${state.jessica.nextSchool} ${state.jessica.nextMajor}` : '';
+    const nextU = state.user.nextSchool ? `<br>📌 9月入学：${state.user.nextSchool} ${state.user.nextMajor}` : '';
+    const ovNote = Object.values(ov).some(v => v) ? '<div style="font-size:10px;color:var(--accent2);margin-bottom:4px;">⚠️ 已手动覆盖部分字段</div>' : '';
+    const timelineHtml = typeof PERSONA_TIMELINE !== 'undefined' ? PERSONA_TIMELINE.map(e => {
+      const jm = e.jessica.school ? `${e.jessica.school} ${e.jessica.major} ${e.jessica.grade}` : e.jessica.status?.slice(0,20);
+      const um = e.user.school ? `${e.user.school} ${e.user.major} ${e.user.grade}` : e.user.status?.slice(0,20);
+      const active = e === state ? ' style="color:var(--accent);font-weight:600;"' : '';
+      return `<div${active}>${e.after}：杰西卡${jm || '—'}，你${um || '—'}</div>`;
+    }).join('') : '';
+    personaEl.innerHTML = `
+      ${ovNote}
+      <div style="margin-bottom:8px;">
+        👩 <b>杰西卡</b>：${jAge}岁，${jSchoolDesc}，住在${jCity}${nextJ}
+      </div>
+      <div style="margin-bottom:10px;">
+        👤 <b>${getUserName()}</b>：${uSchoolDesc}，住在${uCity}${nextU}
+      </div>
+      <details style="margin-top:6px;">
+        <summary style="cursor:pointer;color:var(--accent);font-size:11px;">📅 查看完整时间线</summary>
+        <div style="margin-top:6px;font-size:11px;line-height:1.6;opacity:0.8;">${timelineHtml}</div>
+      </details>
+    `;
+  } catch(e) {}
 }
 function closeSettings(){document.getElementById('settingsModal').classList.remove('active');}
 function saveSettings(){
@@ -13060,9 +13284,9 @@ function saveSettings(){
     writingStyle:ws,
     customWritingStyle:document.getElementById('customWritingStyle').value.trim()
   });
-  localStorage.setItem('jessica_userName',document.getElementById('userName').value.trim() || '你');
+  localStorage.setItem('jessica_userName',document.getElementById('userName').value.trim());
   const hpInput = document.getElementById('hpUserNameInput');
-  if (hpInput) hpInput.value = document.getElementById('userName').value.trim() || '你';
+  if (hpInput) hpInput.value = document.getElementById('userName').value.trim();
   localStorage.setItem('jessica_weatherCity',document.getElementById('weatherCity').value.trim());
   localStorage.setItem('jessica_proactive',document.getElementById('proactiveToggle').value);
   // Background running
@@ -13090,7 +13314,8 @@ function saveSettings(){
   // 生日
   const bdayVal=document.getElementById('userBirthday')?.value||'';
   if(bdayVal)localStorage.setItem('jessica_user_birthday',bdayVal);else localStorage.removeItem('jessica_user_birthday');
-  closeSettings();showToast('保存成功 ✅');fetchWeather(true);scheduleProactiveMessage();updateDaysAlive();
+  showToast('✅ 保存成功');
+  closeSettings();fetchWeather(true);scheduleProactiveMessage();updateDaysAlive();
   // Sync days overlay if open
   if(document.getElementById('daysOverlay')?.classList.contains('active'))renderDaysDetail();
 }
@@ -13250,51 +13475,82 @@ function renderStickerLibrary() {
 function showStickerUploadForm() {
   document.getElementById('stickerUploadForm').classList.add('active');
   document.getElementById('stickerFileInput').value = '';
-  document.getElementById('stickerPreviewWrap').innerHTML = '';
+  document.getElementById('stickerPreview').style.display = 'none';
   document.getElementById('stickerDesc').value = '';
 }
 function hideStickerUploadForm() {
   document.getElementById('stickerUploadForm').classList.remove('active');
 }
 
-function previewSticker(e) {
-  const files = e.target.files;
-  const wrap = document.getElementById('stickerPreviewWrap');
-  wrap.innerHTML = '';
-  if (!files.length) return;
-  for (const file of files) {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = document.createElement('img');
-      img.src = reader.result;
-      img.style.cssText = 'width:60px;height:60px;object-fit:cover;border-radius:8px;';
-      wrap.appendChild(img);
-    };
-    reader.readAsDataURL(file);
+function handleStickerDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const files = e.dataTransfer.files;
+  if (files.length > 0) {
+    const dt = new DataTransfer();
+    dt.items.add(files[0]);
+    document.getElementById('stickerFileInput').files = dt.files;
+    previewSticker({ target: { files: [files[0]] } });
   }
+}
+
+// Sticker drag-and-drop support
+document.addEventListener('DOMContentLoaded', () => {
+  const dropZone = document.getElementById('stickerDropZone');
+  if (dropZone) {
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.outline = '2px dashed var(--accent)'; });
+    dropZone.addEventListener('dragleave', () => { dropZone.style.outline = ''; });
+    dropZone.addEventListener('drop', async (e) => {
+      e.preventDefault(); dropZone.style.outline = '';
+      const files = e.dataTransfer.files;
+      for (const file of files) {
+        if (!file.type.startsWith('image/')) continue;
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const sticker = { imageDataUrl: reader.result, emotion: 'happy', description: file.name.replace(/\.[^.]+$/, ''), timestamp: Date.now() };
+          await dbAddSticker(sticker);
+          stickerData.push(sticker);
+          try { renderStickerLibrary(); } catch(_e) {}
+          showToast('表情包已添加 ✨');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+});
+
+function previewSticker(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const preview = document.getElementById('stickerPreview');
+    preview.src = reader.result;
+    preview.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
 }
 
 async function saveSticker() {
   const fileInput = document.getElementById('stickerFileInput');
   const emotion = document.getElementById('stickerEmotion').value;
   const description = document.getElementById('stickerDesc').value.trim();
-  if (!fileInput.files.length) { showToast('请选择图片'); return; }
-  const files = Array.from(fileInput.files);
-  let count = 0;
-  for (const file of files) {
-    const dataUrl = await new Promise(res => {
-      const r = new FileReader();
-      r.onload = () => res(r.result);
-      r.readAsDataURL(file);
-    });
-    const sticker = { imageDataUrl: dataUrl, emotion, description: description || file.name.replace(/\.[^.]+$/, ''), timestamp: Date.now() };
+  if (!fileInput.files[0]) { showToast('请选择图片'); return; }
+  const reader = new FileReader();
+  reader.onload = async () => {
+    const sticker = {
+      imageDataUrl: reader.result,
+      emotion,
+      description,
+      timestamp: Date.now()
+    };
     await dbAddSticker(sticker);
     stickerData.push(sticker);
-    count++;
-  }
-  try{renderStickerLibrary();}catch(_e){}
-  hideStickerUploadForm();
-  showToast(`${count} 张表情包已添加 ✨`);
+    try{renderStickerLibrary();}catch(_e){}
+    hideStickerUploadForm();
+    showToast('表情包已添加 ✨');
+  };
+  reader.readAsDataURL(fileInput.files[0]);
 }
 
 async function deleteSticker(id) {
@@ -13921,11 +14177,16 @@ function renderJpPreview() {
     <div class="jp-entry-content">${escapeHtml(latest.content)}</div>
     <div class="jp-entry-footer">
       <span>${jpFormatTime(latest.timestamp)}</span>
-      <div style="display:flex;gap:6px;margin-left:auto;">
-        <button onclick="editJpEntry(0)" style="background:rgba(123,147,199,0.15);border:1px solid rgba(123,147,199,0.25);color:var(--accent);padding:3px 10px;border-radius:6px;font-size:10px;cursor:pointer;font-family:inherit;">✏️ 编辑</button>
-        <button onclick="retryDiaryGeneration()" style="background:rgba(123,147,199,0.15);border:1px solid rgba(123,147,199,0.25);color:var(--accent);padding:3px 10px;border-radius:6px;font-size:10px;cursor:pointer;font-family:inherit;">🔄 重新生成</button>
+      <div class="jp-entry-actions">
+        <button class="jp-action-btn" id="jpPreviewRegenBtn" title="重新生成">🔄 重新生成</button>
       </div>
     </div>`;
+
+  // 绑定重新生成按钮
+  const previewRegenBtn = document.getElementById('jpPreviewRegenBtn');
+  if (previewRegenBtn) {
+    previewRegenBtn.onclick = () => regenerateDiaryEntry(0);
+  }
 
   // Update calendar
   initJpCalendar();
@@ -13966,7 +14227,7 @@ function renderJpEntryList() {
     html += `<div style="font-size:11px;color:var(--accent2);font-weight:600;padding:8px 12px 4px;opacity:0.7;">📅 ${dateLabel}</div>`;
     entries.forEach(e => {
       const time = new Date(e.timestamp).toLocaleTimeString('zh-CN', { hour:'2-digit', minute:'2-digit' });
-      html += `<div class="jp-list-item" onclick="openJpModal('view',${e._idx})">
+      html += `<div class="jp-list-item" data-idx="${e._idx}" onclick="openJpModal('view',${e._idx})">
         <span class="jp-list-mood">${e.mood || '😌'}</span>
         <div class="jp-list-body">
           <div class="jp-list-date">${time}${e.aiGenerated ? ' · ✨ 杰西卡亲笔' : ''}</div>
@@ -13990,6 +14251,98 @@ function jpFormatDate(ts) {
 function jpFormatTime(ts) {
   return new Date(ts).toLocaleTimeString('zh-CN', { hour:'2-digit', minute:'2-digit' });
 }
+
+// ── Regenerate a diary entry ──
+async function regenerateDiaryEntry(idx) {
+  if (idx < 0 || idx >= jpEntries.length) return;
+  if (!confirm('确定要删掉这篇日记并重新生成吗？')) return;
+  const cfg = loadConfig();
+  if (!cfg.apiBase || !cfg.apiKey) { openSettings(); return; }
+
+  const oldEntry = jpEntries[idx];
+  const oldDate = new Date(oldEntry.timestamp);
+  const oldDateKey = oldEntry.dateKey || jpDateKey(oldDate);
+
+  // 1. 先删掉旧条目
+  jpEntries.splice(idx, 1);
+  if (oldEntry.id) dbDeleteJpEntry(oldEntry.id).catch(() => {});
+  localStorage.setItem('jessica_jp_entries', JSON.stringify(jpEntries));
+
+  // 2. 在模态窗里显示"正在写日记"
+  const viewSection = document.getElementById('jpViewSection');
+  if (viewSection) {
+    viewSection.innerHTML = `<div class="jp-empty" style="text-align:center;padding:40px;">
+      <div style="font-size:32px;margin-bottom:12px;">📔</div>
+      <div style="color:var(--accent2);font-size:14px;">杰西卡正在记日记中...</div>
+      <div style="color:var(--text-dim);font-size:12px;margin-top:8px;">她会根据今天的对话重新写一篇</div>
+    </div>`;
+  }
+  // 也更新首页预览
+  const previewCard = document.getElementById('jpPreviewCard');
+  if (previewCard) {
+    previewCard.innerHTML = '<div class="jp-empty">杰西卡正在记日记中...</div>';
+  }
+
+  try {
+    const mood = oldEntry.mood || '😌';
+    const dateStr = `${oldDate.getFullYear()}年${oldDate.getMonth()+1}月${oldDate.getDate()}日`;
+    const dayMsgs = messages.filter(m => {
+      const md = new Date(m.timestamp);
+      return md.getFullYear() === oldDate.getFullYear() && md.getMonth() === oldDate.getMonth() && md.getDate() === oldDate.getDate();
+    });
+    const recentMsgs = dayMsgs.slice(-20).map(m => `${m.role === 'user' ? getUserName() : '杰西卡'}：${m.content}`).join('\n');
+    const sc = buildSystemPrompt(cfg.systemPrompt);
+    const promptText = `你正在写日记。日期：${dateStr}，心情：${mood}\n\n今天你们的对话：\n${recentMsgs || '（今天没有对话记录）'}\n\n请写一篇简短的日记（50-150字），记录今天的心情和感受。用第一人称，自然真实。只输出日记内容，不要加标题或标签。`;
+    const res = await fetch(`${cfg.apiBase.replace(/\/+$/,'')}/chat/completions`, {
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${cfg.apiKey}`},
+      body:JSON.stringify({model:cfg.model,messages:[{role:'system',content:sc},{role:'user',content:promptText}],temperature:cfg.temperature,stream:false,max_tokens:300}),
+    });
+    if (!res.ok) throw new Error(`API错误 ${res.status}`);
+    const data = await res.json();
+    const newContent = stripActions(stripReasoning(data.choices?.[0]?.message?.content));
+    if (!newContent) throw new Error('返回内容为空');
+
+    // 3. 创建新条目，插入到原位置
+    const newEntry = {
+      id: Date.now(),
+      content: newContent,
+      mood: mood,
+      timestamp: oldDate.getTime(),
+      dateKey: oldDateKey,
+      aiGenerated: true,
+      summaryType: oldEntry.summaryType || 'daily',
+      comments: [],
+      reactions: {}
+    };
+    if (idx >= jpEntries.length) {
+      jpEntries.push(newEntry);
+    } else {
+      jpEntries.splice(idx, 0, newEntry);
+    }
+    await dbAddJpEntry(newEntry);
+    localStorage.setItem('jessica_jp_entries', JSON.stringify(jpEntries));
+
+    // 4. 刷新所有界面
+    renderJpPreview();
+    renderJpView();
+    renderJpModalStrip();
+    showToast('📔 日记已重新生成');
+  } catch(e) {
+    console.error('[Regenerate] 失败:', e);
+    showToast('重新生成失败：' + e.message);
+    // 失败时恢复旧条目
+    if (idx >= jpEntries.length) {
+      jpEntries.push(oldEntry);
+    } else {
+      jpEntries.splice(idx, 0, oldEntry);
+    }
+    localStorage.setItem('jessica_jp_entries', JSON.stringify(jpEntries));
+    renderJpPreview();
+    renderJpView();
+    renderJpModalStrip();
+  }
+}
+window.regenerateDiaryEntry = regenerateDiaryEntry;
 
 // ── Open modal (V2: with strip + keyboard nav) ──
 function openJpModal(mode, idx) {
@@ -14103,7 +14456,15 @@ function renderJpView() {
       </div>
       <div class="jp-view-content">${escapeHtml(entry.content)}</div>
       ${reactionsHtml}
+      <div style="margin-top:16px;text-align:center;">
+        <button id="jpRegenBtn" style="background:rgba(123,147,199,0.15);border:1px solid rgba(123,147,199,0.3);color:var(--accent);padding:6px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.15s;">🔄 重新生成这篇日记</button>
+      </div>
     </div>`;
+  // 绑定重新生成按钮事件
+  const regenBtn = document.getElementById('jpRegenBtn');
+  if (regenBtn) {
+    regenBtn.onclick = () => regenerateDiaryEntry(jpCurrentIdx);
+  }
 }
 
 // ── Navigation (V2: also updates strip highlight) ──
@@ -14130,36 +14491,6 @@ function selectJpWriteMood(emoji, btn) {
 }
 
 // Save manual entry
-// Edit a diary entry
-window.editJpEntry = function(idx) {
-  if (!jpEntries[idx]) return;
-  const entry = jpEntries[idx];
-  openJpModal('write');
-  setTimeout(() => {
-    const ta = document.getElementById('jpWriteTextarea');
-    if (ta) { ta.value = entry.content; ta.focus(); }
-    jpWriteMood = entry.mood || '😌';
-    document.querySelectorAll('.jp-mood-btn').forEach(b => b.classList.toggle('selected', b.dataset.mood === jpWriteMood));
-    // Change save to update
-    const saveBtn = document.querySelector('.jp-write-actions .jp-btn-save');
-    if (saveBtn) {
-      saveBtn.textContent = '更新';
-      saveBtn.onclick = async () => {
-        const newContent = document.getElementById('jpWriteTextarea').value.trim();
-        if (!newContent) return;
-        entry.content = newContent;
-        entry.mood = jpWriteMood;
-        entry._editedAt = Date.now();
-        // Update in IndexedDB
-        try { await dbUpdateJpEntry(entry); } catch(e) {}
-        renderJpPreview(); renderMiniCalendar();
-        closeJpModal();
-        showToast('日记已更新 ✨');
-      };
-    }
-  }, 100);
-};
-
 async function saveJpEntry() {
   const content = document.getElementById('jpWriteTextarea').value.trim();
   if (!content) return;
@@ -14193,7 +14524,6 @@ async function toggleJpReaction(emoji) {
   renderJpView();
 }
 
-// Retry diary generation
 function retryDiaryGeneration() {
   const card = document.getElementById('jpPreviewCard');
   if (card) card.innerHTML = '<div class="jp-empty">杰西卡正在写日记...</div>';
@@ -14270,8 +14600,6 @@ async function generateJpDailyEntry() {
 // LOCATION SHARING
 // ============================================================
 let locSelectedData = null; // {name, address, lat, lng}
-let _locMap = null; // Leaflet map instance
-let _locReverseTimer = null; // debounce timer for reverse geocode
 
 function openLocationModal() {
   document.getElementById('locModalOverlay').classList.add('active');
@@ -14279,30 +14607,36 @@ function openLocationModal() {
   document.getElementById('locResults').innerHTML = '';
   locSelectedData = null;
   updateLocSendBtn();
-  // Init Leaflet map
+  // Initialize Leaflet map
   setTimeout(() => {
-    if (typeof L === 'undefined') {
-      showToast('地图库加载中，请稍后再试');
-      return;
-    }
-    if (!_locMap) {
-      _locMap = L.map('locLeafletMap', { zoomControl: true, attributionControl: false })
-        .setView([39.9042, 116.4074], 5);
+    if (typeof L !== 'undefined') {
+      if (window._locMap) { window._locMap.remove(); }
+      window._locMap = L.map('locMapFrame', { zoomControl: true }).setView([39.9042, 116.4074], 5);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-      }).addTo(_locMap);
-      // Reverse geocode on map move end
-      _locMap.on('moveend', () => {
-        clearTimeout(_locReverseTimer);
-        _locReverseTimer = setTimeout(() => reverseGeocodeCenter(), 300);
+        attribution: '© OpenStreetMap'
+      }).addTo(window._locMap);
+      // When map stops moving, update selected location
+      window._locMap.on('moveend', async () => {
+        const center = window._locMap.getCenter();
+        const lat = center.lat, lng = center.lng;
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=zh-CN`);
+          const data = await res.json();
+          const name = data.name || data.address?.road || data.address?.neighbourhood || data.address?.suburb || '未知位置';
+          const addr = data.display_name?.split(',').slice(0, 3).join(', ') || '';
+          locSelectedData = { name, address: addr, lat, lng };
+          document.getElementById('locSelectedName').textContent = name;
+          document.getElementById('locSelectedAddr').textContent = addr;
+          updateLocSendBtn();
+        } catch(e) {
+          locSelectedData = { name: `${lat.toFixed(4)}, ${lng.toFixed(4)}`, address: '', lat, lng };
+          document.getElementById('locSelectedName').textContent = locSelectedData.name;
+          document.getElementById('locSelectedAddr').textContent = '';
+          updateLocSendBtn();
+        }
       });
-    } else {
-      _locMap.invalidateSize();
-      _locMap.setView([39.9042, 116.4074], 5);
     }
-    document.getElementById('locSelectedName').textContent = '拖动地图选择位置';
-    document.getElementById('locSelectedAddr').textContent = '或搜索地点';
-  }, 150);
+  }, 300);
 }
 
 function closeLocationModal() {
@@ -14314,30 +14648,34 @@ function updateLocSendBtn() {
 }
 
 function updateMap(lat, lng, zoom) {
-  if (_locMap) {
-    _locMap.setView([lat, lng], zoom || 16, { animate: true });
+  zoom = zoom || 15;
+  if (window._locMap) {
+    window._locMap.setView([lat, lng], zoom);
   }
 }
 
-// Reverse geocode the map center position
-async function reverseGeocodeCenter() {
-  if (!_locMap) return;
-  const center = _locMap.getCenter();
-  const lat = center.lat, lng = center.lng;
+// Confirm center of current map view as selected location
+async function confirmMapCenter() {
+  if (!window._locMap) { showToast('地图未加载'); return; }
+  const center = window._locMap.getCenter();
+  const lat = center.lat;
+  const lng = center.lng;
+  showToast('正在获取位置信息...');
   try {
     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=zh-CN`);
     const data = await res.json();
-    const name = data.name || data.address?.road || data.address?.neighbourhood || data.address?.suburb || data.address?.city || '未知位置';
+    const name = data.name || data.address?.road || data.address?.neighbourhood || data.address?.suburb || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
     const addr = data.display_name?.split(',').slice(0, 3).join(', ') || '';
     locSelectedData = { name, address: addr, lat, lng };
     document.getElementById('locSelectedName').textContent = name;
     document.getElementById('locSelectedAddr').textContent = addr;
     updateLocSendBtn();
+    showToast('✅ 位置已确认');
   } catch(e) {
     locSelectedData = { name: `${lat.toFixed(4)}, ${lng.toFixed(4)}`, address: '', lat, lng };
     document.getElementById('locSelectedName').textContent = locSelectedData.name;
-    document.getElementById('locSelectedAddr').textContent = '';
     updateLocSendBtn();
+    showToast('✅ 位置已确认');
   }
 }
 
@@ -14347,7 +14685,22 @@ async function useMyLocation() {
   navigator.geolocation.getCurrentPosition(async (pos) => {
     const { latitude: lat, longitude: lng } = pos.coords;
     updateMap(lat, lng, 16);
-    // Reverse geocode after map moves (moveend will trigger it)
+    // Reverse geocode
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=zh-CN`);
+      const data = await res.json();
+      const name = data.name || data.address?.road || data.address?.neighbourhood || data.address?.suburb || '未知位置';
+      const addr = data.display_name?.split(',').slice(0, 3).join(', ') || '';
+      locSelectedData = { name, address: addr, lat, lng };
+      document.getElementById('locSelectedName').textContent = name;
+      document.getElementById('locSelectedAddr').textContent = addr;
+      updateLocSendBtn();
+    } catch(e) {
+      locSelectedData = { name: `${lat.toFixed(4)}, ${lng.toFixed(4)}`, address: '', lat, lng };
+      document.getElementById('locSelectedName').textContent = locSelectedData.name;
+      document.getElementById('locSelectedAddr').textContent = '无法获取地址';
+      updateLocSendBtn();
+    }
   }, (err) => {
     let msg = '定位失败';
     if (err.code === 1) msg = '定位权限被拒绝，请在浏览器设置中允许定位';
@@ -14377,12 +14730,13 @@ async function searchLocation() {
         <div class="loc-result-addr">${addr}</div>
       </div>`;
     }).join('');
+    // 用事件委托替代 onclick 内联（避免注入风险）
     resultsDiv.querySelectorAll('.loc-result-item').forEach((el, idx) => {
       el.onclick = () => {
         const item = data[idx];
         const n = item.display_name?.split(',')[0] || q;
         const a = item.display_name?.split(',').slice(1, 4).join(', ') || '';
-        selectSearchResult(parseFloat(item.lat), parseFloat(item.lon), n, a);
+        selectSearchResult(item.lat, item.lon, n, a);
       };
     });
   } catch(e) {
@@ -14415,25 +14769,23 @@ async function sendLocation() {
   renderMessage(locMsg);
   saveHistoryFallback();
   closeLocationModal();
-  scrollToBottom();
 
-  // Use the normal reply flow (streaming + typing indicator)
-  const loc = locSelectedData;
+  // Jessica reacts to location
   const timeCtx = getTimeContext();
   const mood = getMoodString();
   let sc = buildSystemPrompt(cfg.systemPrompt);
   sc += `\n\n[系统注入]\n时间：${timeCtx}\n心情：${mood}\n`;
-  sc += `[位置分享] ${getUserName()}分享了他的位置：${loc.name}（${loc.address}）\n`;
+  sc += `[位置分享] ${getUserName()}分享了他的位置：${locSelectedData.name}（${locSelectedData.address}）\n`;
   sc += `像收到朋友发来的位置一样自然地回应。可以问他在干嘛、夸/吐槽这个地方、或联想到什么。简短。只输出对话，不要输出动作描写。\n[/系统注入]`;
 
-  showTypingIndicator();
+  const locAbort = new AbortController();
   try {
     const res = await fetch(`${cfg.apiBase.replace(/\/+$/,'')}/chat/completions`, {
       method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${cfg.apiKey}`},
-      body: JSON.stringify({model:cfg.model,messages:[{role:'system',content:sc},{role:'user',content:`我在这里：${loc.name}，${loc.address}`}],temperature:cfg.temperature,stream:false,max_tokens:200}),
+      body: JSON.stringify({model:cfg.model,messages:[{role:'system',content:sc},{role:'user',content:`我在这里：${locSelectedData.name}，${locSelectedData.address}`}],temperature:cfg.temperature,stream:false,max_tokens:200}),
+      signal: locAbort.signal,
     });
-    hideTypingIndicator();
-    if (!res.ok) { showToast('回复失败'); return; }
+    if (!res.ok) return;
     const data = await res.json();
     const reply = stripReasoning(data.choices?.[0]?.message?.content);
     if (!reply) return;
@@ -14442,13 +14794,8 @@ async function sendLocation() {
     messages.push(assistantMsg);
     renderMessage(assistantMsg);
     saveHistoryFallback();
-    scrollToBottom();
     playNotificationSound();
-  } catch(e) {
-    hideTypingIndicator();
-    console.warn('[Location] Reply failed:', e);
-    showToast('回复失败');
-  }
+  } catch(e) { console.warn(STR.log.voiceFail, e); }
 }
 
 // Render location card in chat
@@ -14478,7 +14825,7 @@ function showLocationDetail(loc) {
     updateMap(loc.lat, loc.lng, 16);
     updateLocSendBtn();
     document.getElementById('locSendBtn').disabled = true; // Don't re-send
-  }, 300);
+  }, 100);
 }
 
 // ============================================================
@@ -14619,7 +14966,7 @@ function refreshQuote() {
 // ============================================================
 // USERNAME & PAT HELPERS
 // ============================================================
-function getUserName() { return localStorage.getItem('jessica_userName') || '你'; }
+function getUserName() { return localStorage.getItem('jessica_userName') || '我'; }
 function saveHpUserName() {
   const input = document.getElementById('hpUserNameInput');
   const name = input.value.trim() || 'user';
@@ -14968,32 +15315,32 @@ function buildSystemPrompt(base) {
     // States are applied in order; the last matching entry wins
     {
       after: '2000-01', // Baseline (always matches)
-      jessica: { school: '苏州科技大学', major: '视觉传达', grade: '大四', status: '在读', hometown: '上海市闵行区虹桥街道' },
-      user: { school: '吉林建筑大学', major: '城乡规划', grade: '五年制大五', status: '在读', hometown: '镇江市丹徒区' },
+      jessica: { school: '苏州科技大学', major: '视觉传达', grade: '大四', status: '在读', city: '上海' },
+      user: { school: '吉林建筑大学', major: '城乡规划', grade: '五年制大五', status: '在读', city: '镇江市丹徒区' },
       sameLocation: false
     },
     {
       after: '2026-06', // Graduated, gap period
-      jessica: { school: null, major: '视觉传达', grade: '准研究生', status: '刚本科毕业，9月要去南京工业大学读城乡规划的研究生。这段时间比较闲，在等开学', nextSchool: '南京工业大学', nextMajor: '城乡规划', hometown: '上海市闵行区虹桥街道' },
-      user: { school: null, major: '城乡规划', grade: '准研究生', status: '刚本科毕业，9月要去苏州科技大学读城乡规划的研究生', nextSchool: '苏州科技大学', nextMajor: '城乡规划', hometown: '镇江市丹徒区' },
+      jessica: { school: null, major: '视觉传达', grade: '准研究生', status: '刚本科毕业，9月要去南京工业大学读城乡规划的研究生。这段时间比较闲，在等开学', nextSchool: '南京工业大学', nextMajor: '城乡规划', city: '上海' },
+      user: { school: null, major: '城乡规划', grade: '准研究生', status: '刚本科毕业，9月要去苏州科技大学读城乡规划的研究生', nextSchool: '苏州科技大学', nextMajor: '城乡规划', city: '镇江市丹徒区' },
       sameLocation: false
     },
     {
       after: '2026-09', // Started grad school year 1
-      jessica: { school: '南京工业大学', major: '城乡规划', grade: '研一', status: '在读', hometown: '上海市闵行区虹桥街道' },
-      user: { school: '苏州科技大学', major: '城乡规划', grade: '研一', status: '在读', hometown: '镇江市丹徒区' },
+      jessica: { school: '南京工业大学', major: '城乡规划', grade: '研一', status: '在读' },
+      user: { school: '苏州科技大学', major: '城乡规划', grade: '研一', status: '在读' },
       sameLocation: false
     },
     {
       after: '2027-09', // Grad school year 2
-      jessica: { school: '南京工业大学', major: '城乡规划', grade: '研二', status: '在读', hometown: '上海市闵行区虹桥街道' },
-      user: { school: '苏州科技大学', major: '城乡规划', grade: '研二', status: '在读', hometown: '镇江市丹徒区' },
+      jessica: { school: '南京工业大学', major: '城乡规划', grade: '研二', status: '在读' },
+      user: { school: '苏州科技大学', major: '城乡规划', grade: '研二', status: '在读' },
       sameLocation: false
     },
     {
       after: '2028-09', // Grad school year 3 (if applicable)
-      jessica: { school: '南京工业大学', major: '城乡规划', grade: '研三', status: '在读', hometown: '上海市闵行区虹桥街道' },
-      user: { school: '苏州科技大学', major: '城乡规划', grade: '研三', status: '在读', hometown: '镇江市丹徒区' },
+      jessica: { school: '南京工业大学', major: '城乡规划', grade: '研三', status: '在读' },
+      user: { school: '苏州科技大学', major: '城乡规划', grade: '研三', status: '在读' },
       sameLocation: false
     }
   ];
@@ -15031,17 +15378,28 @@ function buildSystemPrompt(base) {
 
   const personaState = getCurrentPersonaState();
   const jessicaAge = calcAge(2004, 2, 8);
-  const jessicaSchoolDesc = formatPersonaSchool(personaState.jessica);
-  const userSchoolDesc = formatPersonaSchool(personaState.user);
+
+  // Apply persona override from localStorage
+  const personaOverride = JSON.parse(localStorage.getItem('jessica_persona_override') || '{}');
+  const jJessica = { ...personaState.jessica };
+  const jUser = { ...personaState.user };
+  if (personaOverride.jSchool) jJessica.school = personaOverride.jSchool;
+  if (personaOverride.jMajor) jJessica.major = personaOverride.jMajor;
+  if (personaOverride.jGrade) jJessica.grade = personaOverride.jGrade;
+  if (personaOverride.jCity) jJessica.city = personaOverride.jCity;
+  if (personaOverride.uSchool) jUser.school = personaOverride.uSchool;
+  if (personaOverride.uMajor) jUser.major = personaOverride.uMajor;
+  if (personaOverride.uGrade) jUser.grade = personaOverride.uGrade;
+  if (personaOverride.uCity) jUser.city = personaOverride.uCity;
+
+  const jessicaSchoolDesc = formatPersonaSchool(jJessica);
+  const userSchoolDesc = formatPersonaSchool(jUser);
   const locationNote = personaState.sameLocation ? '你们在同一个城市。' : '你们不在同一个学校。';
-  const jessicaHome = personaState.jessica.hometown || '上海';
-  const userHome = personaState.user.hometown || '镇江';
 
   prompt += `\n\n## 当前状态（系统自动注入，基于日期）
-你${jessicaSchoolDesc}
-他${userSchoolDesc}${locationNote ? ' ' + locationNote : ''}
-你今年${jessicaAge}岁。
-你家在${jessicaHome}。他家在${userHome}。`;
+你${jessicaSchoolDesc}你住在${jJessica.city || '上海'}。
+他${userSchoolDesc}${locationNote ? ' ' + locationNote : ''}他住在${jUser.city || '镇江'}。
+你今年${jessicaAge}岁。`;
 
   // Debug hook: expose timeline for testing
   if (typeof window !== 'undefined') {
@@ -17730,16 +18088,6 @@ window.initApp = async function(){
   await loadStickers();
   fetchWeather();rollMood();refreshStatus();renderStatusBar();renderRelationshipInfo();
   NotificationBridge.init(); updateHpMemories();
-  // Version display
-  const verEl = document.getElementById('appVersionDisplay');
-  if (verEl) verEl.textContent = APP_VERSION;
-  // Version migration check
-  const lastVer = localStorage.getItem('jessica_app_version');
-  if (lastVer !== APP_VERSION) {
-    console.log(`[Version] Upgrading from ${lastVer || 'none'} to ${APP_VERSION}`);
-    localStorage.setItem('jessica_app_version', APP_VERSION);
-    // Future migrations can be added here based on lastVer
-  }
   fetchDailyQuote();
   // Holiday countdown
   updateHolidayCountdown();
@@ -17769,17 +18117,7 @@ window.initApp = async function(){
   prefetchApiEndpoints();
   startHomepageIdleCheck();
   setTimeout(() => jessicaReadMessages(), 5000);
-  // Auto-start BGM on first user interaction (browser autoplay policy)
-  const bgmVol = parseInt(localStorage.getItem('jessica_bgm_vol') || '30');
-  if (bgmVol > 0) {
-    const _bgmStarter = () => {
-      bgmSys.startBGM();
-      document.removeEventListener('click', _bgmStarter);
-      document.removeEventListener('touchstart', _bgmStarter);
-    };
-    document.addEventListener('click', _bgmStarter, { once: false });
-    document.addEventListener('touchstart', _bgmStarter, { once: false });
-  }
+  // BGM only starts when user explicitly clicks the toggle button (no auto-start)
   // Global click sound effect (like deepseek.html)
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('button, .hp-card, .action-btn, .settings-action-btn, .pomo-preset-btn, .pomo-start-btn, .pomo-reset-btn, .bgm-toggle-btn, .notif-preview-btn, .kb-upload-area, .sticker-add-btn, .ws-option-item, .modal-actions button');
@@ -20352,25 +20690,6 @@ function finishExport(data, dbStores) {
   }
 }
 function fallbackDownload(blob, filename, offerShare, shareBlob, shareFilename) {
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-  // 移动端优先用 Web Share API
-  if (isMobile && navigator.share && navigator.canShare) {
-    const shareFile = new File([shareBlob || blob], shareFilename || filename, { type: 'application/json' });
-    if (navigator.canShare({ files: [shareFile] })) {
-      navigator.share({ files: [shareFile], title: '杰西卡日记备份', text: '备份数据' })
-        .then(() => showToast('📤 已分享'))
-        .catch(err => {
-          if (err.name !== 'AbortError') {
-            // 分享失败，降级到复制到剪贴板
-            fallbackToClipboard(blob, filename);
-          }
-        });
-      return;
-    }
-  }
-
-  // 桌面端用 <a> 下载
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -20382,103 +20701,25 @@ function fallbackDownload(blob, filename, offerShare, shareBlob, shareFilename) 
     setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
   }, 100);
   showToast('📤 数据已导出');
-}
 
-// 移动端降级：复制到剪贴板 + 提示
-function fallbackToClipboard(blob, filename) {
-  blob.text().then(text => {
-    if (text.length < 100000) {
-      navigator.clipboard.writeText(text).then(() => {
-        showToast('📋 数据已复制到剪贴板，可粘贴到备忘录保存');
-      }).catch(() => {
-        showToast('❌ 导出失败，请在设置中使用"复制到剪贴板"');
-      });
-    } else {
-      // 数据太大，分块提示
-      showToast('⚠️ 数据较大，请使用"导出压缩包"功能');
+  // 移动端：下载后弹出分享按钮（可选，不强制）
+  if (offerShare && navigator.share && navigator.canShare && shareBlob) {
+    const shareFile = new File([shareBlob], shareFilename || filename, { type: 'application/json' });
+    if (navigator.canShare({ files: [shareFile] })) {
+      setTimeout(() => {
+        const shareBtn = document.createElement('div');
+        shareBtn.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:10001;background:var(--accent);color:#fff;padding:10px 24px;border-radius:24px;font-size:14px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.3);animation:fadeInUp 0.3s ease;';
+        shareBtn.textContent = '📤 分享备份文件';
+        shareBtn.onclick = () => {
+          navigator.share({ files: [shareFile], title: '杰西卡日记备份' }).catch(() => {});
+          document.body.removeChild(shareBtn);
+        };
+        document.body.appendChild(shareBtn);
+        setTimeout(() => { if (shareBtn.parentNode) document.body.removeChild(shareBtn); }, 8000);
+      }, 500);
     }
-  });
-}
-}
-
-// 导出为压缩包（适合大数据量）
-async function exportAsZip() {
-  if (typeof JSZip === 'undefined') { showToast('⚠️ 压缩库加载中，请稍后再试'); return; }
-  showToast('📦 正在打包...');
-  try {
-    const zip = new JSZip();
-    const date = new Date().toISOString().slice(0, 10);
-
-    // 1. 收集 localStorage
-    const lsData = {};
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && (key.startsWith('jessica_') || key.startsWith('chat_') || key.startsWith('jp_') || key.startsWith('V2'))) {
-        try { lsData[key] = JSON.parse(localStorage.getItem(key)); } catch(e) { lsData[key] = localStorage.getItem(key); }
-      }
-    }
-    zip.file('localStorage.json', JSON.stringify(lsData, null, 2));
-
-    // 2. 收集 localforage
-    if (typeof V2Store !== 'undefined' && V2Store._ready) {
-      const storeNames = ['messages', 'memories', 'diary', 'affection', 'stickers', 'config', 'knowledge'];
-      for (const sn of storeNames) {
-        try {
-          const allKeys = await V2Store.getAllKeys(sn);
-          const items = {};
-          for (const k of allKeys) { items[k] = await V2Store.get(k, sn); }
-          zip.file(`localforage/${sn}.json`, JSON.stringify(items, null, 2));
-        } catch(e) {}
-      }
-    }
-
-    // 3. 收集 IndexedDB
-    try {
-      const dbReq = indexedDB.open('jessica_diary_db');
-      const db = await new Promise((res, rej) => { dbReq.onsuccess = e => res(e.target.result); dbReq.onerror = rej; });
-      const storeNames = Array.from(db.objectStoreNames);
-      for (const sn of storeNames) {
-        try {
-          const tx = db.transaction(sn, 'readonly');
-          const store = tx.objectStore(sn);
-          const all = await new Promise((res, rej) => { const r = store.getAll(); r.onsuccess = () => res(r.result); r.onerror = rej; });
-          zip.file(`indexeddb/${sn}.json`, JSON.stringify(all, null, 2));
-        } catch(e) {}
-      }
-    } catch(e) {}
-
-    // 4. 生成 zip
-    const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
-    const filename = `jessica_backup_${date}.zip`;
-    const sizeMB = (blob.size / 1048576).toFixed(2);
-
-    // 5. 下载或分享
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (isMobile && navigator.share && navigator.canShare) {
-      const file = new File([blob], filename, { type: 'application/zip' });
-      if (navigator.canShare({ files: [file] })) {
-        navigator.share({ files: [file], title: '杰西卡日记备份', text: `备份 ${date}` })
-          .then(() => showToast(`📦 已分享 (${sizeMB}MB)`))
-          .catch(err => { if (err.name !== 'AbortError') downloadBlob(blob, filename, sizeMB); });
-        return;
-      }
-    }
-    downloadBlob(blob, filename, sizeMB);
-  } catch(e) {
-    console.error('[Export] 压缩导出失败:', e);
-    showToast('❌ 导出失败: ' + e.message);
   }
 }
-
-function downloadBlob(blob, filename, sizeMB) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename; a.style.display = 'none';
-  document.body.appendChild(a);
-  setTimeout(() => { a.click(); setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300); }, 100);
-  showToast(`📦 已导出 ${sizeMB}MB`);
-}
-
 function importAllData(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -22578,27 +22819,60 @@ const StatsManager = {
   // ===== FEATURE 2: Emotion Analysis =====
   buildEmotionData() {
     const msgs = this.getMessages().filter(m => m.role === 'assistant');
-    if (!msgs.length || typeof Sentiment === 'undefined') return null;
-    const analyzer = new Sentiment();
+    if (!msgs.length) return null;
+
     let positive = 0, negative = 0, neutral = 0;
-    const trendData = []; // [{date, score}]
-    msgs.forEach(m => {
-      const result = analyzer.analyze(m.content || '');
-      if (result.score > 0) positive++;
-      else if (result.score < 0) negative++;
-      else neutral++;
-      trendData.push({
-        ts: m.timestamp,
-        score: result.score,
-        label: result.score > 0 ? 'positive' : result.score < 0 ? 'negative' : 'neutral'
+    const trendData = [];
+
+    // 中文情绪关键词（AFINN 不覆盖中文，手动补充）
+    const posKw = ['开心','高兴','喜欢','爱','好的','不错','厉害','棒','感谢','谢谢','哈哈','笑','快乐','幸福','太好了','真好','666','牛','爽','美','帅','可爱','甜','温暖','感动','激动','兴奋','期待','加油','可以','行','没问题','嗯嗯','收到','好的呢','好哒','嘿嘿','嘻嘻','撒娇','宝贝','想你','晚安','早安','抱抱','亲亲'];
+    const negKw = ['难过','伤心','生气','烦','累','困','无聊','讨厌','恨','哭','痛','苦','累死','烦死','无语','崩溃','焦虑','担心','害怕','紧张','孤独','寂寞','委屈','失望','尴尬','抱歉','对不起','不好意思','困死了','烦死了','气死'];
+
+    if (typeof Sentiment !== 'undefined') {
+      const analyzer = new Sentiment();
+      msgs.forEach(m => {
+        const result = analyzer.analyze(m.content || '');
+        let score = result.score;
+        // 补充中文关键词
+        const txt = m.content || '';
+        posKw.forEach(k => { if (txt.includes(k)) score += 1; });
+        negKw.forEach(k => { if (txt.includes(k)) score -= 1; });
+        if (score > 0) positive++;
+        else if (score < 0) negative++;
+        else neutral++;
+        trendData.push({ ts: m.timestamp, score });
       });
-    });
+    } else {
+      // Fallback: 纯中文关键词分析
+      msgs.forEach(m => {
+        const txt = m.content || '';
+        let score = 0;
+        posKw.forEach(k => { if (txt.includes(k)) score += 1; });
+        negKw.forEach(k => { if (txt.includes(k)) score -= 1; });
+        if (score > 0) positive++;
+        else if (score < 0) negative++;
+        else neutral++;
+        trendData.push({ ts: m.timestamp, score });
+      });
+    }
     return { positive, negative, neutral, total: msgs.length, trendData };
   },
 
   renderEmotionCharts() {
     const data = this.buildEmotionData();
-    if (!data) return;
+    if (!data) {
+      // 显示无数据提示
+      const pieCtx = document.getElementById('emotionPieChart');
+      if (pieCtx) {
+        const ctx = pieCtx.getContext('2d');
+        ctx.clearRect(0, 0, pieCtx.width, pieCtx.height);
+        ctx.fillStyle = '#8a8d96';
+        ctx.font = '14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('暂无数据，多聊聊天就有了', pieCtx.width / 2, pieCtx.height / 2);
+      }
+      return;
+    }
     const { positive, negative, neutral, total, trendData } = data;
 
     // Doughnut chart
@@ -22871,8 +23145,11 @@ const StatsManager = {
 
     const el = document.getElementById('statsSummary');
     if (!el) return;
+    // Count conversation rounds (一条 = user says + Jessica replies)
+    const convRounds = Math.min(userMsgs.length, jMsgs.length);
     el.innerHTML = `
       <div class="stats-stat"><div class="stats-stat-value">${msgs.length}</div><div class="stats-stat-label">总消息数</div></div>
+      <div class="stats-stat"><div class="stats-stat-value">${convRounds}</div><div class="stats-stat-label">对话轮次（条）</div></div>
       <div class="stats-stat"><div class="stats-stat-value">${userMsgs.length}</div><div class="stats-stat-label">我的消息</div></div>
       <div class="stats-stat"><div class="stats-stat-value">${jMsgs.length}</div><div class="stats-stat-label">杰西卡的回复</div></div>
       <div class="stats-stat"><div class="stats-stat-value">${(totalChars / 1000).toFixed(1)}k</div><div class="stats-stat-label">总字数</div></div>
@@ -23064,6 +23341,9 @@ function switchStatsTab(tab) { StatsManager.switchTab(tab); }
     <button class="stats-tab" onclick="switchStatsTab('wordcloud')">☁️ 词云统计</button>
   </div>
   <div class="stats-section active" id="statsEmotion">
+    <div style="text-align:center;padding:8px 16px 16px;font-size:12px;color:var(--text-dim);line-height:1.6;">
+      统计你和杰西卡聊天中表达的情绪分布，基于消息中的关键词和语义分析。颜色越深表示该情绪出现越频繁。
+    </div>
     <div class="stats-grid">
       <div class="stats-card">
         <h3>🎭 情绪分布</h3>
