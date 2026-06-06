@@ -54,6 +54,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/sentiment@5.0.2/build/sentiment.min.js"></script>
 <!-- 27. Chart.js — Charts for stats -->
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <!-- 18. onnxruntime-web — ONNX model inference in browser -->
 <script defer src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.0/dist/ort.min.js"></script>
 <!-- 21. tesseract.js — Browser-side OCR (image text recognition) -->
@@ -3414,6 +3415,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       <div class="settings-section-title">数据管理</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button onclick="exportAllData()" class="settings-action-btn">📤 导出数据</button>
+        <button onclick="exportAsZip()" class="settings-action-btn">📦 导出压缩包</button>
         <button onclick="exportToClipboard()" class="settings-action-btn">📋 复制到剪贴板</button>
         <label class="settings-action-btn" style="cursor:pointer;">📥 导入文件<input type="file" id="importDataInput" accept=".json,application/json" style="display:none;" onchange="importAllData(event)" /></label>
         <button onclick="importFromClipboard()" class="settings-action-btn">📋 剪贴板导入</button>
@@ -3479,7 +3481,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       <div class="toggle-switch-row">
         <span>系统通知</span>
         <label class="toggle-switch">
-          <input type="checkbox" id="notifToggle" checked />
+          <input type="checkbox" id="notifToggle" />
           <span class="toggle-slider"></span>
         </label>
       </div>
@@ -3636,9 +3638,9 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       <div class="sticker-upload-form" id="stickerUploadForm">
         <div class="sticker-drop-zone" id="stickerDropZoneInner" ondrop="handleStickerDrop(event)" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" onclick="document.getElementById('stickerFileInput').click()">
           <div class="sticker-drop-icon">📎</div>
-          <div class="sticker-drop-text">拖拽图片到此处，或点击选择</div>
+          <div class="sticker-drop-text">拖拽图片到此处，或点击选择（支持多选）</div>
         </div>
-        <input type="file" id="stickerFileInput" accept="image/*" onchange="previewSticker(event)" style="display:none;" />
+        <input type="file" id="stickerFileInput" accept="image/*" multiple onchange="previewSticker(event)" style="display:none;" />
         <img id="stickerPreview" class="sticker-upload-preview" style="display:none;" />
         <label>情绪分类</label>
         <select id="stickerEmotion">
@@ -9231,7 +9233,7 @@ function toggleBGMPanel() {
 // ============================================================
 const DB_NAME = 'JessicaDiaryDB';
 const DB_VERSION = 5;
-const APP_VERSION = '3.1.0';
+const APP_VERSION = '3.2.0';
 
 // ============================================================
 // 动态人设系统 (Dynamic Persona)
@@ -13100,9 +13102,16 @@ function openSettings(){
   // Background running
   const bgRunEl = document.getElementById('bgRunningToggle');
   if (bgRunEl) bgRunEl.checked = localStorage.getItem('jessica_bg_running') === 'on';
-  // Notification toggle
+  // Notification toggle — immediate save on change
   const notifEl = document.getElementById('notifToggle');
-  if (notifEl) notifEl.checked = localStorage.getItem('jessica_notification') !== 'off';
+  if (notifEl) {
+    notifEl.checked = localStorage.getItem('jessica_notification') !== 'off';
+    notifEl.addEventListener('change', function() {
+      localStorage.setItem('jessica_notification', this.checked ? 'on' : 'off');
+      if (this.checked) NotificationBridge.requestPermission();
+      showToast(this.checked ? '🔔 通知已开启' : '🔕 通知已关闭');
+    });
+  }
   if(ptEl){ptEl.value=localStorage.getItem('jessica_proactive')!=='off'?'on':'off';
     const piWrap=document.getElementById('proactiveIntervalWrap');if(piWrap)piWrap.style.display=ptEl.value==='off'?'none':'block';}
   const piEl=document.getElementById('proactiveInterval');if(piEl)piEl.value=localStorage.getItem('jessica_proactive_interval')||'15';
@@ -13488,9 +13497,11 @@ function handleStickerDrop(e) {
   const files = e.dataTransfer.files;
   if (files.length > 0) {
     const dt = new DataTransfer();
-    dt.items.add(files[0]);
+    for (let i = 0; i < files.length; i++) {
+      if (files[i].type.startsWith('image/')) dt.items.add(files[i]);
+    }
     document.getElementById('stickerFileInput').files = dt.files;
-    previewSticker({ target: { files: [files[0]] } });
+    previewSticker({ target: { files: dt.files } });
   }
 }
 
@@ -13520,37 +13531,52 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function previewSticker(e) {
-  const file = e.target.files[0];
-  if (!file) return;
+  const files = e.target.files;
+  if (!files || !files.length) return;
+  // Show preview of first image, indicate batch count
+  const preview = document.getElementById('stickerPreview');
   const reader = new FileReader();
   reader.onload = () => {
-    const preview = document.getElementById('stickerPreview');
     preview.src = reader.result;
     preview.style.display = 'block';
+    if (files.length > 1) {
+      preview.title = `已选择 ${files.length} 张图片`;
+    } else {
+      preview.title = '';
+    }
   };
-  reader.readAsDataURL(file);
+  reader.readAsDataURL(files[0]);
 }
 
 async function saveSticker() {
   const fileInput = document.getElementById('stickerFileInput');
   const emotion = document.getElementById('stickerEmotion').value;
   const description = document.getElementById('stickerDesc').value.trim();
-  if (!fileInput.files[0]) { showToast('请选择图片'); return; }
-  const reader = new FileReader();
-  reader.onload = async () => {
+  const files = fileInput.files;
+  if (!files || !files.length) { showToast('请选择图片'); return; }
+
+  let added = 0;
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
     const sticker = {
-      imageDataUrl: reader.result,
+      imageDataUrl: dataUrl,
       emotion,
-      description,
-      timestamp: Date.now()
+      description: files.length > 1 ? (description || file.name.replace(/\.[^.]+$/, '')) : description,
+      timestamp: Date.now() + i
     };
     await dbAddSticker(sticker);
     stickerData.push(sticker);
-    try{renderStickerLibrary();}catch(_e){}
-    hideStickerUploadForm();
-    showToast('表情包已添加 ✨');
-  };
-  reader.readAsDataURL(fileInput.files[0]);
+    added++;
+  }
+  try{renderStickerLibrary();}catch(_e){}
+  hideStickerUploadForm();
+  showToast(added > 1 ? `已添加 ${added} 张表情包 ✨` : '表情包已添加 ✨');
 }
 
 async function deleteSticker(id) {
@@ -20690,6 +20716,29 @@ function finishExport(data, dbStores) {
   }
 }
 function fallbackDownload(blob, filename, offerShare, shareBlob, shareFilename) {
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  // 方案 A: 移动端优先用 Web Share API 直接分享文件
+  if (isMobile && navigator.share && shareBlob) {
+    const shareFile = new File([shareBlob], shareFilename || filename, { type: shareBlob.type || 'application/json' });
+    if (navigator.canShare && navigator.canShare({ files: [shareFile] })) {
+      navigator.share({ files: [shareFile], title: '杰西卡备份' })
+        .then(() => showToast('📤 已分享备份文件'))
+        .catch(err => {
+          if (err.name !== 'AbortError') {
+            // 分享失败，降级到下载
+            doDownload(blob, filename, isMobile, shareBlob, shareFilename);
+          }
+        });
+      return;
+    }
+  }
+
+  // 方案 B: 标准下载
+  doDownload(blob, filename, isMobile, offerShare ? shareBlob : null, shareFilename);
+}
+
+function doDownload(blob, filename, isMobile, shareBlob, shareFilename) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -20702,22 +20751,70 @@ function fallbackDownload(blob, filename, offerShare, shareBlob, shareFilename) 
   }, 100);
   showToast('📤 数据已导出');
 
-  // 移动端：下载后弹出分享按钮（可选，不强制）
-  if (offerShare && navigator.share && navigator.canShare && shareBlob) {
-    const shareFile = new File([shareBlob], shareFilename || filename, { type: 'application/json' });
+  // 移动端下载后：如果文件很大，额外提供分享按钮
+  if (isMobile && shareBlob && navigator.share && navigator.canShare) {
+    const shareFile = new File([shareBlob], shareFilename || filename, { type: shareBlob.type || 'application/json' });
     if (navigator.canShare({ files: [shareFile] })) {
       setTimeout(() => {
         const shareBtn = document.createElement('div');
         shareBtn.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:10001;background:var(--accent);color:#fff;padding:10px 24px;border-radius:24px;font-size:14px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.3);animation:fadeInUp 0.3s ease;';
         shareBtn.textContent = '📤 分享备份文件';
         shareBtn.onclick = () => {
-          navigator.share({ files: [shareFile], title: '杰西卡日记备份' }).catch(() => {});
+          navigator.share({ files: [shareFile], title: '杰西卡备份' }).catch(() => {});
           document.body.removeChild(shareBtn);
         };
         document.body.appendChild(shareBtn);
         setTimeout(() => { if (shareBtn.parentNode) document.body.removeChild(shareBtn); }, 8000);
       }, 500);
     }
+  }
+}
+
+// 压缩包导出（ZIP 格式，移动端友好）
+async function exportAsZip() {
+  if (typeof JSZip === 'undefined') {
+    showToast('❌ JSZip 未加载，请刷新页面后重试');
+    return;
+  }
+  showToast('📦 正在打包数据...');
+  const data = { _version: 2, _exportedAt: new Date().toISOString() };
+  // Collect localStorage
+  const keys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && (key.startsWith('jessica_') || key.startsWith('chat_') || key.startsWith('jp_') || key.startsWith('V2'))) {
+      keys.push(key);
+    }
+  }
+  keys.forEach(k => {
+    try { data[k] = JSON.parse(localStorage.getItem(k)); } catch(e) { data[k] = localStorage.getItem(k); }
+  });
+  // Collect localforage
+  if (typeof V2Store !== 'undefined' && V2Store._ready) {
+    const lfData = {};
+    const storeNames = ['messages', 'memories', 'diary', 'affection', 'stickers', 'config', 'knowledge'];
+    for (const sn of storeNames) {
+      try {
+        const allKeys = await V2Store.getAllKeys(sn);
+        const items = {};
+        for (const k of allKeys) { items[k] = await V2Store.get(k, sn); }
+        lfData[sn] = items;
+      } catch(e) { console.warn('[ZIP-Export] store 失败:', sn, e); }
+    }
+    data._localforage = lfData;
+  }
+  // Build ZIP
+  try {
+    const zip = new JSZip();
+    zip.file('backup.json', JSON.stringify(data, null, 2));
+    zip.file('README.txt', `杰西卡日记备份\n导出时间: ${new Date().toLocaleString('zh-CN')}\n版本: ${data._version}\n\n将 backup.json 导入即可恢复数据。`);
+    const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+    const filename = `jessica_backup_${new Date().toISOString().slice(0,10)}.zip`;
+    const fileSizeMB = (blob.size / 1048576).toFixed(2);
+    fallbackDownload(blob, filename, true, blob, filename);
+  } catch(e) {
+    console.error('[ZIP-Export] 打包失败:', e);
+    showToast('❌ 压缩包导出失败: ' + e.message);
   }
 }
 function importAllData(event) {
