@@ -10,11 +10,59 @@
 ### 新增功能
 - **📦 导出压缩包**：新增 ZIP 格式导出（使用 JSZip 压缩），移动端优先走 Web Share API 分享 .zip 文件
 - **表情包批量添加**：表情包上传支持多选图片，拖拽也支持多文件
-- **版本号**：APP_VERSION 升级到 3.2.0
+- **版本号**：APP_VERSION 升级到 3.2.0，build.gradle versionName 统一为 3.2.0
 
 ### 改动
 - **build-apk.sh**：打包时自动将 strings.xml 的 app_name 从"杰西卡日记"改为"杰西卡"
 - **JSZip 依赖**：新增 `jszip@3.10.1` CDN 引用
+
+---
+
+## 移动端全屏适配 (2026-06-07)
+
+### 适配目标
+- **Redmi K60** (23013RK75C)
+- 屏幕：6.67" / 3200×1440
+- 系统：Android 15 / HyperOS 3.0.5.0
+- SoC：骁龙 8+ Gen 1 / 16GB RAM / 1TB 存储
+
+### HTML 修改
+1. `html, body` — 添加 `overscroll-behavior: none` + `-webkit-overflow-scrolling: auto`，防止弹性滚动
+2. `body` — `height: 100vh` → `height: 100%`（100vh 在 Android WebView 中不稳定，可能包含状态栏/导航栏区域）
+3. `#chatView` — `height: 100vh` → `height: 100%`
+4. `#homepage` — 添加 `overscroll-behavior: contain`，防止滚动穿透
+5. `.chat-area` — 添加 `overscroll-behavior: contain`
+6. `.sidebar` — 添加 `overscroll-behavior: contain`
+
+### Android 修改 (MainActivity.java)
+1. `setLoadWithOverviewMode(true)` — 概览模式加载，内容适配屏幕宽度
+2. `setUseWideViewPort(true)` — 使用宽视口，避免缩放
+3. `setBuiltInZoomControls(false)` — 禁用系统缩放控件
+4. `setSupportZoom(false)` — 完全禁止缩放
+5. `setDisplayZoomControls(false)` — 不显示缩放按钮
+
+### 原理
+- `100vh` 在 Android WebView 中表现不稳定（可能包含状态栏/导航栏区域），改用 `100%` + `position: fixed; inset: 0` 更可靠
+- `overscroll-behavior: none` 防止弹性滚动/下拉刷新干扰
+- `overscroll-behavior: contain` 防止滚动穿透到父元素
+- WebView 禁用缩放后，HTML 完全控制布局，不会被系统缩放机制干扰
+- 全屏沉浸模式（`SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION` + `FLAG_LAYOUT_NO_LIMITS`）让内容延伸到状态栏和导航栏后面，配合 `env(safe-area-inset-*)` 适配安全区域
+
+---
+
+## GitHub 仓库整理 (2026-06-07)
+
+### 保留的仓库
+| 仓库 | 用途 | 地址 |
+|------|------|------|
+| urlien/jessica-diary | HTML 源码 + APK | https://github.com/urlien/jessica-diary |
+| urlien/jessica-build-env | 编译环境 (JDK17 + Gradle 8.4 + Android SDK 34) | https://github.com/urlien/jessica-build-env |
+
+### 已删除的仓库
+| 仓库 | 原因 |
+|------|------|
+| urlien/- | 空仓库，无内容，误创建 |
+| urlien/files | OpenClaw 工作区旧备份，与杰西卡项目无关 |
 
 ---
 
@@ -65,3 +113,36 @@
 - 开机自启
 - 消息通知设置
 - 默认头像
+
+---
+
+## 编译环境说明
+
+### 环境组成
+- JDK 17.0.9（Oracle）
+- Gradle 8.4
+- Android SDK 34 + Build Tools 34.0.0
+- Android 项目模板（jessica-diary/）
+
+### 仓库地址
+https://github.com/urlien/jessica-build-env
+
+### Release 下载
+https://github.com/urlien/jessica-build-env/releases/download/v1.0/build-env.tar.gz（611MB）
+
+### 一键打包
+```bash
+cd /root/.openclaw/workspace/jessica_project
+bash build-apk.sh
+```
+
+### APK 输出
+- 路径：`/root/.openclaw/workspace/jessica_project/杰西卡v3.2.0.apk`
+- 大小：约 3.6MB
+- 包含：WebView 壳 + HTML（assets/index.html）+ 原生通知桥接 + 前台 Service + 开机自启
+
+### 注意事项
+- build.gradle 中 Kotlin stdlib 版本已强制统一为 1.8.22
+- settings.gradle 使用 dependencyResolutionManagement（不是 dependencyResolution）
+- AGP 8.1.4 + Gradle 8.4
+- MainActivity.java 有 deprecated API 警告（正常，不影响功能）
