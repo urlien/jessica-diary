@@ -5,12 +5,13 @@
 ### 02:08 — 初始检查
 - 克隆 GitHub 仓库 `urlien/jessica-diary`，检查当前版本 v3.2.0
 - 对比用户上传的旧版 HTML（v3.1.0）与仓库新版（v3.2.0），确认仓库已是最新
+- 下载并分析用户截图 5 张，确认具体问题
 
-### 02:09 — Bug 修复批次 1
-- **02:09 修复知识库上传手机端无响应**：将 `<label for="kbFileInput">` 改为 `<div onclick="document.getElementById('kbFileInput').click()">`，解决 Android WebView 中 `<label for="">` 不触发文件选择的问题
-- **02:09 修复通知权限检查显示浏览器设置**：完全重写 `checkNotificationPermission()` 函数，优先使用 `JessicaBridge.requestNotificationPermission()` 原生桥接请求系统通知权限，不再走 Web Notification API（该 API 在 WebView 中会弹出浏览器设置）
-- **02:09 修复通知开关 HTML 属性**：移除 `<input id="notifToggle" checked>` 中的 `checked` 硬编码，由 JS 动态控制初始状态
-- **02:09 APP_VERSION 升级**：3.2.0 → 3.3.0
+### 02:09 — Bug 修复（知识库上传 / 通知权限 / 通知开关）
+- **修复知识库上传手机端无响应**：将 `<label for="kbFileInput">` 改为 `<div onclick="document.getElementById('kbFileInput').click()">`，解决 Android WebView 中 `<label for="">` 不触发文件选择的问题
+- **修复通知权限检查显示浏览器设置**：完全重写 `checkNotificationPermission()` 函数，优先使用 `JessicaBridge.requestNotificationPermission()` 原生桥接请求系统通知权限，不再走 Web Notification API（该 API 在 WebView 中会弹出浏览器设置）
+- **修复通知开关 HTML 属性**：移除 `<input id="notifToggle" checked>` 中的 `checked` 硬编码，由 JS 动态控制初始状态
+- **APP_VERSION 升级**：3.2.0 → 3.3.0
 
 ### 02:09 — 后台省电优化
 - **新增省电模式**：`NotificationBridge` 新增 `_pauseBackgroundTimers()` / `_resumeBackgroundTimers()` 方法，页面不可见时自动暂停非关键定时器
@@ -30,9 +31,28 @@
 ### 02:41 — 云同步功能（GitHub Gist）
 - **新增 ☁️ 云同步区块**：设置页「数据管理」下方新增云同步 UI，包含 Token 输入框、备份/恢复/状态三个按钮
 - **`cloudSync` 对象**：实现 `_collectData()`（收集 localStorage）、`_restoreData()`（恢复数据）、`_api()`（GitHub API 封装）、`_findGist()`（查找已有备份）、`backup()`、`restore()`、`status()` 方法
-- **数据存储**：备份到用户 GitHub 账号的私有 Gist，描述为 `jessica-diary-backup (auto)`，文件名为 `jessica-backup.json`
+- **数据存储**：备份到用户 GitHub 账号的私有 Gist，描述为 `jessica-diary-backup (auto)`
 - **Token 管理**：Token 存在 localStorage `jessica_gist_token`，设置页自动填充
 - **自动查找**：首次备份后 Gist ID 存入 `jessica_gist_id`，后续自动定位
+
+### 02:46 — 新增 4 个小游戏
+- **🔢 2048**：`Game2048` 对象，4×4 网格，滑动合并数字，支持方向键控制，记录最高分
+- **🐍 贪吃蛇**：`SnakeGame` 对象，Canvas 渲染，15×15 网格，方向键控制，自动增长
+- **🧱 俄罗斯方块**：`TetrisGame` 对象，Canvas 渲染，10×20 网格，7 种方块，支持旋转/消行
+- **💣 扫雷**：`MinesweeperGame` 对象，3 种难度（简单 9×9/中等 16×16/困难 16×30），左键揭开/右键标旗
+- **游戏入口**：游戏中心新增 4 个卡片，`selectGame()` 函数扩展支持新游戏
+- **键盘事件**：全局 keydown 监听，根据当前活动 overlay 分发到对应游戏
+
+### 02:51 — Token 调试
+- 用户提供第一个 Token → `Bad credentials`（无效）
+- 用户提供第二个 Token → 有效，备份成功
+- GitHub 发来安全邮件：Token 被检测出现在 Gist 内容中，自动撤销
+- 原因：`_collectData()` 把 `jessica_gist_token` 也打包进了备份数据
+
+### 02:55 — 云同步安全修复
+- **修复 Token 泄露到 Gist 内容的问题**：`_collectData()` 新增 `SKIP` 集合，排除 `jessica_gist_token`、`jessica_gist_id`、`jessica_last_backup` 三个字段
+- **`_restoreData()` 同步排除**：恢复时也跳过这三个字段，不覆盖本地 Token
+- 用户提供第三个 Token → 有效，备份成功
 
 ### 03:01 — 云同步多版本备份
 - **保留最近 5 个备份版本**：每次备份生成带时间戳的文件名（`jessica-backup-2026-06-08-03-01-00.json`），不再覆盖旧备份
@@ -46,17 +66,20 @@
 - **预置内容**：默认包含 Kirameku 和 XinghuisamaBlogs 两个优秀案例
 - **数据存储**：localStorage `jessica_ideas`，支持云同步备份
 
-### 02:55 — 云同步安全修复
-- **修复 Token 泄露到 Gist 内容的问题**：`_collectData()` 新增 `SKIP` 集合，排除 `jessica_gist_token`、`jessica_gist_id`、`jessica_last_backup` 三个字段，防止 GitHub 安全扫描检测到 Token 后自动撤销
-- **`_restoreData()` 同步排除**：恢复时也跳过这三个字段，不覆盖本地 Token
+### 03:05 — 工作记录文件夹
+- **新增 `notes/` 文件夹**：用于存放每次工作的吐槽和记录
+- **首篇记录**：`notes/2026-06-08.md`，包含本次全部工作内容和吐槽
 
-### 02:46 — 新增 4 个小游戏
-- **🔢 2048**：`Game2048` 对象，4×4 网格，滑动合并数字，支持方向键控制，记录最高分
-- **🐍 贪吃蛇**：`SnakeGame` 对象，Canvas 渲染，15×15 网格，方向键控制，自动增长
-- **🧱 俄罗斯方块**：`TetrisGame` 对象，Canvas 渲染，10×20 网格，7 种方块，支持旋转/消行
-- **💣 扫雷**：`MinesweeperGame` 对象，3 种难度（简单 9×9/中等 16×16/困难 16×30），左键揭开/右键标旗
-- **游戏入口**：游戏中心新增 4 个卡片，`selectGame()` 函数扩展支持新游戏
-- **键盘事件**：全局 keydown 监听，根据当前活动 overlay 分发到对应游戏
+### Git 提交记录
+| 时间 | Commit | 内容 |
+|------|--------|------|
+| 02:23 | `06e591a` | feat: v3.3.0 — 知识库上传修复/通知权限重做/后台省电/版本升级 |
+| 02:34 | `0ab55b5` | fix: 围棋规则完全重写 — 自杀判断/打劫/AI评估/棋盘尺寸选择 |
+| 02:44 | `973e946` | feat: 云同步(GitHub Gist) + 新增4个小游戏 |
+| 02:56 | `e634939` | fix: 云同步备份时排除Token字段，防止GitHub自动撤销 |
+| 03:01 | `8470dd1` | docs: v3.3.0 更新日志细化 — 逐条记录时间线和修改内容 |
+| 03:04 | `9623f08` | feat: 云同步多版本备份(保留5个) + 灵感抽屉 |
+| 03:06 | `ad81a49` | notes: 2026-06-08 工作记录 + 吐槽 |
 
 ### 说明
 - APP_VERSION 升级到 3.3.0
