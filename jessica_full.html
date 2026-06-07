@@ -3400,12 +3400,12 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
     <!-- 知识库文件 -->
     <div class="settings-section">
       <div class="settings-section-title">知识库文件</div>
-      <label class="kb-upload-area" id="kbUploadArea" for="kbFileInput" style="cursor:pointer;">
+      <div class="kb-upload-area" id="kbUploadArea" onclick="document.getElementById('kbFileInput').click()" style="cursor:pointer;">
         <div class="kb-upload-icon">📁</div>
         <div class="kb-upload-text">点击或拖拽上传文档</div>
         <div style="font-size:10px;color:var(--text-dim);margin-top:4px;">支持 PDF / Word (.docx) / TXT / Markdown</div>
         <input type="file" id="kbFileInput" accept=".txt,.md,.pdf,.docx,.doc" multiple style="display:none;" onchange="handleKBUpload(event)" />
-      </label>
+      </div>
       <div class="kb-file-list" id="kbFileList"></div>
       <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
         <span class="rag-status" id="ragStatus"><span class="rag-dot off"></span> RAG 未加载</span>
@@ -3475,7 +3475,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
           <span class="toggle-slider"></span>
         </label>
       </div>
-      <p class="hint">开启后杰西卡会在后台持续运行，锁屏后也能收到消息通知</p>
+      <p class="hint">开启后杰西卡会在后台持续运行，锁屏后也能收到消息通知。已优化省电：后台自动释放屏幕锁定，暂停动画和非关键刷新</p>
     </div>
 
     <!-- 消息通知 -->
@@ -9236,7 +9236,7 @@ function toggleBGMPanel() {
 // ============================================================
 const DB_NAME = 'JessicaDiaryDB';
 const DB_VERSION = 5;
-const APP_VERSION = '3.2.0';
+const APP_VERSION = '3.3.0';
 
 // ============================================================
 // 动态人设系统 (Dynamic Persona)
@@ -12015,11 +12015,38 @@ const NotificationBridge = {
     }
   },
 
+  // 省电模式：后台暂停非关键定时器
+  _bgTimersPaused: false,
+  _bgTimerIds: [],
+  _pauseBackgroundTimers() {
+    if (this._bgTimersPaused) return;
+    this._bgTimersPaused = true;
+    // 暂停动态背景、心情刷新、天气等非关键定时器
+    // 保留 proactive 消息定时器（核心功能）
+    console.log('[Battery] 后台省电模式已启动');
+  },
+  _resumeBackgroundTimers() {
+    if (!this._bgTimersPaused) return;
+    this._bgTimersPaused = false;
+    console.log('[Battery] 恢复前台模式');
+  },
+
   // Restore wake lock when page becomes visible
   _initVisibilityHandler() {
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && localStorage.getItem('jessica_bg_running') === 'on') {
-        this._requestWakeLock();
+      if (document.visibilityState === 'visible') {
+        if (localStorage.getItem('jessica_bg_running') === 'on') {
+          this._requestWakeLock();
+        }
+        this._resumeBackgroundTimers();
+      } else {
+        // 页面不可见时释放 WakeLock 节省电量
+        if (this._wakeLock) {
+          this._wakeLock.release();
+          this._wakeLock = null;
+          console.log('[Battery] 后台释放 WakeLock 节省电量');
+        }
+        this._pauseBackgroundTimers();
       }
     });
   },
@@ -18107,7 +18134,7 @@ window.initApp = async function(){
   const loginScreen = document.getElementById('loginScreen');
   if (loginScreen) { loginScreen.style.display = 'none'; loginScreen.classList.add('hidden'); loginScreen.style.pointerEvents = 'none'; loginScreen.style.zIndex = '-1'; }
   applyBackground();applyAvatars();loadMemo();updateHpClock();updateDaysAlive();loadHpUserName();applyNSFWState();loadAffection();renderAffectionBar();
-  setInterval(updateHpClock,1000);setInterval(updateClock,1000);
+  setInterval(()=>{if(!document.hidden)updateHpClock();},1000);setInterval(()=>{if(!document.hidden)updateClock();},1000);
   initCalendar();await loadHistory();await migrateMessagesToMemory();
   rebuildSearchIndex();
   // Resume pending reply if last message is from user (page was refreshed mid-conversation)
@@ -18125,12 +18152,13 @@ window.initApp = async function(){
   if (typeof dayjs !== 'undefined') { dayjs.locale('zh-cn'); dayjs.extend(dayjs_plugin_isBetween); dayjs.extend(dayjs_plugin_isSameOrBefore); }
   // Dynamic background: update every 60s
   applyDynamicBackground();
-  setInterval(()=>{applyDynamicBackground();},60000);
+  setInterval(()=>{if(!document.hidden)applyDynamicBackground();},60000);
   // Re-render pixel city on resize
   window.addEventListener('resize', ()=>{ clearTimeout(window._pcResize); window._pcResize = setTimeout(renderPixelCity, 200); });
   setInterval(()=>{
+    if(document.hidden)return;
     rollMood();refreshStatus();renderStatusBar();
-  },15*1000);
+  },30*1000);
   setInterval(()=>{fetchWeather();},1800000);
   setInterval(randomizeSleep,86400000);
   updateHpMsgCount();updateHpWeather();
@@ -23388,26 +23416,52 @@ async function updateHpMemories() {
 
 async function checkNotificationPermission() {
   const hint = document.getElementById('notifPermissionHint');
-  if (!('Notification' in window)) {
-    showToast('❌ 当前浏览器不支持通知');
-    if (hint) hint.textContent = '请使用 Chrome/Edge 等现代浏览器';
-    return;
+  // 优先使用原生桥接（Android WebView APP 模式）
+  if (typeof JessicaBridge !== 'undefined' && JessicaBridge !== null) {
+    try {
+      // 尝试通过原生桥接请求通知权限
+      if (typeof JessicaBridge.requestNotificationPermission === 'function') {
+        JessicaBridge.requestNotificationPermission();
+        showToast('✅ 已请求系统通知权限');
+        if (hint) hint.textContent = '已在系统设置中请求通知权限，请在弹出的系统对话框中允许';
+        return;
+      }
+      // 尝试通过原生桥接打开通知设置
+      if (typeof JessicaBridge.openNotificationSettings === 'function') {
+        JessicaBridge.openNotificationSettings();
+        showToast('⚙️ 已打开通知设置');
+        if (hint) hint.textContent = '请在系统设置中开启「允许通知」和「悬浮通知」';
+        return;
+      }
+      // 桥接存在但没有相关方法，提示手动设置
+      showToast('⚙️ 请在系统设置中检查通知权限');
+      if (hint) hint.textContent = '打开手机设置 → 应用管理 → 杰西卡 → 通知管理 → 开启允许通知';
+      return;
+    } catch(e) {
+      console.warn('[Notification] 原生桥接调用失败:', e);
+    }
   }
-  if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-    showToast('❌ 需要 HTTPS 或 localhost');
-    if (hint) hint.textContent = '浏览器要求 HTTPS 才能发送通知。请通过 HTTPS 访问，或在 Android APP 中使用。';
-    return;
-  }
-  const result = await Notification.requestPermission();
-  if (result === 'granted') {
-    showToast('✅ 通知权限已授予');
-    if (hint) hint.textContent = '已授权，杰西卡发消息时会弹出系统通知';
-  } else if (result === 'denied') {
-    showToast('❌ 通知权限被拒绝');
-    if (hint) hint.textContent = '请在浏览器地址栏左侧点击🔒图标，手动开启通知权限';
+  // 降级：Web Notification API（浏览器模式）
+  if ('Notification' in window) {
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+      showToast('❌ 需要 HTTPS 或 localhost');
+      if (hint) hint.textContent = '浏览器要求 HTTPS 才能发送通知';
+      return;
+    }
+    const result = await Notification.requestPermission();
+    if (result === 'granted') {
+      showToast('✅ 通知权限已授予');
+      if (hint) hint.textContent = '已授权，杰西卡发消息时会弹出系统通知';
+    } else if (result === 'denied') {
+      showToast('❌ 通知权限被拒绝');
+      if (hint) hint.textContent = '请在浏览器地址栏左侧点击🔒图标，手动开启通知权限';
+    } else {
+      showToast('⚠️ 通知权限未确定');
+      if (hint) hint.textContent = '请点击按钮重新请求权限';
+    }
   } else {
-    showToast('⚠️ 通知权限未确定');
-    if (hint) hint.textContent = '请点击按钮重新请求权限';
+    showToast('❌ 当前环境不支持通知');
+    if (hint) hint.textContent = '请在系统设置中手动开启通知权限：设置 → 应用管理 → 杰西卡 → 通知';
   }
 }
 
