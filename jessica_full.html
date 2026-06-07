@@ -19992,7 +19992,7 @@ window.importKBFromGitHubConfirm = async function() {
 
   const files = container._files;
   const selected = Array.from(checks).map(c => files[parseInt(c.value)]);
-  let success = 0, failed = 0;
+  let success = 0, failed = 0, failNames = [];
 
   showToast(`📥 正在导入 ${selected.length} 个文件...`);
 
@@ -20002,26 +20002,32 @@ window.importKBFromGitHubConfirm = async function() {
       const dlToken = localStorage.getItem('jessica_gist_token') || '';
       if (dlToken) dlHeaders['Authorization'] = `token ${dlToken}`;
       const res = await fetch(file.download_url, { headers: dlHeaders });
-      if (!res.ok) throw new Error(`下载失败 ${res.status}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const text = await res.text();
+      if (!text || text.trim().length < 10) throw new Error('内容为空');
 
       // 构造 File 对象给 V2KB.addDocument
       const blob = new Blob([text], { type: 'text/markdown' });
       const fileObj = new File([blob], file.name, { type: 'text/markdown' });
 
       if (typeof V2KB !== 'undefined') {
+        // 预检查：内容长度
+        if (text.trim().length < 10) throw new Error('内容过少(' + text.trim().length + '字)');
         await V2KB.addDocument(fileObj);
         success++;
       } else {
-        throw new Error('V2KB 未加载');
+        throw new Error('V2KB 未初始化');
       }
     } catch(e) {
       console.warn(`[KB-GitHub] 导入 ${file.name} 失败:`, e);
       failed++;
+      failNames.push(file.name + ': ' + e.message);
     }
   }
 
-  showToast(`✅ 导入完成: ${success} 个成功${failed ? `，${failed} 个失败` : ''}`);
+  let msg = `✅ 导入完成: ${success} 个成功`;
+  if (failed) msg += `，${failed} 个失败\n${failNames.join('\n')}`;
+  showToast(msg);
   container.style.display = 'none';
 };
 
