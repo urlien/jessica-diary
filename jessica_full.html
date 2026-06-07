@@ -4040,10 +4040,16 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
   <div class="gomoku-container">
     <div class="gomoku-left-panel">
       <div class="gomoku-header">
-        <h3>🔵 围棋 — vs 杰西卡</h3>
+        <h3>⚫ 围棋 — vs 杰西卡</h3>
         <button class="gomoku-close" onclick="closeGo()">✕</button>
       </div>
       <div class="gomoku-difficulty">
+        棋盘:
+        <select id="goBoardSize" onchange="Go.setBoardSize(parseInt(this.value))">
+          <option value="9">9×9</option>
+          <option value="13">13×13</option>
+          <option value="19" selected>19×19</option>
+        </select>
         难度:
         <select id="goDiff" onchange="Go.setDifficulty(this.value)">
           <option value="teaching">📖 教学</option>
@@ -21909,6 +21915,7 @@ const Go = {
     document.getElementById('goOverlay').classList.remove('active');
   },
 
+  // ── 棋盘渲染 ──
   render() {
     const boardEl = document.getElementById('goBoard');
     if (!boardEl) return;
@@ -21920,8 +21927,7 @@ const Go = {
     let html = '';
     for (let r = 0; r < S; r++) {
       for (let c = 0; c < S; c++) {
-        const key = `${r},${c}`;
-        const isStar = starPoints.has(key);
+        const isStar = starPoints.has(`${r},${c}`);
         const isLast = this.moveHistory.length > 0 &&
           this.moveHistory[this.moveHistory.length - 1].r === r &&
           this.moveHistory[this.moveHistory.length - 1].c === c;
@@ -21968,11 +21974,71 @@ const Go = {
     }
   },
 
+  // ── 核心规则：气、提子、自杀判断、打劫 ──
+  _getGroup(r, c, board) {
+    const color = board[r][c];
+    if (!color) return { stones: [], liberties: 0 };
+    const visited = new Set();
+    const stones = [];
+    const libs = new Set();
+    const stack = [{r, c}];
+    const dirs = [[0,1],[1,0],[0,-1],[-1,0]];
+    while (stack.length) {
+      const {r: cr, c: cc} = stack.pop();
+      const key = cr * this.SIZE + cc;
+      if (visited.has(key)) continue;
+      if (cr < 0 || cr >= this.SIZE || cc < 0 || cc >= this.SIZE) continue;
+      if (board[cr][cc] !== color) {
+        if (!board[cr][cc]) libs.add(cr * this.SIZE + cc);
+        continue;
+      }
+      visited.add(key);
+      stones.push({r: cr, c: cc});
+      for (const [dr, dc] of dirs) stack.push({r: cr+dr, c: cc+dc});
+    }
+    return { stones, liberties: libs.size };
+  },
+
+  _removeGroup(board, stones) {
+    for (const {r, c} of stones) board[r][c] = null;
+  },
+
+  // 完整合法性检查：落子 → 提对方死子 → 检查己方是否有气
+  _isLegalMove(r, c, player) {
+    if (this.board[r][c]) return false;
+    // 打劫检查
+    if (this.koPoint && this.koPoint.r === r && this.koPoint.c === c) return false;
+    const opponent = player === 'black' ? 'white' : 'black';
+    // 模拟落子
+    const sim = this.board.map(row => [...row]);
+    sim[r][c] = player;
+    // 提掉所有无气的对方棋块
+    const dirs = [[0,1],[1,0],[0,-1],[-1,0]];
+    let totalCaptured = 0;
+    let lastCapturedPos = null;
+    for (const [dr, dc] of dirs) {
+      const nr = r + dr, nc = c + dc;
+      if (nr < 0 || nr >= this.SIZE || nc < 0 || nc >= this.SIZE) continue;
+      if (sim[nr][nc] !== opponent) continue;
+      const group = this._getGroup(nr, nc, sim);
+      if (group.liberties === 0) {
+        totalCaptured += group.stones.length;
+        lastCapturedPos = group.stones.length === 1 ? {r: group.stones[0].r, c: group.stones[0].c} : null;
+        this._removeGroup(sim, group.stones);
+      }
+    }
+    // 检查己方新落子的棋块是否有气
+    const myGroup = this._getGroup(r, c, sim);
+    if (myGroup.liberties === 0) return false; // 自杀，非法
+    return true;
+  },
+
+  // ── 落子执行 ──
   handleClick(r, c) {
     if (!this.gameActive || this.board[r][c] || this.currentPlayer !== 'black' || this.isThinking) return;
-    if (!this.isValidMove(r, c, 'black')) return;
+    if (!this._isLegalMove(r, c, 'black')) return;
     this.clearTeachHints();
-    this.placeStone(r, c, 'black');
+    this._placeStone(r, c, 'black');
     if (this.gameActive) {
       this.generateComment('playerMove', {r, c});
       this.currentPlayer = 'white';
@@ -21983,96 +22049,49 @@ const Go = {
     }
   },
 
-  isValidMove(r, c, player) {
-    if (this.board[r][c]) return false;
-    // Check ko
-    if (this.koPoint && this.koPoint.r === r && this.koPoint.c === c) return false;
-    return true;
-  },
-
-  placeStone(r, c, player) {
+  _placeStone(r, c, player) {
+    const opponent = player === 'black' ? 'white' : 'black';
     this.board[r][c] = player;
     this.moveHistory.push({r, c, player});
     this.moveCount++;
     this.consecutivePasses = 0;
     if (typeof GameSFX !== 'undefined') GameSFX.place();
-    // Capture surrounded stones
-    const opponent = player === 'black' ? 'white' : 'black';
-    const captured = this.captureStones(r, c, opponent);
-    if (captured.length === 1) {
-      // Potential ko
-      const lastMove = this.moveHistory.length >= 2 ? this.moveHistory[this.moveHistory.length - 2] : null;
-      if (lastMove && captured[0].r === lastMove.r && captured[0].c === lastMove.c) {
-        this.koPoint = {r: captured[0].r, c: captured[0].c};
-      } else {
-        this.koPoint = null;
-      }
-    } else {
-      this.koPoint = null;
-    }
-    if (player === 'black') this.captured.player += captured.length;
-    else this.captured.jessica += captured.length;
-    if (captured.length > 0 && typeof GameSFX !== 'undefined') GameSFX.capture();
-    this.render();
-  },
-
-  captureStones(r, c, opponent) {
-    const captured = [];
+    // 提子
+    let totalCaptured = 0;
+    let lastCapturedPos = null;
     const dirs = [[0,1],[1,0],[0,-1],[-1,0]];
     for (const [dr, dc] of dirs) {
       const nr = r + dr, nc = c + dc;
       if (nr < 0 || nr >= this.SIZE || nc < 0 || nc >= this.SIZE) continue;
       if (this.board[nr][nc] !== opponent) continue;
-      const group = this.getGroup(nr, nc);
-      if (this.countLiberties(group) === 0) {
-        for (const {r: gr, c: gc} of group) {
-          this.board[gr][gc] = null;
-          captured.push({r: gr, c: gc});
-        }
+      const group = this._getGroup(nr, nc, this.board);
+      if (group.liberties === 0) {
+        totalCaptured += group.stones.length;
+        lastCapturedPos = group.stones.length === 1 ? {r: group.stones[0].r, c: group.stones[0].c} : null;
+        this._removeGroup(this.board, group.stones);
       }
     }
-    return captured;
-  },
-
-  getGroup(r, c) {
-    const color = this.board[r][c];
-    const visited = new Set();
-    const group = [];
-    const stack = [{r, c}];
-    while (stack.length) {
-      const {r: cr, c: cc} = stack.pop();
-      const key = `${cr},${cc}`;
-      if (visited.has(key)) continue;
-      if (cr < 0 || cr >= this.SIZE || cc < 0 || cc >= this.SIZE) continue;
-      if (this.board[cr][cc] !== color) continue;
-      visited.add(key);
-      group.push({r: cr, c: cc});
-      stack.push({r: cr+1, c: cc}, {r: cr-1, c: cc}, {r: cr, c: cc+1}, {r: cr, c: cc-1});
+    // 打劫判断：仅提一子且对方刚下的那一手被提
+    if (totalCaptured === 1 && lastCapturedPos &&
+        this.moveHistory.length >= 2 &&
+        this.moveHistory[this.moveHistory.length - 2].r === lastCapturedPos.r &&
+        this.moveHistory[this.moveHistory.length - 2].c === lastCapturedPos.c) {
+      this.koPoint = lastCapturedPos;
+    } else {
+      this.koPoint = null;
     }
-    return group;
+    if (player === 'black') this.captured.player += totalCaptured;
+    else this.captured.jessica += totalCaptured;
+    if (totalCaptured > 0 && typeof GameSFX !== 'undefined') GameSFX.capture();
+    this.render();
   },
 
-  countLiberties(group) {
-    const libs = new Set();
-    for (const {r, c} of group) {
-      for (const [dr, dc] of [[0,1],[1,0],[0,-1],[-1,0]]) {
-        const nr = r + dr, nc = c + dc;
-        if (nr >= 0 && nr < this.SIZE && nc >= 0 && nc < this.SIZE && !this.board[nr][nc]) {
-          libs.add(`${nr},${nc}`);
-        }
-      }
-    }
-    return libs.size;
-  },
-
+  // ── 跳过/认输 ──
   pass() {
     if (!this.gameActive || this.isThinking) return;
     this.consecutivePasses++;
     this.koPoint = null;
-    if (this.consecutivePasses >= 2) {
-      this.endGame();
-      return;
-    }
+    if (this.consecutivePasses >= 2) { this.endGame(); return; }
     this.generateComment('playerPass');
     this.currentPlayer = 'white';
     this.updateStatus();
@@ -22089,10 +22108,11 @@ const Go = {
     if (typeof GameSFX !== 'undefined') GameSFX.lose();
   },
 
+  // ── 终局计地（中国规则：子+空） ──
   endGame() {
     this.gameActive = false;
-    const territory = this.countTerritory();
     const komi = 6.5;
+    const territory = this._countTerritory();
     const playerScore = territory.black + this.captured.player;
     const jessicaScore = territory.white + this.captured.jessica + komi;
     if (playerScore > jessicaScore) {
@@ -22108,16 +22128,16 @@ const Go = {
       this.generateComment('draw');
     }
     this.updateStatus();
-    this.showTerritory(territory);
+    this._showTerritory(territory);
   },
 
-  countTerritory() {
+  _countTerritory() {
     const visited = new Set();
     let black = 0, white = 0;
     for (let r = 0; r < this.SIZE; r++) {
       for (let c = 0; c < this.SIZE; c++) {
-        if (this.board[r][c] || visited.has(`${r},${c}`)) continue;
-        const {cells, borders} = this.floodFillEmpty(r, c, visited);
+        if (this.board[r][c] || visited.has(r * this.SIZE + c)) continue;
+        const {cells, borders} = this._floodFillEmpty(r, c, visited);
         if (borders.size === 1) {
           const owner = [...borders][0];
           if (owner === 'black') black += cells.length;
@@ -22128,25 +22148,24 @@ const Go = {
     return {black, white};
   },
 
-  floodFillEmpty(r, c, visited) {
+  _floodFillEmpty(r, c, visited) {
     const cells = []; const borders = new Set();
     const stack = [{r, c}];
-    const localVisited = new Set();
+    const dirs = [[0,1],[1,0],[0,-1],[-1,0]];
     while (stack.length) {
       const {r: cr, c: cc} = stack.pop();
-      const key = `${cr},${cc}`;
-      if (localVisited.has(key)) continue;
+      const key = cr * this.SIZE + cc;
+      if (visited.has(key)) continue;
       if (cr < 0 || cr >= this.SIZE || cc < 0 || cc >= this.SIZE) continue;
       if (this.board[cr][cc]) { borders.add(this.board[cr][cc]); continue; }
-      localVisited.add(key); visited.add(key);
+      visited.add(key);
       cells.push({r: cr, c: cc});
-      stack.push({r: cr+1, c: cc}, {r: cr-1, c: cc}, {r: cr, c: cc+1}, {r: cr, c: cc-1});
+      for (const [dr, dc] of dirs) stack.push({r: cr+dr, c: cc+dc});
     }
     return {cells, borders};
   },
 
-  showTerritory(territory) {
-    // Visual indication of territory could be added here
+  _showTerritory(territory) {
     const body = document.getElementById('goChatBody');
     if (!body) return;
     const komi = 6.5;
@@ -22157,11 +22176,12 @@ const Go = {
     body.scrollTop = body.scrollHeight;
   },
 
+  // ── AI（评估 + 候选 + 最佳手） ──
   jessicaMove() {
     if (!this.gameActive) { this.isThinking = false; return; }
     const move = this.findBestMove();
     if (move) {
-      this.placeStone(move.r, move.c, 'white');
+      this._placeStone(move.r, move.c, 'white');
       if (this.gameActive) {
         this.generateComment('jessicaMove', move);
         this.currentPlayer = 'black';
@@ -22173,76 +22193,101 @@ const Go = {
   },
 
   findBestMove() {
-    const candidates = this.getGoCandidates();
+    const candidates = this._getCandidates();
     if (candidates.length === 0) return null;
     let bestScore = -Infinity, bestMoves = [];
     for (const {r, c} of candidates) {
-      const score = this.evaluateGoPosition(r, c);
+      const score = this._evaluatePosition(r, c);
       if (score > bestScore) { bestScore = score; bestMoves = [{r, c}]; }
       else if (score === bestScore) bestMoves.push({r, c});
     }
-    // If best move is terrible, consider passing
-    if (bestScore < -500 && this.moveCount > 10) return null;
+    if (bestScore < -500 && this.moveCount > 10) return null; // pass
     return bestMoves[Math.floor(Math.random() * bestMoves.length)];
   },
 
-  getGoCandidates() {
+  _getCandidates() {
     const set = new Set();
-    const range = this.difficulty === 'hard' ? 2 : 1;
+    const range = this.difficulty === 'hard' ? 3 : this.difficulty === 'medium' ? 2 : 1;
     for (const {r, c} of this.moveHistory) {
       for (let dr = -range; dr <= range; dr++) {
         for (let dc = -range; dc <= range; dc++) {
           const nr = r + dr, nc = c + dc;
           if (nr >= 0 && nr < this.SIZE && nc >= 0 && nc < this.SIZE && !this.board[nr][nc]) {
-            if (this.isValidMove(nr, nc, 'white')) set.add(`${nr},${nc}`);
+            if (this._isLegalMove(nr, nc, 'white')) set.add(`${nr},${nc}`);
           }
         }
       }
     }
     if (set.size === 0) {
       const mid = Math.floor(this.SIZE / 2);
-      return this.board[mid][mid] ? [] : [{r: mid, c: mid}];
+      if (!this.board[mid][mid] && this._isLegalMove(mid, mid, 'white')) return [{r: mid, c: mid}];
+      return [];
     }
     return [...set].map(s => { const [r, c] = s.split(',').map(Number); return {r, c}; });
   },
 
-  evaluateGoPosition(r, c) {
+  _evaluatePosition(r, c) {
     let score = 0;
-    // Simulate placing
+    const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+    // 白棋（杰西卡）进攻
     this.board[r][c] = 'white';
-    const group = this.getGroup(r, c);
-    const libs = this.countLiberties(group);
-    score += libs * 15;
-    // Capture potential
-    const dirs = [[0,1],[1,0],[0,-1],[-1,0]];
+    const wGroup = this._getGroup(r, c, this.board);
+    score += wGroup.liberties * 20;
     for (const [dr, dc] of dirs) {
+      const line = this._countLine(r, c, dr, dc, 'white');
+      if (line >= 5) score += 1000000;
+      else if (line === 4) score += wGroup.liberties >= 2 ? 50000 : 5000;
+      else if (line === 3) score += wGroup.liberties >= 2 ? 5000 : 500;
+      else if (line === 2) score += 200;
+    }
+    // 提子潜力
+    for (const [dr, dc] of [[0,1],[1,0],[0,-1],[-1,0]]) {
       const nr = r + dr, nc = c + dc;
       if (nr >= 0 && nr < this.SIZE && nc >= 0 && nc < this.SIZE && this.board[nr][nc] === 'black') {
-        const oppGroup = this.getGroup(nr, nc);
-        const oppLibs = this.countLiberties(oppGroup);
-        if (oppLibs === 1) score += oppGroup.length * 50;
-        else if (oppLibs === 2) score += oppGroup.length * 10;
+        const opp = this._getGroup(nr, nc, this.board);
+        if (opp.liberties === 1) score += opp.stones.length * 100;
+        else if (opp.liberties === 2) score += opp.stones.length * 20;
       }
     }
-    // Also evaluate for opponent (defense)
+    // 黑棋（玩家）防守
     this.board[r][c] = 'black';
-    const defGroup = this.getGroup(r, c);
-    const defLibs = this.countLiberties(defGroup);
-    score += defLibs * 10;
+    const bGroup = this._getGroup(r, c, this.board);
+    score += bGroup.liberties * 15;
     for (const [dr, dc] of dirs) {
-      const nr = r + dr, nc = c + dc;
-      if (nr >= 0 && nr < this.SIZE && nc >= 0 && nc < this.SIZE && this.board[nr][nc] === 'white') {
-        const oppGroup = this.getGroup(nr, nc);
-        const oppLibs = this.countLiberties(oppGroup);
-        if (oppLibs === 1) score += oppGroup.length * 40;
-      }
+      const line = this._countLine(r, c, dr, dc, 'black');
+      if (line >= 5) score += 800000;
+      else if (line === 4) score += bGroup.liberties >= 2 ? 40000 : 4000;
+      else if (line === 3) score += bGroup.liberties >= 2 ? 4000 : 400;
+      else if (line === 2) score += 150;
     }
     this.board[r][c] = null;
-    // Center preference
-    const center = Math.floor(this.SIZE / 2);
-    const dist = Math.abs(r - center) + Math.abs(c - center);
-    score += Math.max(0, (this.SIZE - dist)) * 1;
+    // 位置价值：角 > 边 > 中，星位加分
+    const edgeDist = Math.min(r, c, this.SIZE-1-r, this.SIZE-1-c);
+    if (edgeDist === 0) score += 30; // 边
+    if ((r===3||r===9||r===15)&&(c===3||c===9||c===15)) score += 20; // 星位
+    // 开局占角
+    if (this.moveCount < 6) {
+      if (r >= 2 && r <= 5 && c >= 2 && c <= 5) score += 100;
+      if (r >= this.SIZE-6 && r <= this.SIZE-3 && c >= 2 && c <= 5) score += 100;
+      if (r >= 2 && r <= 5 && c >= this.SIZE-6 && c <= this.SIZE-3) score += 100;
+      if (r >= this.SIZE-6 && r <= this.SIZE-3 && c >= this.SIZE-6 && c <= this.SIZE-3) score += 100;
+    }
     return score;
+  },
+
+  _countLine(r, c, dr, dc, player) {
+    let count = 1;
+    for (let i = 1; i < 5; i++) {
+      const nr = r+dr*i, nc = c+dc*i;
+      if (nr<0||nr>=this.SIZE||nc<0||nc>=this.SIZE||this.board[nr][nc]!==player) break;
+      count++;
+    }
+    for (let i = 1; i < 5; i++) {
+      const nr = r-dr*i, nc = c-dc*i;
+      if (nr<0||nr>=this.SIZE||nc<0||nc>=this.SIZE||this.board[nr][nc]!==player) break;
+      count++;
+    }
+    return count;
   },
 
   undo() {
@@ -22256,6 +22301,16 @@ const Go = {
     this.clearTeachHints();
     this.render();
     this.updateStatus();
+  },
+
+  setDifficulty(d) {
+    this.difficulty = d;
+    this.init();
+  },
+
+  setBoardSize(s) {
+    this.SIZE = s;
+    this.init();
   },
 
   setDifficulty(d) {
@@ -22286,7 +22341,7 @@ const Go = {
     }
   },
 
-  // AI commentary
+  // ── AI 评论 ──
   _buildGameContext(type, data) {
     let moveList = this.moveHistory.slice(-8).map(m =>
       `${m.player === 'black' ? '玩家' : '杰西卡'}: (${m.r+1},${m.c+1})`
