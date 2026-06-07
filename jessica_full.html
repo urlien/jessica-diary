@@ -3430,6 +3430,20 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       </div>
     </div>
 
+    <!-- ☁️ 云同步 -->
+    <div class="settings-section">
+      <div class="settings-section-title">☁️ 云同步（GitHub Gist）</div>
+      <p class="hint" style="margin-bottom:8px;">数据备份到你的私有 Gist，换手机/重装后可恢复。Token 仅存在本地。</p>
+      <label>GitHub Token</label>
+      <input type="password" id="gistToken" placeholder="ghp_xxxx" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:monospace;padding:8px;outline:none;" />
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        <button onclick="cloudSync.backup()" class="settings-action-btn" style="background:var(--accent);color:#fff;border:none;">☁️ 备份到云端</button>
+        <button onclick="cloudSync.restore()" class="settings-action-btn">📥 从云端恢复</button>
+        <button onclick="cloudSync.status()" class="settings-action-btn">📊 查看状态</button>
+      </div>
+      <p class="hint" id="cloudSyncHint" style="margin-top:8px;"></p>
+    </div>
+
     <!-- 模型设置 -->
     <div class="settings-section">
       <div class="settings-section-title">模型设置</div>
@@ -3985,6 +3999,26 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
         <div class="gh-name">象棋</div>
         <div class="gh-desc">楚河汉界对决</div>
       </div>
+      <div class="gamehub-card" onclick="selectGame('2048')">
+        <div class="gh-icon">🔢</div>
+        <div class="gh-name">2048</div>
+        <div class="gh-desc">滑动合并数字</div>
+      </div>
+      <div class="gamehub-card" onclick="selectGame('snake')">
+        <div class="gh-icon">🐍</div>
+        <div class="gh-name">贪吃蛇</div>
+        <div class="gh-desc">经典贪吃蛇</div>
+      </div>
+      <div class="gamehub-card" onclick="selectGame('tetris')">
+        <div class="gh-icon">🧱</div>
+        <div class="gh-name">俄罗斯方块</div>
+        <div class="gh-desc">消除满行</div>
+      </div>
+      <div class="gamehub-card" onclick="selectGame('minesweeper')">
+        <div class="gh-icon">💣</div>
+        <div class="gh-name">扫雷</div>
+        <div class="gh-desc">排除所有地雷</div>
+      </div>
     </div>
     <button class="gamehub-close" onclick="closeGameHub()">关闭</button>
   </div>
@@ -4129,6 +4163,85 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
   </div>
 </div>
 
+<!-- 2048 Game Overlay -->
+<div class="gomoku-overlay" id="game2048Overlay">
+  <div class="gomoku-container" style="flex-direction:column;align-items:center;max-width:400px;">
+    <div class="gomoku-header" style="width:100%;">
+      <h3>🔢 2048</h3>
+      <button class="gomoku-close" onclick="closeGame2048()">✕</button>
+    </div>
+    <div style="display:flex;gap:16px;font-size:13px;color:var(--text-dim);margin:8px 0;">
+      <div>分数: <span id="g2048Score" style="font-size:20px;font-weight:700;color:var(--accent);">0</span></div>
+      <div>最高: <span id="g2048Best" style="font-size:20px;font-weight:700;color:var(--accent2);">0</span></div>
+    </div>
+    <div id="g2048Board" style="background:var(--bg-card);border-radius:12px;padding:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;touch-action:none;"></div>
+    <div class="gomoku-controls" style="margin-top:12px;">
+      <button class="primary" onclick="Game2048.init()">🔄 新游戏</button>
+      <button onclick="closeGame2048()">🚪 离开</button>
+    </div>
+    <p class="hint" style="margin-top:8px;font-size:11px;">滑动或方向键控制</p>
+  </div>
+</div>
+
+<!-- Snake Game Overlay -->
+<div class="gomoku-overlay" id="snakeOverlay">
+  <div class="gomoku-container" style="flex-direction:column;align-items:center;max-width:400px;">
+    <div class="gomoku-header" style="width:100%;">
+      <h3>🐍 贪吃蛇</h3>
+      <button class="gomoku-close" onclick="closeSnake()">✕</button>
+    </div>
+    <div style="font-size:13px;color:var(--text-dim);margin:8px 0;">分数: <span id="snakeScore" style="font-size:20px;font-weight:700;color:var(--accent);">0</span></div>
+    <canvas id="snakeCanvas" width="300" height="300" style="border-radius:8px;background:#111;border:1px solid var(--border);"></canvas>
+    <div class="gomoku-controls" style="margin-top:12px;">
+      <button class="primary" onclick="SnakeGame.init()">🔄 新游戏</button>
+      <button onclick="closeSnake()">🚪 离开</button>
+    </div>
+    <p class="hint" style="margin-top:8px;font-size:11px;">方向键或滑动控制</p>
+  </div>
+</div>
+
+<!-- Tetris Game Overlay -->
+<div class="gomoku-overlay" id="tetrisOverlay">
+  <div class="gomoku-container" style="flex-direction:column;align-items:center;max-width:400px;">
+    <div class="gomoku-header" style="width:100%;">
+      <h3>🧱 俄罗斯方块</h3>
+      <button class="gomoku-close" onclick="closeTetris()">✕</button>
+    </div>
+    <div style="display:flex;gap:16px;font-size:13px;color:var(--text-dim);margin:8px 0;">
+      <div>分数: <span id="tetrisScore" style="font-size:18px;font-weight:700;color:var(--accent);">0</span></div>
+      <div>行数: <span id="tetrisLines" style="font-size:18px;font-weight:700;color:var(--accent2);">0</span></div>
+    </div>
+    <canvas id="tetrisCanvas" width="200" height="400" style="border-radius:8px;background:#111;border:1px solid var(--border);"></canvas>
+    <div class="gomoku-controls" style="margin-top:12px;">
+      <button class="primary" onclick="TetrisGame.init()">🔄 新游戏</button>
+      <button onclick="closeTetris()">🚪 离开</button>
+    </div>
+    <p class="hint" style="margin-top:8px;font-size:11px;">方向键控制，上键旋转</p>
+  </div>
+</div>
+
+<!-- Minesweeper Game Overlay -->
+<div class="gomoku-overlay" id="minesweeperOverlay">
+  <div class="gomoku-container" style="flex-direction:column;align-items:center;max-width:500px;">
+    <div class="gomoku-header" style="width:100%;">
+      <h3>💣 扫雷</h3>
+      <button class="gomoku-close" onclick="closeMinesweeper()">✕</button>
+    </div>
+    <div style="display:flex;gap:16px;font-size:13px;color:var(--text-dim);margin:8px 0;">
+      <div>💣 <span id="msMines">10</span></div>
+      <div>⏱️ <span id="msTime">0</span>s</div>
+    </div>
+    <div id="msBoard" style="display:grid;gap:2px;touch-action:none;"></div>
+    <div class="gomoku-controls" style="margin-top:12px;">
+      <button class="primary" onclick="MinesweeperGame.init()">🔄 新游戏</button>
+      <button onclick="MinesweeperGame.setDifficulty('easy')">简单</button>
+      <button onclick="MinesweeperGame.setDifficulty('medium')">中等</button>
+      <button onclick="MinesweeperGame.setDifficulty('hard')">困难</button>
+      <button onclick="closeMinesweeper()">🚪 离开</button>
+    </div>
+    <p class="hint" style="margin-top:8px;font-size:11px;">左键揭开，右键标旗</p>
+  </div>
+</div>
 
 <script>
 // ============================================================
@@ -13151,6 +13264,9 @@ function openSettings(){
   if(ptEl){ptEl.value=localStorage.getItem('jessica_proactive')!=='off'?'on':'off';
     const piWrap=document.getElementById('proactiveIntervalWrap');if(piWrap)piWrap.style.display=ptEl.value==='off'?'none':'block';}
   const piEl=document.getElementById('proactiveInterval');if(piEl)piEl.value=localStorage.getItem('jessica_proactive_interval')||'15';
+  // Cloud sync token
+  const gistTokenEl = document.getElementById('gistToken');
+  if (gistTokenEl) { const saved = localStorage.getItem('jessica_gist_token'); if (saved) gistTokenEl.value = saved; }
   // Writing style (dropdown)
   const ws=cfg.writingStyle||'default';
   const wsOpt=WS_OPTIONS[ws]||WS_OPTIONS['default'];
@@ -20649,6 +20765,150 @@ window.initApp = async function() {
 };
 
 // ============================================================
+// CLOUD SYNC (GitHub Gist)
+// ============================================================
+const cloudSync = {
+  GIST_DESC: 'jessica-diary-backup (auto)',
+  _hint: null,
+  _getHint() { return this._hint || (this._hint = document.getElementById('cloudSyncHint')); },
+  _show(msg) { const h = this._getHint(); if (h) h.textContent = msg; console.log('[CloudSync]', msg); },
+  _getToken() {
+    let t = document.getElementById('gistToken')?.value?.trim();
+    if (!t) t = localStorage.getItem('jessica_gist_token') || '';
+    if (t) { const el = document.getElementById('gistToken'); if (el && !el.value) el.value = t; }
+    return t;
+  },
+  _saveToken(t) { localStorage.setItem('jessica_gist_token', t); },
+
+  _collectData() {
+    const data = { _version: 2, _exportedAt: new Date().toISOString(), _source: 'cloud-sync' };
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('jessica_') || key.startsWith('chat_') || key.startsWith('jp_') || key.startsWith('V2'))) {
+        try { data[key] = JSON.parse(localStorage.getItem(key)); } catch(e) { data[key] = localStorage.getItem(key); }
+      }
+    }
+    return data;
+  },
+
+  _restoreData(data) {
+    if (!data || typeof data !== 'object') { showToast('❌ 无效的备份数据'); return false; }
+    let count = 0;
+    for (const [k, v] of Object.entries(data)) {
+      if (k.startsWith('_')) continue;
+      try { localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v)); count++; } catch(e) {}
+    }
+    this._show(`已恢复 ${count} 条数据`);
+    return true;
+  },
+
+  async _api(method, path, body, token) {
+    const res = await fetch(`https://api.github.com${path}`, {
+      method,
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `GitHub API ${res.status}`);
+    }
+    return res.json();
+  },
+
+  async _findGist(token) {
+    const savedId = localStorage.getItem('jessica_gist_id');
+    if (savedId) {
+      try { const g = await this._api('GET', `/gists/${savedId}`, null, token); return g; } catch(e) { localStorage.removeItem('jessica_gist_id'); }
+    }
+    const gists = await this._api('GET', '/gists?per_page=100', null, token);
+    const found = gists.find(g => g.description === this.GIST_DESC && !g.public);
+    if (found) { localStorage.setItem('jessica_gist_id', found.id); return found; }
+    return null;
+  },
+
+  async backup() {
+    const token = this._getToken();
+    if (!token) { showToast('❌ 请先输入 GitHub Token'); return; }
+    this._saveToken(token);
+    this._show('正在收集数据...');
+    const data = this._collectData();
+    const content = JSON.stringify(data, null, 2);
+    const sizeKB = (content.length / 1024).toFixed(1);
+    this._show(`数据大小 ${sizeKB}KB，正在上传...`);
+    try {
+      const existing = await this._findGist(token);
+      const body = {
+        description: this.GIST_DESC,
+        public: false,
+        files: { 'jessica-backup.json': { content } },
+      };
+      let result;
+      if (existing) {
+        result = await this._api('PATCH', `/gists/${existing.id}`, body, token);
+        this._show(`✅ 已更新备份 (${sizeKB}KB) — ${new Date().toLocaleString('zh-CN')}`);
+      } else {
+        result = await this._api('POST', '/gists', body, token);
+        localStorage.setItem('jessica_gist_id', result.id);
+        this._show(`✅ 已创建备份 (${sizeKB}KB) — Gist ID: ${result.id.slice(0,8)}...`);
+      }
+      localStorage.setItem('jessica_last_backup', new Date().toISOString());
+      showToast('☁️ 备份成功！');
+    } catch(e) {
+      this._show(`❌ 备份失败: ${e.message}`);
+      showToast('❌ 备份失败: ' + e.message);
+    }
+  },
+
+  async restore() {
+    const token = this._getToken();
+    if (!token) { showToast('❌ 请先输入 GitHub Token'); return; }
+    this._saveToken(token);
+    this._show('正在查找备份...');
+    try {
+      const gist = await this._findGist(token);
+      if (!gist) { this._show('❌ 未找到备份（请先备份一次）'); return; }
+      const file = Object.values(gist.files).find(f => f.filename === 'jessica-backup.json');
+      if (!file) { this._show('❌ Gist 中无备份文件'); return; }
+      this._show('正在下载...');
+      const res = await fetch(file.raw_url);
+      const data = await res.json();
+      this._show('正在恢复数据...');
+      if (this._restoreData(data)) {
+        showToast('✅ 数据已恢复！即将刷新页面...');
+        this._show('✅ 恢复成功，3 秒后刷新...');
+        setTimeout(() => location.reload(), 3000);
+      }
+    } catch(e) {
+      this._show(`❌ 恢复失败: ${e.message}`);
+      showToast('❌ 恢复失败: ' + e.message);
+    }
+  },
+
+  async status() {
+    const token = this._getToken();
+    if (!token) { showToast('❌ 请先输入 GitHub Token'); return; }
+    this._saveToken(token);
+    try {
+      const gist = await this._findGist(token);
+      const lastBackup = localStorage.getItem('jessica_last_backup');
+      if (gist) {
+        const updated = new Date(gist.updated_at).toLocaleString('zh-CN');
+        const size = Object.values(gist.files).reduce((s, f) => s + (f.size || 0), 0);
+        this._show(`✅ 备份存在 — 更新于 ${updated}，大小 ${(size/1024).toFixed(1)}KB${lastBackup ? '，上次本地备份: ' + new Date(lastBackup).toLocaleString('zh-CN') : ''}`);
+      } else {
+        this._show('⚠️ 无备份记录，点击「备份到云端」创建');
+      }
+    } catch(e) {
+      this._show(`❌ 查询失败: ${e.message}`);
+    }
+  },
+};
+
+// ============================================================
 // EXPORT / IMPORT DATA
 // ============================================================
 async function exportAllData() {
@@ -22914,6 +23174,377 @@ const Xiangqi = {
 };
 function openXiangqi() { Xiangqi.open(); }
 function closeXiangqi() { Xiangqi.close(); }
+
+// ============================================================
+// 2048 GAME
+// ============================================================
+const Game2048 = {
+  SIZE: 4, grid: [], score: 0, best: 0, gameActive: false,
+  init() {
+    this.grid = Array.from({length: 4}, () => Array(4).fill(0));
+    this.score = 0; this.gameActive = true;
+    this.best = parseInt(localStorage.getItem('game_2048_best') || '0');
+    this._addRandom(); this._addRandom();
+    this.render();
+    document.getElementById('game2048Overlay').classList.add('active');
+  },
+  close() { document.getElementById('game2048Overlay').classList.remove('active'); },
+  _addRandom() {
+    const empty = [];
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) if (!this.grid[r][c]) empty.push([r, c]);
+    if (!empty.length) return;
+    const [r, c] = empty[Math.floor(Math.random() * empty.length)];
+    this.grid[r][c] = Math.random() < 0.9 ? 2 : 4;
+  },
+  _slide(row) {
+    let arr = row.filter(v => v), score = 0;
+    for (let i = 0; i < arr.length - 1; i++) {
+      if (arr[i] === arr[i + 1]) { arr[i] *= 2; score += arr[i]; arr.splice(i + 1, 1); }
+    }
+    while (arr.length < 4) arr.push(0);
+    return { row: arr, score };
+  },
+  _move(dir) {
+    if (!this.gameActive) return;
+    let moved = false, score = 0;
+    const g = this.grid.map(r => [...r]);
+    if (dir === 'left') {
+      for (let r = 0; r < 4; r++) {
+        const { row, score: s } = this._slide(g[r]);
+        if (row.some((v, i) => v !== g[r][i])) moved = true;
+        this.grid[r] = row; score += s;
+      }
+    } else if (dir === 'right') {
+      for (let r = 0; r < 4; r++) {
+        const { row, score: s } = this._slide([...g[r]].reverse());
+        row.reverse();
+        if (row.some((v, i) => v !== g[r][i])) moved = true;
+        this.grid[r] = row; score += s;
+      }
+    } else if (dir === 'up') {
+      for (let c = 0; c < 4; c++) {
+        const col = [g[0][c], g[1][c], g[2][c], g[3][c]];
+        const { row, score: s } = this._slide(col);
+        if (row.some((v, i) => v !== col[i])) moved = true;
+        for (let r = 0; r < 4; r++) this.grid[r][c] = row[r]; score += s;
+      }
+    } else {
+      for (let c = 0; c < 4; c++) {
+        const col = [g[3][c], g[2][c], g[1][c], g[0][c]];
+        const { row, score: s } = this._slide(col);
+        row.reverse();
+        if (row.some((v, i) => v !== g[3 - i][c])) moved = true;
+        for (let r = 0; r < 4; r++) this.grid[r][c] = row[r]; score += s;
+      }
+    }
+    if (!moved) return;
+    this.score += score;
+    if (this.score > this.best) { this.best = this.score; localStorage.setItem('game_2048_best', String(this.best)); }
+    this._addRandom();
+    this.render();
+    if (this._isGameOver()) { this.gameActive = false; showToast('游戏结束！得分: ' + this.score); }
+  },
+  _isGameOver() {
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
+      if (!this.grid[r][c]) return false;
+      if (c < 3 && this.grid[r][c] === this.grid[r][c + 1]) return false;
+      if (r < 3 && this.grid[r][c] === this.grid[r + 1][c]) return false;
+    }
+    return true;
+  },
+  render() {
+    const el = document.getElementById('g2048Board');
+    const colors = {0:'var(--bg-input)',2:'#776e65',4:'#776e65',8:'#f9f6f2',16:'#f9f6f2',32:'#f9f6f2',64:'#f9f6f2',128:'#f9f6f2',256:'#f9f6f2',512:'#f9f6f2',1024:'#f9f6f2',2048:'#f9f6f2'};
+    const bg = {0:'var(--bg-input)',2:'#eee4da',4:'#ede0c8',8:'#f2b179',16:'#f59563',32:'#f67c5f',64:'#f65e3b',128:'#edcf72',256:'#edcc61',512:'#edc850',1024:'#edc53f',2048:'#edc22e'};
+    el.innerHTML = this.grid.flat().map(v => {
+      const size = v >= 1024 ? '14px' : v >= 128 ? '18px' : '24px';
+      return `<div style="width:64px;height:64px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:${size};font-weight:700;background:${bg[v]||'#3c3a32'};color:${colors[v]||'#f9f6f2'};">${v||''}</div>`;
+    }).join('');
+    document.getElementById('g2048Score').textContent = this.score;
+    document.getElementById('g2048Best').textContent = this.best;
+  },
+  handleKey(e) {
+    const map = {ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'};
+    if (map[e.key]) { e.preventDefault(); this._move(map[e.key]); }
+  },
+};
+function closeGame2048() { Game2048.close(); }
+
+// ============================================================
+// SNAKE GAME
+// ============================================================
+const SnakeGame = {
+  canvas: null, ctx: null, snake: [], food: null, dir: 'right', score: 0,
+  gameActive: false, timer: null, GRID: 15, CELL: 20,
+  init() {
+    this.canvas = document.getElementById('snakeCanvas');
+    this.ctx = this.canvas.getContext('2d');
+    this.snake = [{x:7,y:7},{x:6,y:7},{x:5,y:7}];
+    this.dir = 'right'; this.score = 0; this.gameActive = true;
+    this._spawnFood(); this.render();
+    document.getElementById('snakeOverlay').classList.add('active');
+    if (this.timer) clearInterval(this.timer);
+    this.timer = setInterval(() => this._tick(), 150);
+  },
+  close() {
+    document.getElementById('snakeOverlay').classList.remove('active');
+    if (this.timer) { clearInterval(this.timer); this.timer = null; }
+    this.gameActive = false;
+  },
+  _spawnFood() {
+    const occupied = new Set(this.snake.map(s => `${s.x},${s.y}`));
+    let x, y; do { x = Math.floor(Math.random() * this.GRID); y = Math.floor(Math.random() * this.GRID); } while (occupied.has(`${x},${y}`));
+    this.food = {x, y};
+  },
+  _tick() {
+    if (!this.gameActive) return;
+    const head = {...this.snake[0]};
+    if (this.dir === 'up') head.y--; else if (this.dir === 'down') head.y++;
+    else if (this.dir === 'left') head.x--; else head.x++;
+    if (head.x < 0 || head.x >= this.GRID || head.y < 0 || head.y >= this.GRID || this.snake.some(s => s.x === head.x && s.y === head.y)) {
+      this.gameActive = false; clearInterval(this.timer); this.timer = null;
+      showToast('游戏结束！得分: ' + this.score); return;
+    }
+    this.snake.unshift(head);
+    if (head.x === this.food.x && head.y === this.food.y) { this.score++; this._spawnFood(); }
+    else this.snake.pop();
+    this.render();
+  },
+  render() {
+    const c = this.ctx, cs = this.CELL, g = this.GRID;
+    c.fillStyle = '#111'; c.fillRect(0, 0, g * cs, g * cs);
+    c.fillStyle = '#e74c3c'; c.beginPath();
+    c.arc(this.food.x * cs + cs / 2, this.food.y * cs + cs / 2, cs / 2 - 2, 0, Math.PI * 2); c.fill();
+    this.snake.forEach((s, i) => {
+      c.fillStyle = i === 0 ? '#2ecc71' : '#27ae60';
+      c.fillRect(s.x * cs + 1, s.y * cs + 1, cs - 2, cs - 2);
+    });
+    document.getElementById('snakeScore').textContent = this.score;
+  },
+  handleKey(e) {
+    const map = {ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};
+    const opp = {up:'down',down:'up',left:'right',right:'left'};
+    if (map[e.key] && map[e.key] !== opp[this.dir]) { e.preventDefault(); this.dir = map[e.key]; }
+  },
+};
+function closeSnake() { SnakeGame.close(); }
+
+// ============================================================
+// TETRIS GAME
+// ============================================================
+const TetrisGame = {
+  canvas: null, ctx: null, board: [], score: 0, lines: 0, gameActive: false, timer: null,
+  COLS: 10, ROWS: 20, CELL: 20, current: null, SHAPES: [
+    [[1,1,1,1]], [[1,1],[1,1]], [[0,1,0],[1,1,1]], [[1,0,0],[1,1,1]],
+    [[0,0,1],[1,1,1]], [[1,1,0],[0,1,1]], [[0,1,1],[1,1,0]],
+  ],
+  COLORS: ['#0ff','#ff0','#a0f','#f80','#00f','#0f0','#f00'],
+  init() {
+    this.canvas = document.getElementById('tetrisCanvas');
+    this.ctx = this.canvas.getContext('2d');
+    this.board = Array.from({length: 20}, () => Array(10).fill(0));
+    this.score = 0; this.lines = 0; this.gameActive = true;
+    this._spawn(); this.render();
+    document.getElementById('tetrisOverlay').classList.add('active');
+    if (this.timer) clearInterval(this.timer);
+    this.timer = setInterval(() => this._tick(), 500);
+  },
+  close() {
+    document.getElementById('tetrisOverlay').classList.remove('active');
+    if (this.timer) { clearInterval(this.timer); this.timer = null; }
+    this.gameActive = false;
+  },
+  _spawn() {
+    const i = Math.floor(Math.random() * 7);
+    this.current = { shape: this.SHAPES[i], color: this.COLORS[i], x: 3, y: 0 };
+    if (this._collides(this.current.shape, this.current.x, this.current.y)) {
+      this.gameActive = false; clearInterval(this.timer); this.timer = null;
+      showToast('游戏结束！得分: ' + this.score);
+    }
+  },
+  _collides(shape, ox, oy) {
+    for (let r = 0; r < shape.length; r++) for (let c = 0; c < shape[r].length; c++) {
+      if (!shape[r][c]) continue;
+      const nx = ox + c, ny = oy + r;
+      if (nx < 0 || nx >= 10 || ny >= 20) return true;
+      if (ny >= 0 && this.board[ny][nx]) return true;
+    }
+    return false;
+  },
+  _merge() {
+    const { shape, color, x, y } = this.current;
+    for (let r = 0; r < shape.length; r++) for (let c = 0; c < shape[r].length; c++) {
+      if (shape[r][c] && y + r >= 0) this.board[y + r][x + c] = color;
+    }
+  },
+  _clearLines() {
+    let cleared = 0;
+    for (let r = 19; r >= 0; r--) {
+      if (this.board[r].every(v => v)) { this.board.splice(r, 1); this.board.unshift(Array(10).fill(0)); cleared++; r++; }
+    }
+    if (cleared) { this.lines += cleared; this.score += [0, 100, 300, 500, 800][cleared] || 800; }
+  },
+  _rotate() {
+    const s = this.current.shape;
+    const rotated = s[0].map((_, c) => s.map(row => row[c]).reverse());
+    if (!this._collides(rotated, this.current.x, this.current.y)) this.current.shape = rotated;
+  },
+  _tick() {
+    if (!this.gameActive) return;
+    if (!this._collides(this.current.shape, this.current.x, this.current.y + 1)) {
+      this.current.y++;
+    } else {
+      this._merge(); this._clearLines(); this._spawn();
+    }
+    this.render();
+  },
+  render() {
+    const c = this.ctx, cs = this.CELL;
+    c.fillStyle = '#111'; c.fillRect(0, 0, 200, 400);
+    for (let r = 0; r < 20; r++) for (let col = 0; col < 10; col++) {
+      if (this.board[r][col]) { c.fillStyle = this.board[r][col]; c.fillRect(col * cs, r * cs, cs - 1, cs - 1); }
+    }
+    if (this.current) {
+      const { shape, color, x, y } = this.current;
+      for (let r = 0; r < shape.length; r++) for (let col = 0; col < shape[r].length; col++) {
+        if (shape[r][col]) { c.fillStyle = color; c.fillRect((x + col) * cs, (y + r) * cs, cs - 1, cs - 1); }
+      }
+    }
+    document.getElementById('tetrisScore').textContent = this.score;
+    document.getElementById('tetrisLines').textContent = this.lines;
+  },
+  handleKey(e) {
+    if (!this.gameActive || !this.current) return;
+    if (e.key === 'ArrowLeft') { e.preventDefault(); if (!this._collides(this.current.shape, this.current.x - 1, this.current.y)) this.current.x--; this.render(); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); if (!this._collides(this.current.shape, this.current.x + 1, this.current.y)) this.current.x++; this.render(); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); this._tick(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); this._rotate(); this.render(); }
+  },
+};
+function closeTetris() { TetrisGame.close(); }
+
+// ============================================================
+// MINESWEEPER GAME
+// ============================================================
+const MinesweeperGame = {
+  ROWS: 9, COLS: 9, MINES: 10, board: [], revealed: [], flagged: [],
+  gameActive: false, timerVal: 0, timer: null, firstClick: true,
+  init() {
+    this.board = Array.from({length: this.ROWS}, () => Array(this.COLS).fill(0));
+    this.revealed = Array.from({length: this.ROWS}, () => Array(this.COLS).fill(false));
+    this.flagged = Array.from({length: this.ROWS}, () => Array(this.COLS).fill(false));
+    this.gameActive = true; this.firstClick = true; this.timerVal = 0;
+    if (this.timer) clearInterval(this.timer); this.timer = null;
+    this.render();
+    document.getElementById('minesweeperOverlay').classList.add('active');
+    document.getElementById('msMines').textContent = this.MINES;
+    document.getElementById('msTime').textContent = '0';
+  },
+  close() {
+    document.getElementById('minesweeperOverlay').classList.remove('active');
+    if (this.timer) { clearInterval(this.timer); this.timer = null; }
+    this.gameActive = false;
+  },
+  setDifficulty(d) {
+    if (d === 'easy') { this.ROWS = 9; this.COLS = 9; this.MINES = 10; }
+    else if (d === 'medium') { this.ROWS = 16; this.COLS = 16; this.MINES = 40; }
+    else { this.ROWS = 16; this.COLS = 30; this.MINES = 99; }
+    this.init();
+  },
+  _placeMines(safeR, safeC) {
+    let placed = 0;
+    while (placed < this.MINES) {
+      const r = Math.floor(Math.random() * this.ROWS), c = Math.floor(Math.random() * this.COLS);
+      if (this.board[r][c] === -1 || (Math.abs(r - safeR) <= 1 && Math.abs(c - safeC) <= 1)) continue;
+      this.board[r][c] = -1; placed++;
+    }
+    for (let r = 0; r < this.ROWS; r++) for (let c = 0; c < this.COLS; c++) {
+      if (this.board[r][c] === -1) continue;
+      let count = 0;
+      for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < this.ROWS && nc >= 0 && nc < this.COLS && this.board[nr][nc] === -1) count++;
+      }
+      this.board[r][c] = count;
+    }
+  },
+  _reveal(r, c) {
+    if (r < 0 || r >= this.ROWS || c < 0 || c >= this.COLS || this.revealed[r][c] || this.flagged[r][c]) return;
+    this.revealed[r][c] = true;
+    if (this.board[r][c] === 0) {
+      for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) this._reveal(r + dr, c + dc);
+    }
+  },
+  handleClick(r, c) {
+    if (!this.gameActive || this.revealed[r][c] || this.flagged[r][c]) return;
+    if (this.firstClick) {
+      this.firstClick = false;
+      this._placeMines(r, c);
+      this.timer = setInterval(() => { this.timerVal++; document.getElementById('msTime').textContent = this.timerVal; }, 1000);
+    }
+    if (this.board[r][c] === -1) {
+      this.gameActive = false; clearInterval(this.timer);
+      for (let rr = 0; rr < this.ROWS; rr++) for (let cc = 0; cc < this.COLS; cc++) if (this.board[rr][cc] === -1) this.revealed[rr][cc] = true;
+      this.render(); showToast('💣 踩到地雷了！'); return;
+    }
+    this._reveal(r, c); this.render();
+    let unrevealed = 0;
+    for (let rr = 0; rr < this.ROWS; rr++) for (let cc = 0; cc < this.COLS; cc++) if (!this.revealed[rr][cc]) unrevealed++;
+    if (unrevealed === this.MINES) {
+      this.gameActive = false; clearInterval(this.timer);
+      showToast('🎉 扫雷成功！用时 ' + this.timerVal + ' 秒');
+    }
+  },
+  handleRightClick(r, c) {
+    if (!this.gameActive || this.revealed[r][c]) return;
+    this.flagged[r][c] = !this.flagged[r][c];
+    const flagCount = this.flagged.flat().filter(Boolean).length;
+    document.getElementById('msMines').textContent = this.MINES - flagCount;
+    this.render();
+  },
+  render() {
+    const el = document.getElementById('msBoard');
+    const cellSize = this.COLS > 16 ? 20 : 28;
+    el.style.gridTemplateColumns = `repeat(${this.COLS}, ${cellSize}px)`;
+    const nums = ['', '#3498db', '#27ae60', '#e74c3c', '#8e44ad', '#f39c12', '#1abc9c', '#2c3e50', '#95a5a6'];
+    let html = '';
+    for (let r = 0; r < this.ROWS; r++) for (let c = 0; c < this.COLS; c++) {
+      let content = '', bg = 'var(--bg-card)', fg = 'var(--text)';
+      if (this.revealed[r][c]) {
+        bg = 'var(--bg-input)';
+        if (this.board[r][c] === -1) { content = '💣'; bg = '#e74c3c'; }
+        else if (this.board[r][c] > 0) { content = this.board[r][c]; fg = nums[this.board[r][c]]; }
+      } else if (this.flagged[r][c]) { content = '🚩'; }
+      html += `<div onclick="MinesweeperGame.handleClick(${r},${c})" oncontextmenu="event.preventDefault();MinesweeperGame.handleRightClick(${r},${c})"
+        style="width:${cellSize}px;height:${cellSize}px;display:flex;align-items:center;justify-content:center;font-size:${cellSize*0.45}px;font-weight:700;background:${bg};color:${fg};border-radius:4px;cursor:pointer;user-select:none;">${content}</div>`;
+    }
+    el.innerHTML = html;
+  },
+};
+function closeMinesweeper() { MinesweeperGame.close(); }
+
+// ============================================================
+// UPDATE selectGame TO HANDLE NEW GAMES
+// ============================================================
+(function() {
+  const _origSelectGame = selectGame;
+  selectGame = function(game) {
+    closeGameHub();
+    if (game === 'gomoku') Gomoku.open();
+    else if (game === 'go') Go.open();
+    else if (game === 'xiangqi') Xiangqi.open();
+    else if (game === '2048') Game2048.init();
+    else if (game === 'snake') SnakeGame.init();
+    else if (game === 'tetris') TetrisGame.init();
+    else if (game === 'minesweeper') MinesweeperGame.init();
+  };
+  // Global key handler for games
+  document.addEventListener('keydown', function(e) {
+    if (document.getElementById('game2048Overlay').classList.contains('active')) Game2048.handleKey(e);
+    else if (document.getElementById('snakeOverlay').classList.contains('active')) SnakeGame.handleKey(e);
+    else if (document.getElementById('tetrisOverlay').classList.contains('active')) TetrisGame.handleKey(e);
+  });
+})();
 
 // ============================================================
 // FEATURE 1: TYPEWRITER EFFECT FOR JESSICA'S REPLIES
