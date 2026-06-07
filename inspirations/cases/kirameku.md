@@ -1,12 +1,12 @@
-# 🌟 优秀案例：Kirameku
+# 🌟 Kirameku
 
-> 仓库：https://github.com/Xinghongia/Kirameku
+> 在线体验：https://boke.hiromu.top
+> GitHub：https://github.com/Xinghongia/Kirameku
 > 日期：2026-06-08
-> 状态：🌟 优秀案例参考
 
 ## 项目简介
 
-一个基于 Next.js 16 + FastAPI 构建的高颜值前后端分离个人博客。毛玻璃设计、暗色模式、说说/杂谈/评论区、GitHub OAuth 登录、RSS 订阅、Markdown 写作、独立后台管理面板。
+Next.js 16 + FastAPI 构建的高颜值前后端分离个人博客。毛玻璃设计、暗色模式、说说/杂谈/评论区、GitHub OAuth 登录、RSS 订阅、Markdown 写作、独立后台管理面板。
 
 ## 技术栈
 
@@ -23,8 +23,7 @@
 - JWT 认证
 
 **管理后台**
-- Vue 3 + Element Plus
-- 内嵌于后端，无需单独部署
+- Vue 3 + Element Plus（内嵌于后端）
 
 ## 功能模块
 
@@ -45,17 +44,9 @@
 
 ## 对杰西卡的参考价值
 
-### 可借鉴的
-- 🎵 音乐播放器（/music）— 歌单管理、播放器 UI
-- 🎮 小游戏（18 个）— 已经参考加了 4 个
+- 🎵 音乐播放器 — 歌单管理、播放器 UI（已有灵感存档）
+- 🎮 小游戏 — 已参考加了 4 个
 - 📸 照片墙 — 瀑布流展示
-- 📖 小说阅读系统 — 书架→目录→阅读的完整流程
+- 📖 小说阅读 — 书架→目录→阅读流程
 - 🎨 毛玻璃 + 暗色设计 — UI 风格参考
-
-### 不适合直接搬的
-- 全栈架构（Next.js + FastAPI + PostgreSQL）太重
-- 需要服务器部署，不适合"单文件 HTML"的定位
-- Live2D 看板娘体积大
-
-### 启发
-杰西卡可以做"轻量版"：把 Kirameku 的功能用纯前端实现，数据存 localStorage，不需要后端。牺牲跨设备同步，换来零部署成本。
+- ⚠️ 全栈太重，不适合直接搬，但功能思路可以做"轻量纯前端版"
