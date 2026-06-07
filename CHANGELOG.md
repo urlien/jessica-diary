@@ -2,37 +2,55 @@
 
 ## v3.3.0 (2026-06-08)
 
-### 修复
-- **知识库上传手机端无响应**：将 `<label for="">` 改为 `<div onclick="">` 直接触发文件选择，兼容 Android WebView
-- **通知权限检查显示浏览器设置**：重写 `checkNotificationPermission()`，优先使用原生桥接（JessicaBridge）请求系统通知权限，不再走 Web Notification API
-- **通知开关 HTML 属性**：移除 `checked` 硬编码，由 JS 动态控制初始状态
+### 02:08 — 初始检查
+- 克隆 GitHub 仓库 `urlien/jessica-diary`，检查当前版本 v3.2.0
+- 对比用户上传的旧版 HTML（v3.1.0）与仓库新版（v3.2.0），确认仓库已是最新
 
-### 优化
-- **后台省电模式**：页面不可见时自动释放 WakeLock，暂停动态背景、时钟等非关键定时器，恢复可见时自动重启
-- **定时器优化**：时钟/动态背景/心情刷新等定时器增加 `document.hidden` 检查，后台不执行
+### 02:09 — Bug 修复批次 1
+- **02:09 修复知识库上传手机端无响应**：将 `<label for="kbFileInput">` 改为 `<div onclick="document.getElementById('kbFileInput').click()">`，解决 Android WebView 中 `<label for="">` 不触发文件选择的问题
+- **02:09 修复通知权限检查显示浏览器设置**：完全重写 `checkNotificationPermission()` 函数，优先使用 `JessicaBridge.requestNotificationPermission()` 原生桥接请求系统通知权限，不再走 Web Notification API（该 API 在 WebView 中会弹出浏览器设置）
+- **02:09 修复通知开关 HTML 属性**：移除 `<input id="notifToggle" checked>` 中的 `checked` 硬编码，由 JS 动态控制初始状态
+- **02:09 APP_VERSION 升级**：3.2.0 → 3.3.0
+
+### 02:09 — 后台省电优化
+- **新增省电模式**：`NotificationBridge` 新增 `_pauseBackgroundTimers()` / `_resumeBackgroundTimers()` 方法，页面不可见时自动暂停非关键定时器
+- **WakeLock 优化**：页面不可见时自动释放 WakeLock 节省电量，恢复可见时重新获取
+- **定时器优化**：`updateHpClock`、`updateClock`、`applyDynamicBackground` 等定时器增加 `document.hidden` 检查，后台不执行
 - **心情刷新间隔**：从 15 秒调整为 30 秒，减少 CPU 占用
-- **后台运行提示**：更新说明文案，注明已优化省电
+- **后台运行提示文案更新**：注明已优化省电
 
-### 新增功能
-- **☁️ 云同步（GitHub Gist）**：设置页新增云同步区块，支持备份/恢复到私有 Gist，换手机或重装后可恢复全部数据
-- **新增 4 个小游戏**：
-  - 🔢 **2048**：滑动合并数字，方向键/滑动控制
-  - 🐍 **贪吃蛇**：经典贪吃蛇，方向键控制
-  - 🧱 **俄罗斯方块**：消除满行，方向键控制（上键旋转）
-  - 💣 **扫雷**：左键揭开/右键标旗，3 种难度（9×9/16×16/16×30）
+### 02:23 — 围棋游戏完全重写
+- **修复自杀判断**：新增 `_isLegalMove()` 方法，落子后模拟提子再检查己方是否有气，无气则判定为非法（自杀禁手）
+- **修复打劫判断**：正确检测单子循环提劫（仅当提一子且被提子位置等于上一手时设置 koPoint）
+- **重写 AI 评估**：连五 > 活四 > 冲四 > 活三，加入气数、提子潜力、角边位置权重
+- **新增棋盘尺寸选择**：9×9 / 13×13 / 19×19，通过 `<select>` 切换
+- **开局策略**：优先占角、星位加分
+- **内部方法重命名**：`getGroup` → `_getGroup`，`countLiberties` 合并入 `_getGroup`，`placeStone` → `_placeStone`，`captureStones` 合并入 `_placeStone`
 
-### 重做
-- **围棋游戏完全重写**：
-  - 修复自杀判断：落子后无气且未提对方子 → 非法（之前缺失）
-  - 修复打劫判断：正确检测单子循环提劫
-  - 重写 AI 评估：连五>活四>冲四>活三，加入气数、提子潜力、角边位置权重
-  - 新增棋盘尺寸选择：9×9 / 13×13 / 19×19
-  - 开局策略：优先占角、星位
+### 02:41 — 云同步功能（GitHub Gist）
+- **新增 ☁️ 云同步区块**：设置页「数据管理」下方新增云同步 UI，包含 Token 输入框、备份/恢复/状态三个按钮
+- **`cloudSync` 对象**：实现 `_collectData()`（收集 localStorage）、`_restoreData()`（恢复数据）、`_api()`（GitHub API 封装）、`_findGist()`（查找已有备份）、`backup()`、`restore()`、`status()` 方法
+- **数据存储**：备份到用户 GitHub 账号的私有 Gist，描述为 `jessica-diary-backup (auto)`，文件名为 `jessica-backup.json`
+- **Token 管理**：Token 存在 localStorage `jessica_gist_token`，设置页自动填充
+- **自动查找**：首次备份后 Gist ID 存入 `jessica_gist_id`，后续自动定位
+
+### 02:55 — 云同步安全修复
+- **修复 Token 泄露到 Gist 内容的问题**：`_collectData()` 新增 `SKIP` 集合，排除 `jessica_gist_token`、`jessica_gist_id`、`jessica_last_backup` 三个字段，防止 GitHub 安全扫描检测到 Token 后自动撤销
+- **`_restoreData()` 同步排除**：恢复时也跳过这三个字段，不覆盖本地 Token
+
+### 02:46 — 新增 4 个小游戏
+- **🔢 2048**：`Game2048` 对象，4×4 网格，滑动合并数字，支持方向键控制，记录最高分
+- **🐍 贪吃蛇**：`SnakeGame` 对象，Canvas 渲染，15×15 网格，方向键控制，自动增长
+- **🧱 俄罗斯方块**：`TetrisGame` 对象，Canvas 渲染，10×20 网格，7 种方块，支持旋转/消行
+- **💣 扫雷**：`MinesweeperGame` 对象，3 种难度（简单 9×9/中等 16×16/困难 16×30），左键揭开/右键标旗
+- **游戏入口**：游戏中心新增 4 个卡片，`selectGame()` 函数扩展支持新游戏
+- **键盘事件**：全局 keydown 监听，根据当前活动 overlay 分发到对应游戏
 
 ### 说明
 - APP_VERSION 升级到 3.3.0
 - APK 安装失败(-7) 是签名不一致导致，需先卸载旧版再安装新版
 - APK 启动图标（mipmap）在 Android 项目中修改，不在 HTML 中
+- 云同步功能需使用修复后的 HTML（排除 Token 字段）重新打包 APK 才能安全使用
 
 ---
 
