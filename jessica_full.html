@@ -3418,7 +3418,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
         <button onclick="initRAG()" style="padding:4px 10px;border-radius:6px;background:var(--accent-dim);border:none;color:var(--text);cursor:pointer;font-size:10px;">初始化 RAG</button>
         <button onclick="importKBFromGitHub()" style="padding:4px 10px;border-radius:6px;background:var(--accent-dim);border:none;color:var(--text);cursor:pointer;font-size:10px;">📥 从 GitHub 导入</button>
       </div>
-      <div id="kbGitHubList" style="display:none;margin-top:10px;padding:14px;background:var(--bg-card,rgba(255,255,255,0.03));border:1px solid var(--border);border-radius:10px;"></div>
+      <div id="kbGitHubList" style="display:none;margin-top:8px;padding:10px;background:var(--bg-card,rgba(255,255,255,0.03));border:1px solid var(--border);border-radius:8px;"></div>
     </div>
 
     <!-- 数据管理 -->
@@ -19945,31 +19945,28 @@ window.importKBFromGitHub = async function() {
 
     let html = '';
     // 标题栏 + 全选
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">';
     html += '<div style="font-size:13px;font-weight:600;color:var(--text);">📂 GitHub 知识库</div>';
     html += '<label style="font-size:11px;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;gap:4px;">';
     html += '<input type="checkbox" id="kbGhSelectAll" onchange="document.querySelectorAll(\'.kb-gh-check:not([disabled])\').forEach(c=>c.checked=this.checked)" style="accent-color:var(--accent);"> 全选</label>';
     html += '</div>';
     // 文件列表
-    html += '<div style="display:flex;flex-direction:column;gap:4px;max-height:220px;overflow-y:auto;padding-right:4px;">';
+    html += '<div style="display:flex;flex-direction:column;gap:2px;">';
     files.forEach((f, i) => {
       const isImported = existing.has(f.name);
       const sizeKB = (f.size / 1024).toFixed(1);
-      const icon = f.name.endsWith('.md') ? '📝' : f.name.endsWith('.pdf') ? '📄' : '📃';
-      html += `<label style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:background 0.15s;${isImported ? 'opacity:0.45;' : ''}" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background=''">`;
+      html += `<label style="display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:4px;cursor:pointer;font-size:12px;color:var(--text);${isImported ? 'opacity:0.4;' : ''}" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background=''">`;
       html += `<input type="checkbox" class="kb-gh-check" value="${i}" ${isImported ? 'disabled' : ''} style="accent-color:var(--accent);flex-shrink:0;">`;
-      html += `<span style="font-size:14px;flex-shrink:0;">${icon}</span>`;
-      html += `<span style="flex:1;font-size:12px;color:var(--text);line-height:1.4;word-break:break-all;">${f.name.replace(/\.md$/, '')}</span>`;
-      html += '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">';
+      html += `<span style="flex:1;">${f.name.replace(/\.md$/, '')}</span>`;
       html += `<span style="color:var(--text-dim);font-size:10px;white-space:nowrap;">${sizeKB}KB</span>`;
-      if (isImported) html += '<span style="font-size:10px;color:var(--green);white-space:nowrap;">✓ 已导入</span>';
-      html += '</div></label>';
+      if (isImported) html += '<span style="font-size:10px;color:var(--green);white-space:nowrap;">✓</span>';
+      html += '</label>';
     });
     html += '</div>';
     // 操作按钮
-    html += '<div style="display:flex;gap:8px;margin-top:12px;">';
-    html += '<button onclick="importKBFromGitHubConfirm()" style="flex:1;padding:8px 0;border-radius:8px;background:var(--accent);border:none;color:#fff;cursor:pointer;font-size:12px;font-weight:600;">📥 导入选中</button>';
-    html += '<button onclick="document.getElementById(\'kbGitHubList\').style.display=\'none\'" style="flex:1;padding:8px 0;border-radius:8px;background:transparent;border:1px solid var(--border);color:var(--text-dim);cursor:pointer;font-size:12px;">取消</button>';
+    html += '<div style="display:flex;gap:8px;margin-top:10px;">';
+    html += '<button onclick="importKBFromGitHubConfirm()" style="flex:1;padding:7px 0;border-radius:6px;background:var(--accent);border:none;color:#fff;cursor:pointer;font-size:12px;font-weight:600;">📥 导入选中</button>';
+    html += '<button onclick="document.getElementById(\'kbGitHubList\').style.display=\'none\'" style="flex:1;padding:7px 0;border-radius:6px;background:transparent;border:1px solid var(--border);color:var(--text-dim);cursor:pointer;font-size:12px;">取消</button>';
     html += '</div>';
 
     container.innerHTML = html;
@@ -19998,10 +19995,8 @@ window.importKBFromGitHubConfirm = async function() {
 
   for (const file of selected) {
     try {
-      const dlHeaders = {};
-      const dlToken = localStorage.getItem('jessica_gist_token') || '';
-      if (dlToken) dlHeaders['Authorization'] = `token ${dlToken}`;
-      const res = await fetch(file.download_url, { headers: dlHeaders });
+      // raw.githubusercontent.com 不需要认证（公开仓库）
+      const res = await fetch(file.download_url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const text = await res.text();
       if (!text || text.trim().length < 10) throw new Error('内容为空');
