@@ -34,6 +34,18 @@
 - **Token 管理**：Token 存在 localStorage `jessica_gist_token`，设置页自动填充
 - **自动查找**：首次备份后 Gist ID 存入 `jessica_gist_id`，后续自动定位
 
+### 03:01 — 云同步多版本备份
+- **保留最近 5 个备份版本**：每次备份生成带时间戳的文件名（`jessica-backup-2026-06-08-03-01-00.json`），不再覆盖旧备份
+- **自动清理**：超过 5 个版本时自动删除最旧的
+- **恢复时自动找最新**：`restore()` 按文件名排序，恢复最新的备份
+
+### 03:03 — 灵感抽屉
+- **新增 💡 灵感抽屉**：首页新增卡片入口，点击打开灵感管理面板
+- **三种类型**：💡 奇思妙想 / 🌟 优秀案例 / 📋 未来计划
+- **链接识别**：输入 URL 自动变为可点击链接
+- **预置内容**：默认包含 Kirameku 和 XinghuisamaBlogs 两个优秀案例
+- **数据存储**：localStorage `jessica_ideas`，支持云同步备份
+
 ### 02:55 — 云同步安全修复
 - **修复 Token 泄露到 Gist 内容的问题**：`_collectData()` 新增 `SKIP` 集合，排除 `jessica_gist_token`、`jessica_gist_id`、`jessica_last_backup` 三个字段，防止 GitHub 安全扫描检测到 Token 后自动撤销
 - **`_restoreData()` 同步排除**：恢复时也跳过这三个字段，不覆盖本地 Token

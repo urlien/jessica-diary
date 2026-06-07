@@ -3074,6 +3074,12 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       <div class="hp-card-sub" id="hpMemoPreview" style="font-size:12px;line-height:1.5;color:var(--text-dim);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">点击查看详情</div>
       <div class="hp-card-label" id="hpMemoCount">暂无备忘录</div>
     </div>
+    <!-- Ideas Drawer -->
+    <div class="hp-card" onclick="openIdeasDrawer()" style="background:rgba(168,85,247,0.08);cursor:pointer;">
+      <div class="hp-card-title">💡 灵感抽屉</div>
+      <div class="hp-card-sub" id="ideasPreview" style="font-size:12px;line-height:1.5;color:var(--text-dim);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">奇思妙想与优秀案例</div>
+      <div class="hp-card-label" id="ideasCount">点击打开</div>
+    </div>
     <!-- Calendar Card -->
     <div class="hp-card" onclick="openCalModal()" style="cursor:pointer;background:rgba(123,147,199,0.08);padding:12px;">
       <div class="hp-mini-cal-wrap">
@@ -4160,6 +4166,31 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
         <button onclick="closeXiangqi()">🚪 离开</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- 💡 灵感抽屉 Overlay -->
+<div class="gomoku-overlay" id="ideasOverlay" style="z-index:270;">
+  <div class="gomoku-container" style="flex-direction:column;max-width:600px;width:95vw;max-height:85vh;overflow-y:auto;">
+    <div class="gomoku-header" style="width:100%;">
+      <h3>💡 灵感抽屉</h3>
+      <button class="gomoku-close" onclick="closeIdeasDrawer()">✕</button>
+    </div>
+    <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px;">记录你的奇思妙想、优秀案例、未来计划</p>
+
+    <!-- 添加新条目 -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <select id="ideasType" style="background:var(--bg-input);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;font-family:inherit;">
+        <option value="idea">💡 奇思妙想</option>
+        <option value="case">🌟 优秀案例</option>
+        <option value="plan">📋 未来计划</option>
+      </select>
+      <input type="text" id="ideasInput" placeholder="输入内容..." style="flex:1;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;font-family:inherit;outline:none;" />
+      <button onclick="IdeasDrawer.add()" style="padding:6px 14px;border-radius:6px;background:var(--accent);border:none;color:#fff;cursor:pointer;font-size:12px;font-family:inherit;">添加</button>
+    </div>
+
+    <!-- 条目列表 -->
+    <div id="ideasList" style="display:flex;flex-direction:column;gap:8px;"></div>
   </div>
 </div>
 
@@ -18265,7 +18296,7 @@ window.initApp = async function(){
   loadPLCard(); // Load Premier League data
   await loadStickers();
   fetchWeather();rollMood();refreshStatus();renderStatusBar();renderRelationshipInfo();
-  NotificationBridge.init(); updateHpMemories();
+  NotificationBridge.init(); updateHpMemories(); IdeasDrawer.init();
   fetchDailyQuote();
   // Holiday countdown
   updateHolidayCountdown();
@@ -20844,21 +20875,39 @@ const cloudSync = {
     this._show(`数据大小 ${sizeKB}KB，正在上传...`);
     try {
       const existing = await this._findGist(token);
+      const now = new Date();
+      const ts = now.toISOString().slice(0,19).replace(/[T:]/g,'-');
+      const filename = `jessica-backup-${ts}.json`;
+      // 获取已有文件列表，保留最近 5 个备份
+      let files = {};
+      if (existing) {
+        for (const [k, v] of Object.entries(existing.files)) {
+          if (k.startsWith('jessica-backup-')) files[k] = v;
+        }
+      }
+      // 添加新备份
+      files[filename] = { content };
+      // 超过 5 个备份时删除最旧的
+      const sorted = Object.keys(files).sort();
+      while (sorted.length > 5) {
+        const oldest = sorted.shift();
+        files[oldest] = null; // GitHub API: 设为 null 删除文件
+      }
       const body = {
         description: this.GIST_DESC,
         public: false,
-        files: { 'jessica-backup.json': { content } },
+        files,
       };
       let result;
       if (existing) {
         result = await this._api('PATCH', `/gists/${existing.id}`, body, token);
-        this._show(`✅ 已更新备份 (${sizeKB}KB) — ${new Date().toLocaleString('zh-CN')}`);
+        this._show(`✅ 已备份 (${sizeKB}KB) — ${now.toLocaleString('zh-CN')}，保留最近 ${Math.min(Object.keys(files).filter(k=>files[k]).length, 5)} 个版本`);
       } else {
         result = await this._api('POST', '/gists', body, token);
         localStorage.setItem('jessica_gist_id', result.id);
         this._show(`✅ 已创建备份 (${sizeKB}KB) — Gist ID: ${result.id.slice(0,8)}...`);
       }
-      localStorage.setItem('jessica_last_backup', new Date().toISOString());
+      localStorage.setItem('jessica_last_backup', now.toISOString());
       showToast('☁️ 备份成功！');
     } catch(e) {
       this._show(`❌ 备份失败: ${e.message}`);
@@ -20874,15 +20923,19 @@ const cloudSync = {
     try {
       const gist = await this._findGist(token);
       if (!gist) { this._show('❌ 未找到备份（请先备份一次）'); return; }
-      const file = Object.values(gist.files).find(f => f.filename === 'jessica-backup.json');
-      if (!file) { this._show('❌ Gist 中无备份文件'); return; }
-      this._show('正在下载...');
-      const res = await fetch(file.raw_url);
+      // 找最新的备份文件
+      const backupFiles = Object.values(gist.files)
+        .filter(f => f.filename.startsWith('jessica-backup-'))
+        .sort((a, b) => b.filename.localeCompare(a.filename));
+      if (!backupFiles.length) { this._show('❌ Gist 中无备份文件'); return; }
+      const latest = backupFiles[0];
+      this._show(`正在下载最新备份: ${latest.filename}...`);
+      const res = await fetch(latest.raw_url);
       const data = await res.json();
       this._show('正在恢复数据...');
       if (this._restoreData(data)) {
         showToast('✅ 数据已恢复！即将刷新页面...');
-        this._show('✅ 恢复成功，3 秒后刷新...');
+        this._show(`✅ 从 ${latest.filename} 恢复成功，3 秒后刷新...`);
         setTimeout(() => location.reload(), 3000);
       }
     } catch(e) {
@@ -20910,6 +20963,101 @@ const cloudSync = {
     }
   },
 };
+
+// ============================================================
+// IDEAS DRAWER (灵感抽屉)
+// ============================================================
+const IdeasDrawer = {
+  _data: null,
+  _load() {
+    if (this._data) return this._data;
+    try { this._data = JSON.parse(localStorage.getItem('jessica_ideas') || '[]'); } catch(e) { this._data = []; }
+    return this._data;
+  },
+  _save() {
+    localStorage.setItem('jessica_ideas', JSON.stringify(this._data));
+    this._renderPreview();
+  },
+  _renderPreview() {
+    const ideas = this._load();
+    const el = document.getElementById('ideasPreview');
+    const countEl = document.getElementById('ideasCount');
+    if (el) {
+      if (ideas.length) {
+        const latest = ideas[ideas.length - 1];
+        const icons = {idea:'💡',case:'🌟',plan:'📋'};
+        el.textContent = `${icons[latest.type]||'💡'} ${latest.text.slice(0,40)}${latest.text.length>40?'...':''}`;
+      } else {
+        el.textContent = '奇思妙想与优秀案例';
+      }
+    }
+    if (countEl) countEl.textContent = ideas.length ? `${ideas.length} 条记录` : '点击打开';
+  },
+  _renderList() {
+    const ideas = this._load();
+    const el = document.getElementById('ideasList');
+    if (!el) return;
+    if (!ideas.length) {
+      el.innerHTML = '<div style="text-align:center;color:var(--text-dim);opacity:0.5;padding:40px 0;font-size:13px;">还没有记录，添加你的第一条灵感吧 ✨</div>';
+      return;
+    }
+    const icons = {idea:'💡',case:'🌟',plan:'📋'};
+    const labels = {idea:'奇思妙想',case:'优秀案例',plan:'未来计划'};
+    el.innerHTML = ideas.map((item, i) => {
+      const isUrl = /^https?:\/\//.test(item.text) || /^www\./.test(item.text);
+      const displayText = isUrl
+        ? `<a href="${item.text.startsWith('www.') ? 'https://' : ''}${item.text}" target="_blank" style="color:var(--accent);text-decoration:none;">${item.text}</a>`
+        : item.text;
+      return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--bg-card-light);border:1px solid var(--border);border-radius:8px;">
+        <span style="font-size:16px;flex-shrink:0;">${icons[item.type]||'💡'}</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:10px;color:var(--accent2);margin-bottom:2px;">${labels[item.type]||'灵感'} · ${new Date(item.ts).toLocaleDateString('zh-CN')}</div>
+          <div style="font-size:13px;color:var(--text);word-break:break-all;">${displayText}</div>
+        </div>
+        <button onclick="IdeasDrawer.remove(${i})" style="background:transparent;border:none;color:var(--text-dim);cursor:pointer;font-size:14px;padding:2px 6px;flex-shrink:0;" title="删除">✕</button>
+      </div>`;
+    }).reverse().join('');
+  },
+  add() {
+    const input = document.getElementById('ideasInput');
+    const type = document.getElementById('ideasType').value;
+    const text = input.value.trim();
+    if (!text) { showToast('请输入内容'); return; }
+    this._load();
+    this._data.push({ type, text, ts: Date.now() });
+    this._save();
+    this._renderList();
+    input.value = '';
+    showToast('✅ 已添加');
+  },
+  remove(i) {
+    this._load();
+    this._data.splice(i, 1);
+    this._save();
+    this._renderList();
+    showToast('已删除');
+  },
+  init() {
+    this._load();
+    // 初始化默认案例
+    if (!this._data.length) {
+      this._data = [
+        { type:'case', text:'在线体验：https://boke.hiromu.top\nGitHub：https://github.com/Xinghongia/Kirameku', ts: Date.now() - 2000 },
+        { type:'case', text:'博客：www.xinghuisama.top\nGitHub：https://github.com/heiehiehi/XinghuisamaBlogs', ts: Date.now() - 1000 },
+        { type:'idea', text:'把杰西卡日记放进私人博客，增加音乐系统', ts: Date.now() },
+      ];
+      this._save();
+    }
+    this._renderPreview();
+  },
+};
+function openIdeasDrawer() {
+  IdeasDrawer._renderList();
+  document.getElementById('ideasOverlay').classList.add('active');
+}
+function closeIdeasDrawer() {
+  document.getElementById('ideasOverlay').classList.remove('active');
+}
 
 // ============================================================
 // EXPORT / IMPORT DATA
