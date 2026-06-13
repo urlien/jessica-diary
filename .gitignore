@@ -1,0 +1,15 @@
+# Build outputs
+android-project/app/build/
+android-project/build/
+android-project/.gradle/
+
+# APK (keep latest only via explicit git add)
+*.apk
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.iml
