@@ -1,5 +1,35 @@
 # 杰西卡日记 — 更新日志
 
+## v3.3.1 (2026-06-13)
+
+### 22:41 — 代码审查
+- 克隆仓库，对比用户上传的 HTML 与仓库版本，确认一致（v3.3.0，最后 commit 06-08 03:48）
+- 逐项检查 5 个待办事项的状态
+
+### 22:53 — Bug 修复（文件上传全面修复）
+- **修复所有 file input 在 Android WebView 中无法触发的问题**：8 个 `<input type="file">` 全部从 `display:none` 改为 `position:absolute;opacity:0;width:0;height:0;pointer-events:none`
+- 根因：Android WebView 中 `display:none` 的元素无法被程序化 `.click()` 触发，`<label for="">` 同样失效
+- 涉及：背景上传、杰西卡头像、用户头像、聊天附件、知识库文件上传、数据导入、自定义提示音、表情包上传
+
+### 22:53 — 知识库页面重做
+- **文件列表改为卡片网格布局**：`display:grid; grid-template-columns:repeat(2,1fr)`（≥600px 时 3 列）
+- 每张卡片：大图标 + 文件名（去掉后缀）+ 文件大小，右上角删除按钮
+- `_renderFileList()` 函数重写，生成卡片 HTML
+- GitHub 导入列表同步改为卡片网格，checkbox 放在左上角
+- 新增 `.kb-storage-info` 样式，存储信息横跨整行
+
+### 22:53 — 首页顶部 safe-area 适配
+- `.hp-header` 的 `padding-top` 加入 `env(safe-area-inset-top, 0px)`
+- 4 个断点全部修改：默认 / ≤768px / ≤480px / ≤360px
+- 解决有刘海/药丸屏手机上首页顶部被遮挡的问题
+
+### 说明
+- 版本号未升级（仍为 3.3.0），需手动更新 `APP_VERSION` 和 `build.gradle`
+- 灵感抽屉已在之前版本中移除，首页无此入口
+- 云同步 `_collectData()` 已包含 `jessica_diary_chat` 和 IndexedDB 日记条目
+
+---
+
 ## v3.3.0 (2026-06-08)
 
 ### 02:08 — 初始检查
