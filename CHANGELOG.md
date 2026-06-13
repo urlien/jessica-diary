@@ -23,10 +23,42 @@
 - 4 个断点全部修改：默认 / ≤768px / ≤480px / ≤360px
 - 解决有刘海/药丸屏手机上首页顶部被遮挡的问题
 
+### 23:07 — 推送
+- 3 个文件推送到 GitHub：`jessica_full.html`、`CHANGELOG.md`、`notes/2026-06-13.md`
+- 推送完成后清理 git remote URL 中的 Token
+
+### 23:12 — 云备份分析
+- 检查 Gist（`bfaeefb7cb7ee121da56b482cba32856`）中的备份数据
+- 旧备份（06-08）：169 条消息，55 项数据，`_version: 2`
+- 新备份（06-13 23:21）：185 条消息，40 项数据，`_version: 2`
+- 发现：`_idb_jp_entries`（IndexedDB 日记条目）从未被备份进去
+- 根因：手机上的 APP 运行的是旧版 `_collectData()`（v2），不含 IndexedDB 收集逻辑
+- `jessica_diary_chat` 字段从新备份中消失（可能 localStorage 被清理）
+
+### 23:15 — 对话记录导出
+- 导出全部 169 条对话内容（05-15 ~ 06-08）
+- 关键事件：克洛伊人设、知识库上传、搜索引擎大战、记忆问题、坐标分享、云同步开发
+
+### 23:22 — 新备份到达
+- 用户在 APP 内触发备份，新 Gist 文件 `jessica-backup-2026-06-13-15-21-35.json`（143KB）
+- 消息更新到 06-13 19:38，新增 16 条对话
+- 但 `_idb_jp_entries` 仍然缺失，确认需要重新打包 APK
+
+### 23:26 — 工作区整理
+- 删除残留文件（`jessica_repo.html`、`kb_reference.jpg`、截图）
+- `jessica_uploaded.html` → `jessica_full.html`
+- 工作区与 `jessica-repo/` 同步
+
+### 23:29 — APK 打包尝试
+- 编译环境（611MB）不在本机，尝试下载
+- GitHub releases 下载速度 ~330KB/s，预计 30 分钟
+- 使用 Token 认证加速下载
+
 ### 说明
 - 版本号未升级（仍为 3.3.0），需手动更新 `APP_VERSION` 和 `build.gradle`
 - 灵感抽屉已在之前版本中移除，首页无此入口
-- 云同步 `_collectData()` 已包含 `jessica_diary_chat` 和 IndexedDB 日记条目
+- 云同步 `_collectData()` 已包含 `jessica_diary_chat` 和 IndexedDB 日记条目（v3 版本）
+- 手机端 APP 需重新打包才能修复日记备份缺失问题
 
 ---
 
