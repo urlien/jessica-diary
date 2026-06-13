@@ -29,6 +29,7 @@ inspirations/
 | 文件 | 内容 |
 |------|------|
 | [music-player.md](music-player.md) | 恶魔电台音乐播放器 — 纯前端 BGM 面板 |
+| [pixel-city-detail.md](pixel-city-detail.md) | 像素城市背景细化 — 建筑/街道/天气/动效 |
 
 ## 🎯 长期目标
 
