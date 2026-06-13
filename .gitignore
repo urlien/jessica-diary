@@ -2,6 +2,7 @@
 android-project/app/build/
 android-project/build/
 android-project/.gradle/
+android-project/gradle/
 
 # APK (keep latest only via explicit git add)
 *.apk
