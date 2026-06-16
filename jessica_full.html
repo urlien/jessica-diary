@@ -910,7 +910,7 @@
   .status-tag { font-size: 11px; padding: 1px 6px; border-radius: 8px; background: rgba(123,147,199,0.08); border: 1px solid rgba(123,147,199,0.12); }
   .status-section-label { font-size: 10px; color: var(--text-dim); opacity: 0.5; margin-right: 4px; flex-shrink: 0; }
 
-  .chat-area { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; overscroll-behavior: contain; }
+  .chat-area { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; overscroll-behavior: contain; background: rgba(22,25,32,0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
   .chat-area::-webkit-scrollbar { width: 4px; }
   .chat-area::-webkit-scrollbar-track { background: transparent; }
   .chat-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -1138,7 +1138,6 @@
   .hot-update-bar.checking { border-color:var(--accent-dim); }
   .hot-update-bar.downloading { border-color:#e6a756; background:rgba(230,167,86,0.08); }
   .hot-update-bar.done { border-color:#6bc77f; background:rgba(107,199,127,0.08); }
-  .hot-update-bar.failed { border-color:#e07070; background:rgba(224,112,112,0.08); }
   .hot-update-icon { font-size:20px; flex-shrink:0; width:28px; text-align:center; }
   .hot-update-info { flex:1; min-width:0; }
   .hot-update-info .hu-title { font-size:12px; font-weight:600; color:var(--text); line-height:1.3; }
@@ -1147,7 +1146,6 @@
   .hot-update-btn.hu-check { background:var(--accent); color:#fff; }
   .hot-update-btn.hu-check:hover { opacity:0.85; }
   .hot-update-btn.hu-apply { background:#6bc77f; color:#fff; }
-  .hot-update-btn.hu-apply:hover { opacity:0.85; }
   .hot-update-btn:disabled { opacity:0.5; cursor:default; }
   .hot-update-progress { width:100%; height:3px; border-radius:2px; background:rgba(255,255,255,0.06); margin-top:6px; overflow:hidden; }
   .hot-update-progress-fill { height:100%; border-radius:2px; background:linear-gradient(90deg,var(--accent),#e6a756); transition:width 0.3s; width:0%; }
@@ -2082,81 +2080,6 @@ body.private-mode .header {
 }
 .hp-mini-cal .mc-day.today .mc-dot { background: rgba(255,255,255,0.7); }
 
-/* ========== PREMIER LEAGUE CARD ========== */
-.pl-card { background: linear-gradient(135deg, rgba(55,0,100,0.15), rgba(0,80,160,0.12)) !important; border-color: rgba(0,80,160,0.2) !important; padding: 12px !important; }
-.pl-card:hover { border-color: rgba(0,80,160,0.4) !important; }
-.pl-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.pl-card-header .hp-card-title { margin-bottom: 0; }
-.pl-card-badge { width: 20px; height: 20px; border-radius: 4px; }
-.pl-mini-table { width: 100%; border-collapse: collapse; }
-.pl-mini-table th { font-size: 9px; color: var(--text-dim); font-weight: 600; padding: 3px 2px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.06); }
-.pl-mini-table th:first-child, .pl-mini-table td:first-child { width: 16px; text-align: center; }
-.pl-mini-table th:nth-child(2), .pl-mini-table td:nth-child(2) { text-align: left; }
-.pl-mini-table td { font-size: 10px; color: var(--text-dim); padding: 3px 2px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.02); }
-.pl-mini-table .team-cell { display: flex; align-items: center; gap: 4px; }
-.pl-mini-table .team-badge { width: 12px; height: 12px; border-radius: 2px; object-fit: contain; }
-.pl-mini-table .team-name { color: var(--text); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60px; }
-.pl-mini-table .pts-col { font-weight: 700; color: var(--accent); font-size: 10px; }
-.pl-mini-table tr.cl-zone td { border-left: 2px solid rgba(0,100,255,0.3); }
-.pl-mini-table tr.rel-zone td { border-left: 2px solid rgba(199,123,123,0.3); }
-.pl-mini-table-wrap { max-height: 280px; overflow-y: auto; }
-.pl-mini-table-wrap::-webkit-scrollbar { width: 3px; }
-.pl-mini-table-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-
-/* ========== PL OVERLAY ========== */
-.pl-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px) 0; }
-.pl-overlay.active { display: flex; }
-.pl-modal { width: 95%; max-width: 480px; max-height: 85vh; background: rgba(20,24,32,0.97); border: 1px solid var(--border); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 12px 48px rgba(0,0,0,0.5); animation: memoSlideUp 0.3s ease; }
-.pl-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border); }
-.pl-header h3 { font-size: 15px; color: var(--text); font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px; }
-.pl-header h3 img { width: 22px; height: 22px; border-radius: 4px; }
-.pl-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); }
-.pl-tab { flex: 1; padding: 10px; text-align: center; font-size: 13px; color: var(--text-dim); cursor: pointer; border: none; background: transparent; font-family: inherit; transition: all 0.2s; border-bottom: 2px solid transparent; }
-.pl-tab:hover { color: var(--text); background: rgba(255,255,255,0.03); }
-.pl-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
-.pl-body { flex: 1; overflow-y: auto; padding: 0; }
-.pl-loading { text-align: center; padding: 40px; color: var(--text-dim); font-size: 13px; }
-.pl-error { text-align: center; padding: 40px; color: var(--red); font-size: 13px; }
-
-/* Standings table */
-.pl-standings { width: 100%; border-collapse: collapse; }
-.pl-standings th { font-size: 10px; color: var(--text-dim); font-weight: 600; padding: 8px 6px; text-align: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(20,24,32,0.98); }
-.pl-standings th:first-child, .pl-standings td:first-child { text-align: center; width: 28px; }
-.pl-standings th:nth-child(2), .pl-standings td:nth-child(2) { text-align: left; }
-.pl-standings td { font-size: 11px; color: var(--text-dim); padding: 7px 6px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.03); }
-.pl-standings tr:hover td { background: rgba(255,255,255,0.03); }
-.pl-standings .team-cell { display: flex; align-items: center; gap: 6px; }
-.pl-standings .team-badge { width: 16px; height: 16px; border-radius: 3px; object-fit: contain; }
-.pl-standings .team-name { color: var(--text); font-weight: 500; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100px; }
-.pl-standings .pts-col { font-weight: 700; color: var(--accent); }
-.pl-standings .form-cell { display: flex; gap: 2px; justify-content: center; }
-.pl-standings .form-dot { width: 12px; height: 12px; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; }
-.pl-standings .form-w { background: rgba(123,199,123,0.2); color: var(--green); }
-.pl-standings .form-d { background: rgba(255,255,255,0.08); color: var(--text-dim); }
-.pl-standings .form-l { background: rgba(199,123,123,0.2); color: var(--red); }
-.pl-standings tr.cl-zone td { border-left: 3px solid rgba(0,100,255,0.4); }
-.pl-standings tr.el-zone td { border-left: 3px solid rgba(255,165,0,0.3); }
-.pl-standings tr.rel-zone td { border-left: 3px solid rgba(199,123,123,0.3); }
-
-/* Fixtures */
-.pl-fixtures { padding: 8px 12px; }
-.pl-fixture-round { font-size: 12px; color: var(--accent2); font-weight: 600; padding: 10px 4px 6px; }
-.pl-fixture-item { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 6px; transition: all 0.15s; }
-.pl-fixture-item:hover { border-color: rgba(123,147,199,0.3); }
-.pl-fixture-item.live { border-color: rgba(199,123,123,0.4); background: rgba(199,123,123,0.05); }
-.pl-fixture-team { flex: 1; display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text); }
-.pl-fixture-team.away { flex-direction: row-reverse; text-align: right; }
-.pl-fixture-team img { width: 18px; height: 18px; border-radius: 3px; object-fit: contain; }
-.pl-fixture-score { min-width: 60px; text-align: center; font-size: 14px; font-weight: 700; color: var(--text); }
-.pl-fixture-score .vs { font-size: 11px; color: var(--text-dim); font-weight: 400; }
-.pl-fixture-score .live-badge { font-size: 9px; color: var(--red); font-weight: 700; animation: pulse-live 1.5s infinite; }
-@keyframes pulse-live { 0%,100%{opacity:1}50%{opacity:0.4} }
-.pl-fixture-time { font-size: 10px; color: var(--text-dim); text-align: center; min-width: 50px; }
-.pl-fixture-venue { font-size: 9px; color: var(--text-dim); opacity: 0.6; text-align: center; margin-top: 2px; }
-.pl-refresh-btn { width: 100%; padding: 10px; background: transparent; border: none; border-top: 1px solid var(--border); color: var(--accent); font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
-.pl-refresh-btn:hover { background: rgba(123,147,199,0.1); }
-
-/* ========== GOMOKU GAME ========== */
 .gomoku-overlay {
   position: fixed; inset: 0; z-index: 260;
   background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
@@ -3112,17 +3035,6 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
         <div id="hpMiniCal" class="hp-mini-cal"></div>
       </div>
     </div>
-    <!-- Premier League Card -->
-    <div class="hp-card pl-card" onclick="openPLOverlay()" style="cursor:pointer;">
-      <div class="pl-card-header">
-        <div class="hp-card-title">⚽ 英超积分榜</div>
-        <span style="font-size:10px;color:var(--accent2);" id="plRoundInfo"></span>
-      </div>
-      <div class="pl-mini-table-wrap" id="plTop3">
-        <div style="font-size:11px;color:var(--text-dim);opacity:0.5;padding:20px 0;text-align:center;">点击加载数据...</div>
-      </div>
-      <div class="hp-card-label">点击查看详情</div>
-    </div>
     <!-- Memories -->
     <div class="hp-card" onclick="openMemoryHighlight()" style="cursor:pointer;">
       <div class="hp-card-title">💭 记忆精选</div>
@@ -3863,25 +3775,6 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
   </div>
 </div>
 
-<!-- ========== PREMIER LEAGUE OVERLAY ========== -->
-<div class="pl-overlay" id="plOverlay">
-  <div class="pl-modal">
-    <div class="pl-header">
-      <h3><img src="https://r2.thesportsdb.com/images/media/league/badge/gasy9d1737743125.png" alt="EPL"> 英超联赛</h3>
-      <button class="memo-close" onclick="closePLOverlay()">✕</button>
-    </div>
-    <div class="pl-tabs">
-      <button class="pl-tab active" onclick="switchPLTab('standings',this)">📊 积分榜</button>
-      <button class="pl-tab" onclick="switchPLTab('fixtures',this)">📅 赛程</button>
-    </div>
-    <div class="pl-body" id="plBody">
-      <div class="pl-loading">加载中...</div>
-    </div>
-    <button class="pl-refresh-btn" onclick="refreshPLData()">🔄 刷新数据</button>
-  </div>
-</div>
-
-<!-- ========== POMODORO DETAIL OVERLAY ========== -->
 <div class="pomo-overlay" id="pomoOverlay">
   <div class="pomo-modal">
     <div class="pomo-header">
@@ -4454,7 +4347,11 @@ const LoginUI = {
     // 跳过登录，直接进入应用
     const loginScreen = document.getElementById('loginScreen');
     if (loginScreen) { loginScreen.style.display = 'none'; loginScreen.classList.add('hidden'); }
-    window.initApp && window.initApp();
+    const _tryInit = () => {
+      if (typeof window.initApp === 'function') { window.initApp(); }
+      else { setTimeout(_tryInit, 50); }
+    };
+    _tryInit();
   },
 
   async checkAutoLogin() {
@@ -9411,26 +9308,21 @@ function toggleBGMPanel() {
 // ============================================================
 const DB_NAME = 'JessicaDiaryDB';
 const DB_VERSION = 5;
-const APP_VERSION = '3.3.1';
+const APP_VERSION = '3.3.2';
 const APP_VERSION_NAME = '夏至';
-const APP_VERSION_DESC = '热更新 + 记忆全量备份 + 日历标记';
+const APP_VERSION_DESC = '记忆全量备份 + 日历标记 + 登录跳过 + 英超移除';
 
 // ============================================================
-// 热更新 (Hot Update)
+// 热更新 (Hot Update) - 仅设置面板，无自动应用
 // ============================================================
 const HotUpdate = {
   REMOTE_URL: 'https://urlien.github.io/jessica-diary/jessica_full.html',
-  CACHE_KEY: 'jessica_hot_update_cache',
-  VERSION_KEY: 'jessica_hot_update_version',
-  CHECK_INTERVAL: 6 * 60 * 60 * 1000,
+  CACHE_KEY: 'jessic…ache',
+  VERSION_KEY: 'jessic…sion',
 
   async check(silent) {
     try {
-      if (!silent) { HotUpdateUI.setState('checking'); }
-      const lastCheck = parseInt(localStorage.getItem('jessica_hot_update_last_check') || '0');
-      if (silent && Date.now() - lastCheck < this.CHECK_INTERVAL) return null;
-      localStorage.setItem('jessica_hot_update_last_check', String(Date.now()));
-
+      if (!silent) HotUpdateUI.setState('checking');
       const res = await fetch(this.REMOTE_URL, { cache: 'no-cache' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const html = await res.text();
@@ -9439,21 +9331,20 @@ const HotUpdate = {
       const remoteVer = match[1];
       const nameMatch = html.match(/const APP_VERSION_NAME\s*=\s*'([^']+)'/);
       const remoteName = nameMatch ? nameMatch[1] : '';
-
       if (this._isNewer(remoteVer, APP_VERSION)) {
         localStorage.setItem(this.CACHE_KEY, html);
         localStorage.setItem(this.VERSION_KEY, remoteVer);
-        if (!silent) { HotUpdateUI.setState('has-update', { ver: remoteVer, name: remoteName }); }
+        if (!silent) HotUpdateUI.setState('has-update', { ver: remoteVer, name: remoteName });
         showToast(`🆕 发现新版本 v${remoteVer}${remoteName ? ' 「' + remoteName + '」' : ''}`);
         return remoteVer;
       } else {
-        if (!silent) { HotUpdateUI.setState('latest'); }
+        if (!silent) HotUpdateUI.setState('latest');
         showToast('✅ 已是最新版本');
         return null;
       }
     } catch(e) {
       console.warn('[HotUpdate] 检查失败:', e);
-      if (!silent) { HotUpdateUI.setState('latest'); }
+      if (!silent) HotUpdateUI.setState('latest');
       showToast('✅ 已是最新版本');
       return null;
     }
@@ -9467,27 +9358,17 @@ const HotUpdate = {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const total = parseInt(res.headers.get('content-length') || '0');
       const reader = res.body.getReader();
-      let received = 0;
-      const chunks = [];
+      let received = 0; const chunks = [];
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         chunks.push(value);
         received += value.length;
-        if (total > 0) {
-          HotUpdateUI.setProgress(Math.round(received / total * 100));
-        } else {
-          HotUpdateUI.setProgress(-1); // indeterminate
-        }
+        if (total > 0) HotUpdateUI.setProgress(Math.round(received / total * 100));
+        else HotUpdateUI.setProgress(-1);
       }
-      const html = new TextDecoder().decode(new Uint8Array(chunks.reduce((a,c)=>a+c.length,0) ? [].concat(...chunks.map(c=>Array.from(c))) : []));
-      // Reassemble
-      const allBytes = new Uint8Array(received);
-      let offset = 0;
-      for (const chunk of chunks) {
-        allBytes.set(chunk, offset);
-        offset += chunk.length;
-      }
+      const allBytes = new Uint8Array(received); let offset = 0;
+      for (const chunk of chunks) { allBytes.set(chunk, offset); offset += chunk.length; }
       const htmlStr = new TextDecoder().decode(allBytes);
       const match = htmlStr.match(/const APP_VERSION\s*=\s*'([^']+)'/);
       if (!match) throw new Error('无法解析版本号');
@@ -9509,42 +9390,21 @@ const HotUpdate = {
     const cached = localStorage.getItem(this.CACHE_KEY);
     const cachedVer = localStorage.getItem(this.VERSION_KEY);
     if (!cached || !cachedVer) return false;
-    if (!this._isNewer(cachedVer, APP_VERSION)) {
-      this.clearCache();
-      return false;
-    }
-    document.open();
-    document.write(cached);
-    document.close();
-    return true;
+    if (!this._isNewer(cachedVer, APP_VERSION)) { this.clearCache(); return false; }
+    document.open(); document.write(cached); document.close(); return true;
   },
 
-  clearCache() {
-    localStorage.removeItem(this.CACHE_KEY);
-    localStorage.removeItem(this.VERSION_KEY);
-  },
+  clearCache() { localStorage.removeItem(this.CACHE_KEY); localStorage.removeItem(this.VERSION_KEY); },
 
   _isNewer(a, b) {
-    const pa = a.split('.').map(Number);
-    const pb = b.split('.').map(Number);
-    for (let i = 0; i < 3; i++) {
-      if ((pa[i]||0) > (pb[i]||0)) return true;
-      if ((pa[i]||0) < (pb[i]||0)) return false;
-    }
+    const pa = a.split('.').map(Number), pb = b.split('.').map(Number);
+    for (let i = 0; i < 3; i++) { if ((pa[i]||0) > (pb[i]||0)) return true; if ((pa[i]||0) < (pb[i]||0)) return false; }
     return false;
   }
 };
 
-// 热更新 UI 控制
 const HotUpdateUI = {
-  _el: null,
-  _icon: null,
-  _title: null,
-  _desc: null,
-  _btn: null,
-  _progress: null,
-  _progressFill: null,
-
+  _el: null, _icon: null, _title: null, _desc: null, _btn: null, _progress: null, _progressFill: null,
   _init() {
     if (this._el) return;
     this._el = document.getElementById('hotUpdateBar');
@@ -9555,100 +9415,28 @@ const HotUpdateUI = {
     this._progress = document.getElementById('huProgress');
     this._progressFill = document.getElementById('huProgressFill');
   },
-
   setState(state, data) {
-    this._init();
-    if (!this._el) return;
-    // Reset
-    this._el.className = 'hot-update-bar';
-    this._btn.disabled = false;
-    this._btn.className = 'hot-update-btn hu-check';
-    this._btn.textContent = '检查更新';
+    this._init(); if (!this._el) return;
+    this._el.className = 'hot-update-bar'; this._btn.disabled = false;
+    this._btn.className = 'hot-update-btn hu-check'; this._btn.textContent = '检查更新';
     this._btn.onclick = () => HotUpdateUI.check();
-    this._progress.style.display = 'none';
-    this._progressFill.style.width = '0%';
-
+    this._progress.style.display = 'none'; this._progressFill.style.width = '0%';
     switch (state) {
-      case 'checking':
-        this._el.classList.add('checking');
-        this._icon.textContent = '🔄';
-        this._title.textContent = '正在检查...';
-        this._desc.textContent = '连接服务器中';
-        this._btn.disabled = true;
-        this._btn.textContent = '检查中';
-        break;
-      case 'has-update':
-        this._el.classList.add('has-update');
-        this._icon.textContent = '🆕';
-        this._title.textContent = `发现新版本 v${data.ver}${data.name ? ' 「' + data.name + '」' : ''}`;
-        this._desc.textContent = `当前版本 v${APP_VERSION}，点击下载更新`;
-        this._btn.className = 'hot-update-btn hu-apply';
-        this._btn.textContent = '下载更新';
-        this._btn.onclick = () => HotUpdate.downloadWithProgress();
-        break;
-      case 'downloading':
-        this._el.classList.add('downloading');
-        this._icon.textContent = '⬇️';
-        this._title.textContent = '正在下载...';
-        this._desc.textContent = '请稍候';
-        this._btn.disabled = true;
-        this._btn.textContent = '下载中';
-        this._progress.style.display = 'block';
-        break;
-      case 'done':
-        this._el.classList.add('done');
-        this._icon.textContent = '✅';
-        this._title.textContent = `v${data.ver}${data.name ? ' 「' + data.name + '」' : ''} 下载完成`;
-        this._desc.textContent = '点击「立即更新」应用新版本';
-        this._btn.className = 'hot-update-btn hu-apply';
-        this._btn.textContent = '立即更新';
-        this._btn.onclick = () => { HotUpdate.apply(); };
-        break;
-      case 'failed':
-        this._el.classList.add('failed');
-        this._icon.textContent = '❌';
-        this._title.textContent = '更新失败';
-        this._desc.textContent = data || '网络错误，请稍后重试';
-        this._btn.textContent = '重试';
-        this._btn.onclick = () => HotUpdateUI.check();
-        break;
-      case 'latest':
-        this._icon.textContent = '✅';
-        this._title.textContent = `v${APP_VERSION} 「${APP_VERSION_NAME}」`;
-        this._desc.textContent = '已是最新版本';
-        this._btn.textContent = '检查更新';
-        break;
+      case 'checking': this._el.classList.add('checking'); this._icon.textContent = '🔄'; this._title.textContent = '正在检查...'; this._desc.textContent = '连接服务器中'; this._btn.disabled = true; this._btn.textContent = '检查中'; break;
+      case 'has-update': this._el.classList.add('has-update'); this._icon.textContent = '🆕'; this._title.textContent = `发现新版本 v${data.ver}${data.name ? ' 「'+data.name+'」' : ''}`; this._desc.textContent = `当前版本 v${APP_VERSION}，点击下载更新`; this._btn.className = 'hot-update-btn hu-apply'; this._btn.textContent = '下载更新'; this._btn.onclick = () => HotUpdate.downloadWithProgress(); break;
+      case 'downloading': this._el.classList.add('downloading'); this._icon.textContent = '⬇️'; this._title.textContent = '正在下载...'; this._desc.textContent = '请稍候'; this._btn.disabled = true; this._btn.textContent = '下载中'; this._progress.style.display = 'block'; break;
+      case 'done': this._el.classList.add('done'); this._icon.textContent = '✅'; this._title.textContent = `v${data.ver}${data.name ? ' 「'+data.name+'」' : ''} 下载完成`; this._desc.textContent = '点击「立即更新」应用新版本'; this._btn.className = 'hot-update-btn hu-apply'; this._btn.textContent = '立即更新'; this._btn.onclick = () => HotUpdate.apply(); break;
+      case 'failed': this._el.classList.add('failed'); this._icon.textContent = '❌'; this._title.textContent = '更新失败'; this._desc.textContent = data || '网络错误，请稍后重试'; this._btn.textContent = '重试'; this._btn.onclick = () => HotUpdateUI.check(); break;
+      case 'latest': this._icon.textContent = '✅'; this._title.textContent = `v${APP_VERSION} 「${APP_VERSION_NAME}」`; this._desc.textContent = '已是最新版本'; break;
     }
   },
-
   setProgress(pct) {
-    this._init();
-    if (!this._progressFill) return;
-    if (pct < 0) {
-      // Indeterminate: use CSS animation
-      this._progressFill.style.width = '30%';
-      this._progressFill.style.animation = 'hu-progress-indet 1.5s ease-in-out infinite';
-    } else {
-      this._progressFill.style.animation = 'none';
-      this._progressFill.style.width = pct + '%';
-      this._desc.textContent = `${pct}%`;
-    }
+    this._init(); if (!this._progressFill) return;
+    if (pct < 0) { this._progressFill.style.width = '30%'; this._progressFill.style.animation = 'hu-progress-indet 1.5s ease-in-out infinite'; }
+    else { this._progressFill.style.animation = 'none'; this._progressFill.style.width = pct + '%'; this._desc.textContent = `${pct}%`; }
   },
-
-  async check() {
-    await HotUpdate.check(false);
-  }
+  async check() { await HotUpdate.check(false); }
 };
-
-// Indeterminate progress animation
-(function(){
-  const s = document.createElement('style');
-  s.textContent = '@keyframes hu-progress-indet { 0%{transform:translateX(-100%)} 50%{transform:translateX(150%)} 100%{transform:translateX(-100%)} }';
-  document.head.appendChild(s);
-})();
-
-// 启动时静默应用缓存更新
-(function(){ try { if (HotUpdate.apply()) return; } catch(e) { console.warn('[HotUpdate] 应用失败:', e); HotUpdate.clearCache(); } })();
 
 // ============================================================
 // 动态人设系统 (Dynamic Persona)
@@ -14298,329 +14086,6 @@ function renderMiniCalendar() {
 }
 
 // ============================================================
-// PREMIER LEAGUE — ESPN API (standings) + TheSportsDB (fixtures)
-// ============================================================
-const PL = {
-  ESPN_STANDINGS: 'https://site.api.espn.com/apis/v2/sports/soccer/eng.1/standings',
-  THESPORTSDB_FIXTURES: 'https://www.thesportsdb.com/api/v1/json/3/eventsround.php?id=4328',
-  SEASON: '2025-2026',
-  CACHE_KEY: 'jessica_pl_cache',
-  CACHE_TTL: 10 * 60 * 1000, // 10 minutes
-
-  // ===== 欧战名额 (自动获取) =====
-  // 根据 UEFA 协会系数排名自动计算，前2名获得额外欧冠名额
-  // 数据源: kassiesa.net/uefa (每赛季更新一次)
-  UCL_SPOTS: 4,        // 默认值，启动后自动从 kassiesa.net 获取修正
-  UEL_SPOTS: 1,        // 欧联名额
-  UCL_SPOTS_TOP2: 5,   // 系数排名前2的协会获得的欧冠名额数
-  UCL_CACHE_TTL: 7 * 24 * 60 * 60 * 1000, // 7天缓存
-  _standings: null,
-  _fixtures: null,
-  _currentTab: 'standings',
-  _currentRound: 37,
-
-  async fetchUCLSpots() {
-    // 先检查缓存 (7天有效，名额一年才变一次)
-    try {
-      const raw = localStorage.getItem(this.CACHE_KEY + '_ucl_spots');
-      if (raw) {
-        const d = JSON.parse(raw);
-        if (Date.now() - d.ts < this.UCL_CACHE_TTL) {
-          this.UCL_SPOTS = d.data;
-          return d.data;
-        }
-      }
-    } catch(e) {}
-
-    // 从 kassiesa.net 获取 UEFA 协会系数排名
-    // 排名年份 = 赛季结束年份 (如 2025-2026 → crank2026)
-    const endYear = parseInt(this.SEASON.split('-')[1]);
-    const baseUrls = [
-      `https://kassiesa.net/uefa/data/method5/crank${endYear}.html`,
-      `https://kassiesa.net/uefa/data/method5/crank${endYear - 1}.html`,
-    ];
-
-    // CORS 代理链 (kassiesa.net 无 CORS 头，浏览器直连会被拦截)
-    const proxies = [
-      url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
-      url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-      url => url, // 直连 (file:// 或同源时可用)
-    ];
-
-    for (const proxy of proxies) {
-      for (const baseUrl of baseUrls) {
-        try {
-          const res = await fetch(proxy(baseUrl));
-          if (!res.ok) continue;
-          const html = await res.text();
-          if (!html.includes('countryline')) continue; // 验证返回的是目标页面
-
-          // 解析: <tr class="countryline"><td>RANK</td><td>...</td><td>Country</td>...
-          const rows = html.split('countryline');
-          for (const row of rows) {
-            if (!row.includes('England')) continue;
-            const rankMatch = row.match(/<td>\s*(\d+)\s*<\/td>/);
-            if (rankMatch) {
-              const rank = parseInt(rankMatch[1]);
-              this.UCL_SPOTS = rank <= 2 ? this.UCL_SPOTS_TOP2 : 4;
-              try { localStorage.setItem(this.CACHE_KEY + '_ucl_spots', JSON.stringify({ ts: Date.now(), data: this.UCL_SPOTS })); } catch(e) {}
-              console.log(`[PL] UEFA协会排名: #${rank}, 欧冠名额: ${this.UCL_SPOTS}`);
-              return this.UCL_SPOTS;
-            }
-          }
-        } catch(e) { /* 继续尝试下一个代理/URL */ }
-      }
-    }
-
-    // 所有尝试失败，使用默认值 4
-    console.warn('[PL] UEFA名额自动获取失败, 使用默认值:', this.UCL_SPOTS);
-    return this.UCL_SPOTS;
-  },
-
-  _getCache(key) {
-    try {
-      const raw = localStorage.getItem(this.CACHE_KEY + '_' + key);
-      if (raw) {
-        const d = JSON.parse(raw);
-        if (Date.now() - d.ts < this.CACHE_TTL) return d.data;
-      }
-    } catch(e) {}
-    return null;
-  },
-  _setCache(key, data) {
-    try { localStorage.setItem(this.CACHE_KEY + '_' + key, JSON.stringify({ ts: Date.now(), data })); } catch(e) {}
-  },
-
-  async fetchStandings() {
-    const cached = this._getCache('standings');
-    if (cached) { this._standings = cached; return cached; }
-    try {
-      const res = await fetch(this.ESPN_STANDINGS);
-      const data = await res.json();
-      const entries = [];
-      for (const child of (data.children || [])) {
-        for (const t of (child.standings?.entries || [])) {
-          const team = t.team || {};
-          const statsMap = {};
-          for (const s of (t.stats || [])) statsMap[s.name] = s.displayValue || s.value;
-          entries.push({
-            rank: parseInt(statsMap.rank) || 0,
-            team: team.displayName || '',
-            abbr: team.abbreviation || '',
-            logo: team.logos?.[0]?.href || '',
-            played: parseInt(statsMap.gamesPlayed) || 0,
-            wins: parseInt(statsMap.wins) || 0,
-            draws: parseInt(statsMap.ties) || 0,
-            losses: parseInt(statsMap.losses) || 0,
-            goalsFor: parseInt(statsMap.pointsFor) || 0,
-            goalsAgainst: parseInt(statsMap.pointsAgainst) || 0,
-            gd: statsMap.pointDifferential || '0',
-            points: parseInt(statsMap.points) || 0,
-          });
-        }
-      }
-      entries.sort((a, b) => a.rank - b.rank);
-      this._standings = entries;
-      this._setCache('standings', entries);
-      return entries;
-    } catch(e) {
-      console.warn('[PL] ESPN积分榜加载失败:', e);
-      return [];
-    }
-  },
-
-  async fetchFixtures(round) {
-    const r = round || this._currentRound;
-    const cached = this._getCache('fixtures_' + r);
-    if (cached) { this._fixtures = cached; return cached; }
-    try {
-      const res = await fetch(`${this.THESPORTSDB_FIXTURES}&r=${r}&s=${this.SEASON}`);
-      const data = await res.json();
-      this._fixtures = data.events || [];
-      this._setCache('fixtures_' + r, this._fixtures);
-      return this._fixtures;
-    } catch(e) {
-      console.warn('[PL] 赛程加载失败:', e);
-      return [];
-    }
-  },
-
-  renderTop3(container) {
-    if (!this._standings || !this._standings.length) {
-      container.innerHTML = '<div style="font-size:11px;color:var(--text-dim);opacity:0.5;padding:20px 0;text-align:center;">暂无数据</div>';
-      return;
-    }
-    const rows = this._standings.map(t => {
-      let zone = '';
-      if (t.rank <= PL.UCL_SPOTS) zone = 'cl-zone';
-      else if (t.rank >= 18) zone = 'rel-zone';
-      return `<tr class="${zone}">
-        <td>${t.rank}</td>
-        <td><div class="team-cell"><img class="team-badge" src="${t.logo}" alt="" loading="lazy" onerror="this.style.display='none'"><span class="team-name">${t.team}</span></div></td>
-        <td>${t.played}</td>
-        <td>${t.wins}</td>
-        <td>${t.draws}</td>
-        <td>${t.losses}</td>
-        <td>${t.gd}</td>
-        <td class="pts-col">${t.points}</td>
-      </tr>`;
-    }).join('');
-    container.innerHTML = `<table class="pl-mini-table">
-      <thead><tr><th>#</th><th style="text-align:left">球队</th><th>场</th><th>胜</th><th>平</th><th>负</th><th>净</th><th>分</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
-  },
-
-  renderRoundInfo(container) {
-    container.textContent = this._fixtures && this._fixtures.length
-      ? `第${this._currentRound}轮 · ${this._fixtures.length}场`
-      : `第${this._currentRound}轮`;
-  },
-
-  renderStandings() {
-    if (!this._standings || !this._standings.length) return '<div class="pl-error">暂无积分榜数据</div>';
-    const rows = this._standings.map(t => {
-      let zone = '';
-      if (t.rank <= PL.UCL_SPOTS) zone = 'cl-zone';
-      else if (t.rank <= PL.UCL_SPOTS + PL.UEL_SPOTS) zone = 'el-zone';
-      else if (t.rank >= 18) zone = 'rel-zone';
-      return `<tr class="${zone}">
-        <td>${t.rank}</td>
-        <td><div class="team-cell"><img class="team-badge" src="${t.logo}" alt="" loading="lazy" onerror="this.style.display='none'"><span class="team-name">${t.team}</span></div></td>
-        <td>${t.played}</td>
-        <td>${t.wins}</td>
-        <td>${t.draws}</td>
-        <td>${t.losses}</td>
-        <td>${t.goalsFor}</td>
-        <td>${t.goalsAgainst}</td>
-        <td>${t.gd.startsWith('-') ? t.gd : '+' + t.gd}</td>
-        <td class="pts-col">${t.points}</td>
-      </tr>`;
-    }).join('');
-    return `<table class="pl-standings">
-      <thead><tr><th>#</th><th style="text-align:left">球队</th><th>场</th><th>胜</th><th>平</th><th>负</th><th>进</th><th>失</th><th>净</th><th>分</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
-  },
-
-  renderFixtures() {
-    if (!this._fixtures || !this._fixtures.length) return '<div class="pl-error">暂无赛程数据</div>';
-    const roundLabel = `<div class="pl-fixture-round">
-      <button onclick="event.stopPropagation();PL.changeRound(-1)" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:2px 8px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;">‹</button>
-      &nbsp;📅 第 ${this._currentRound} 轮&nbsp;
-      <button onclick="event.stopPropagation();PL.changeRound(1)" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:2px 8px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;">›</button>
-    </div>`;
-    const items = this._fixtures.map(f => {
-      const status = f.strStatus || '';
-      const liveStatuses = ['1H','2H','HT','ET','P','BT','LIVE','SUSP','INT'];
-      const finishedStatuses = ['FT','AET','PEN','Match Finished','AWD','WO','ABD'];
-      const isLive = liveStatuses.includes(status);
-      const isFinished = finishedStatuses.includes(status);
-      const hasScore = f.intHomeScore !== null && f.intHomeScore !== '' && f.intHomeScore !== undefined;
-      let scoreHtml = '';
-      if (isLive && hasScore) {
-        const liveLabel = status === 'HT' ? '中场' : status === '1H' ? '上半场' : status === '2H' ? '下半场' : '进行中';
-        scoreHtml = `<span class="live-badge">🔴 ${liveLabel}</span><br>${f.intHomeScore} - ${f.intAwayScore}`;
-      } else if (isFinished && hasScore) {
-        scoreHtml = `${f.intHomeScore} - ${f.intAwayScore}`;
-      } else {
-        scoreHtml = '<span class="vs">vs</span>';
-      }
-      const matchDate = f.dateEvent ? new Date(f.strTimestamp || f.dateEvent) : null;
-      let timeStr = '';
-      if (matchDate && !isFinished) {
-        const local = new Date(matchDate.getTime() + 8 * 3600 * 1000);
-        timeStr = `${local.getMonth()+1}/${local.getDate()} ${String(local.getHours()).padStart(2,'0')}:${String(local.getMinutes()).padStart(2,'0')}`;
-      }
-      return `<div class="pl-fixture-item${isLive ? ' live' : ''}">
-        <div class="pl-fixture-team"><img src="${(f.strHomeTeamBadge||'').replace('/tiny','')}" alt="" loading="lazy" onerror="this.style.display='none'"><span>${f.strHomeTeam}</span></div>
-        <div class="pl-fixture-score">${scoreHtml}</div>
-        <div class="pl-fixture-team away"><img src="${(f.strAwayTeamBadge||'').replace('/tiny','')}" alt="" loading="lazy" onerror="this.style.display='none'"><span>${f.strAwayTeam}</span></div>
-      </div>`;
-    }).join('');
-    return `<div class="pl-fixtures">${roundLabel}${items}</div>`;
-  },
-
-  async changeRound(delta) {
-    const newRound = this._currentRound + delta;
-    if (newRound < 1 || newRound > 38) return;
-    this._currentRound = newRound;
-    this._fixtures = null;
-    const body = document.getElementById('plBody');
-    if (body) body.innerHTML = '<div class="pl-loading">加载中...</div>';
-    await this.fetchFixtures();
-    if (body) body.innerHTML = this.renderFixtures();
-  },
-
-  async renderTab(tab) {
-    this._currentTab = tab;
-    const body = document.getElementById('plBody');
-    if (!body) return;
-    body.innerHTML = '<div class="pl-loading">加载中...</div>';
-    if (tab === 'standings') {
-      if (!this._standings) await this.fetchStandings();
-      body.innerHTML = this.renderStandings();
-    } else {
-      if (!this._fixtures) await this.fetchFixtures();
-      body.innerHTML = this.renderFixtures();
-    }
-  }
-};
-
-function switchPLTab(tab, btn) {
-  document.querySelectorAll('.pl-tab').forEach(t => t.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  PL.renderTab(tab);
-}
-
-async function openPLOverlay() {
-  document.getElementById('plOverlay').classList.add('active');
-  if (!PL._standings) {
-    await PL.fetchUCLSpots();
-    await PL.fetchStandings();
-    await PL.fetchFixtures();
-  }
-  PL.renderTab(PL._currentTab);
-}
-
-function closePLOverlay() {
-  document.getElementById('plOverlay').classList.remove('active');
-}
-
-async function refreshPLData() {
-  // Clear all PL cache
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if (k && k.startsWith(PL.CACHE_KEY)) localStorage.removeItem(k);
-  }
-  PL._standings = null;
-  PL._fixtures = null;
-  await PL.fetchUCLSpots();
-  await PL.fetchStandings();
-  await PL.fetchFixtures();
-  PL.renderTab(PL._currentTab);
-  showToast('⚽ 数据已刷新');
-}
-
-// Load PL data on homepage
-async function loadPLCard() {
-  const top3El = document.getElementById('plTop3');
-  const roundEl = document.getElementById('plRoundInfo');
-  if (!top3El) return;
-  try {
-    await PL.fetchUCLSpots();
-    await PL.fetchStandings();
-    PL.renderTop3(top3El);
-    await PL.fetchFixtures();
-    PL.renderRoundInfo(roundEl);
-  } catch(e) {
-    top3El.innerHTML = '<div style="font-size:11px;color:var(--text-dim);">加载失败，点击重试</div>';
-  }
-}
-
-// ── Render homepage preview (V2) ──
-function renderJpPreview() {
-  const card = document.getElementById('jpPreviewCard');
   if (!jpEntries.length) {
     const cfg = loadConfig();
     const hasApi = cfg.apiBase && cfg.apiKey;
@@ -18561,13 +18026,11 @@ window.initApp = async function(){
   setTimeout(() => { try { resumePendingReply(); } catch(e) {} }, 2000);
   await loadJpEntries(); renderJpPreview(); renderMiniCalendar();
   await loadEntryDatesCache();renderCalendar();
-  loadPLCard(); // Load Premier League data
+
   await loadStickers();
   fetchWeather();rollMood();refreshStatus();renderStatusBar();renderRelationshipInfo();
   NotificationBridge.init(); updateHpMemories();
   fetchDailyQuote();
-  // 热更新静默检查
-  try { HotUpdate.check(true).then(v => { if (v) showToast(`🆕 发现新版本 v${v}，打开设置可更新`); }); } catch(e) {}
   // Holiday countdown
   updateHolidayCountdown();
   setInterval(updateHolidayCountdown, 1800000); // every 30 min
@@ -21288,10 +20751,9 @@ const cloudSync = {
     this._saveToken(token);
     this._show('正在收集数据...');
     const data = await this._collectData();
-    const content = JSON.stringify(data);
+    const content = JSON.stringify(data, null, 2);
     const sizeKB = (content.length / 1024).toFixed(1);
     this._show(`数据大小 ${sizeKB}KB，正在上传...`);
-    showToast(`☁️ 正在上传 ${sizeKB}KB...`);
     try {
       const existing = await this._findGist(token);
       const now = new Date();
@@ -21349,12 +20811,9 @@ const cloudSync = {
       if (!backupFiles.length) { this._show('❌ Gist 中无备份文件'); return; }
       const latest = backupFiles[0];
       this._show(`正在下载最新备份: ${latest.filename}...`);
-      showToast('⬇️ 正在下载备份...');
       const res = await fetch(latest.raw_url);
       const data = await res.json();
-      const dataSize = (JSON.stringify(data).length / 1024).toFixed(1);
-      this._show(`正在恢复数据 (${dataSize}KB)...`);
-      showToast(`📥 正在恢复 ${dataSize}KB 数据...`);
+      this._show('正在恢复数据...');
       if (await this._restoreData(data)) {
         showToast('✅ 数据已恢复！即将刷新页面...');
         this._show(`✅ 从 ${latest.filename} 恢复成功，3 秒后刷新...`);
