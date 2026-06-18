@@ -1562,6 +1562,49 @@ body:has(#loginScreen:not(.hidden)) .chat-bg-panel { display: none !important; }
   height: 160px !important;
   cursor: pointer;
 }
+
+/* ── 新增卡片样式 ── */
+.hp-card.todo-card { background: rgba(46,204,113,0.08); border-color: rgba(46,204,113,0.15); }
+.hp-card.todo-card .hp-card-title { color: #2ecc71; }
+.todo-item { display:flex; align-items:center; gap:8px; padding:6px 0; font-size:13px; color:var(--text-dim); }
+.todo-item.done { text-decoration: line-through; opacity:0.4; }
+.todo-item input[type="checkbox"] { accent-color: #2ecc71; width:16px; height:16px; cursor:pointer; }
+.todo-add { display:flex; gap:6px; margin-top:8px; }
+.todo-add input { flex:1; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:6px; padding:6px 10px; color:var(--text); font-size:12px; }
+.todo-add button { background:rgba(46,204,113,0.2); border:1px solid rgba(46,204,113,0.3); color:#2ecc71; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; }
+
+.hp-card.reading-card { background: rgba(155,89,182,0.08); border-color: rgba(155,89,182,0.15); }
+.hp-card.reading-card .hp-card-title { color: #9b59b6; }
+.reading-progress-bar { width:100%; height:6px; background:rgba(255,255,255,0.08); border-radius:3px; margin-top:8px; overflow:hidden; }
+.reading-progress-fill { height:100%; background:linear-gradient(90deg,#9b59b6,#e74c3c); border-radius:3px; transition:width 0.3s; }
+.reading-info { font-size:11px; color:var(--text-dim); margin-top:4px; }
+
+.hp-card.habit-card { background: rgba(52,152,219,0.08); border-color: rgba(52,152,219,0.15); }
+.hp-card.habit-card .hp-card-title { color: #3498db; }
+.habit-row { display:flex; align-items:center; gap:8px; padding:5px 0; }
+.habit-icon { font-size:16px; width:24px; text-align:center; }
+.habit-name { flex:1; font-size:12px; color:var(--text-dim); }
+.habit-check { width:22px; height:22px; border-radius:50%; border:2px solid rgba(52,152,219,0.3); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px; transition:all 0.2s; }
+.habit-check.checked { background:rgba(52,152,219,0.3); border-color:#3498db; }
+
+.hp-card.weight-card { background: rgba(230,126,34,0.08); border-color: rgba(230,126,34,0.15); }
+.hp-card.weight-card .hp-card-title { color: #e67e22; }
+.weight-input-row { display:flex; gap:8px; margin-top:6px; }
+.weight-input-row input { flex:1; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:6px; padding:6px 10px; color:var(--text); font-size:13px; text-align:center; }
+.weight-bmi { font-size:11px; color:var(--text-dim); margin-top:6px; }
+.weight-bmi .bmi-value { font-weight:600; font-size:14px; }
+
+/* 24小时天气 */
+.weather-hourly-wrap { margin-top:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+.weather-hourly-wrap::-webkit-scrollbar { display:none; }
+.weather-hourly-row { display:flex; gap:0; min-width:max-content; }
+.weather-hourly-item { display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px 12px; min-width:52px; }
+.weather-hourly-item .wh-time { font-size:10px; color:var(--text-dim); }
+.weather-hourly-item .wh-icon { font-size:18px; }
+.weather-hourly-item .wh-temp { font-size:13px; font-weight:600; color:#fff; }
+.weather-hourly-item .wh-wind { font-size:9px; color:var(--text-dim); }
+.weather-hourly-item.now { background:rgba(123,147,199,0.15); border-radius:8px; }
+.weather-hourly-item.now .wh-time { color:var(--accent); font-weight:600; }
 .wordcloud-empty {
   display: flex; align-items: center; justify-content: center;
   height: 160px; color: var(--text-dim); font-size: 13px; opacity: 0.6;
@@ -3053,6 +3096,48 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       <div class="hp-card-label">假期</div>
     </div>
 
+    <!-- ══ 新增卡片 ══ -->
+
+    <!-- 今日待办 -->
+    <div class="hp-card todo-card" style="cursor:pointer;">
+      <div class="hp-card-title">📌 今日待办</div>
+      <div id="todoList" style="max-height:140px;overflow-y:auto;"></div>
+      <div class="todo-add">
+        <input type="text" id="todoInput" placeholder="添加待办..." onkeydown="if(event.key==='Enter'){event.preventDefault();addTodo();}">
+        <button onclick="addTodo()">+</button>
+      </div>
+    </div>
+
+    <!-- 习惯打卡 -->
+    <div class="hp-card habit-card" onclick="openHabitOverlay()" style="cursor:pointer;">
+      <div class="hp-card-title">🏃 习惯打卡</div>
+      <div id="habitList"></div>
+    </div>
+
+    <!-- 体重记录 -->
+    <div class="hp-card weight-card" onclick="openWeightOverlay()" style="cursor:pointer;">
+      <div class="hp-card-title">⚖️ 体重记录</div>
+      <div class="hp-card-value" id="weightDisplay" style="font-size:24px;">-- kg</div>
+      <div class="weight-bmi" id="bmiDisplay">设置身高后计算 BMI</div>
+      <div class="weight-input-row">
+        <input type="number" id="weightInput" placeholder="体重(kg)" step="0.1" min="20" max="300">
+        <button onclick="saveWeight()" style="background:rgba(230,126,34,0.2);border:1px solid rgba(230,126,34,0.3);color:#e67e22;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;">记录</button>
+      </div>
+    </div>
+
+    <!-- 阅读进度 -->
+    <div class="hp-card reading-card" onclick="openReadingOverlay()" style="cursor:pointer;">
+      <div class="hp-card-title">📖 阅读进度</div>
+      <div id="readingList">
+        <div style="font-size:12px;color:var(--text-dim);opacity:0.5;">点击 + 添加书籍</div>
+      </div>
+      <div class="todo-add" style="margin-top:8px;">
+        <input type="text" id="bookInput" placeholder="书名">
+        <input type="number" id="bookPagesInput" placeholder="总页数" style="max-width:70px;">
+        <button onclick="addBook()" style="background:rgba(155,89,182,0.2);border:1px solid rgba(155,89,182,0.3);color:#9b59b6;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;">+</button>
+      </div>
+    </div>
+
   </div>
 
   <!-- Jessica's Personal Diary (V2: calendar + expandable list) -->
@@ -3939,16 +4024,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
         <div class="gh-name">象棋</div>
         <div class="gh-desc">楚河汉界对决</div>
       </div>
-      <div class="gamehub-card" onclick="selectGame('2048')">
-        <div class="gh-icon">🔢</div>
-        <div class="gh-name">2048</div>
-        <div class="gh-desc">滑动合并数字</div>
-      </div>
-      <div class="gamehub-card" onclick="selectGame('snake')">
-        <div class="gh-icon">🐍</div>
-        <div class="gh-name">贪吃蛇</div>
-        <div class="gh-desc">经典贪吃蛇</div>
-      </div>
+
       <div class="gamehub-card" onclick="selectGame('tetris')">
         <div class="gh-icon">🧱</div>
         <div class="gh-name">俄罗斯方块</div>
@@ -4103,43 +4179,6 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
   </div>
 </div>
 
-<!-- 2048 Game Overlay -->
-<div class="gomoku-overlay" id="game2048Overlay">
-  <div class="gomoku-container" style="flex-direction:column;align-items:center;max-width:400px;">
-    <div class="gomoku-header" style="width:100%;">
-      <h3>🔢 2048</h3>
-      <button class="gomoku-close" onclick="closeGame2048()">✕</button>
-    </div>
-    <div style="display:flex;gap:16px;font-size:13px;color:var(--text-dim);margin:8px 0;">
-      <div>分数: <span id="g2048Score" style="font-size:20px;font-weight:700;color:var(--accent);">0</span></div>
-      <div>最高: <span id="g2048Best" style="font-size:20px;font-weight:700;color:var(--accent2);">0</span></div>
-    </div>
-    <div id="g2048Board" style="background:var(--bg-card);border-radius:12px;padding:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;touch-action:none;"></div>
-    <div class="gomoku-controls" style="margin-top:12px;">
-      <button class="primary" onclick="Game2048.init()">🔄 新游戏</button>
-      <button onclick="closeGame2048()">🚪 离开</button>
-    </div>
-    <p class="hint" style="margin-top:8px;font-size:11px;">滑动或方向键控制</p>
-  </div>
-</div>
-
-<!-- Snake Game Overlay -->
-<div class="gomoku-overlay" id="snakeOverlay">
-  <div class="gomoku-container" style="flex-direction:column;align-items:center;max-width:400px;">
-    <div class="gomoku-header" style="width:100%;">
-      <h3>🐍 贪吃蛇</h3>
-      <button class="gomoku-close" onclick="closeSnake()">✕</button>
-    </div>
-    <div style="font-size:13px;color:var(--text-dim);margin:8px 0;">分数: <span id="snakeScore" style="font-size:20px;font-weight:700;color:var(--accent);">0</span></div>
-    <canvas id="snakeCanvas" width="300" height="300" style="border-radius:8px;background:#111;border:1px solid var(--border);"></canvas>
-    <div class="gomoku-controls" style="margin-top:12px;">
-      <button class="primary" onclick="SnakeGame.init()">🔄 新游戏</button>
-      <button onclick="closeSnake()">🚪 离开</button>
-    </div>
-    <p class="hint" style="margin-top:8px;font-size:11px;">方向键或滑动控制</p>
-  </div>
-</div>
-
 <!-- Tetris Game Overlay -->
 <div class="gomoku-overlay" id="tetrisOverlay">
   <div class="gomoku-container" style="flex-direction:column;align-items:center;max-width:400px;">
@@ -4157,6 +4196,60 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       <button onclick="closeTetris()">🚪 离开</button>
     </div>
     <p class="hint" style="margin-top:8px;font-size:11px;">方向键控制，上键旋转</p>
+  </div>
+</div>
+
+<!-- Weight Detail Overlay -->
+<div class="gomoku-overlay" id="weightOverlay">
+  <div class="gomoku-container" style="flex-direction:column;max-width:420px;max-height:80vh;overflow-y:auto;">
+    <div class="gomoku-header" style="width:100%;">
+      <h3>⚖️ 体重记录</h3>
+      <button class="gomoku-close" onclick="closeWeightOverlay()">✕</button>
+    </div>
+    <div style="margin:12px 0;">
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <input type="number" id="weightInputDetail" placeholder="体重(kg)" step="0.1" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:14px;">
+        <button onclick="saveWeightDetail()" style="background:rgba(230,126,34,0.2);border:1px solid rgba(230,126,34,0.3);color:#e67e22;padding:8px 16px;border-radius:8px;cursor:pointer;">记录</button>
+      </div>
+      <div id="weightChart" style="margin-bottom:12px;"></div>
+      <div id="weightHistory" style="max-height:300px;overflow-y:auto;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Habit Detail Overlay -->
+<div class="gomoku-overlay" id="habitOverlay">
+  <div class="gomoku-container" style="flex-direction:column;max-width:420px;max-height:80vh;overflow-y:auto;">
+    <div class="gomoku-header" style="width:100%;">
+      <h3>🏃 习惯打卡</h3>
+      <button class="gomoku-close" onclick="closeHabitOverlay()">✕</button>
+    </div>
+    <div style="margin:12px 0;">
+      <div id="habitDetailContent"></div>
+      <div style="margin-top:12px;display:flex;gap:6px;">
+        <input type="text" id="newHabitInput" placeholder="添加新习惯..." style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;">
+        <input type="text" id="newHabitIcon" placeholder="图标" style="width:50px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px;color:var(--text);font-size:13px;text-align:center;">
+        <button onclick="addNewHabit()" style="background:rgba(52,152,219,0.2);border:1px solid rgba(52,152,219,0.3);color:#3498db;padding:8px 12px;border-radius:8px;cursor:pointer;">+</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reading Detail Overlay -->
+<div class="gomoku-overlay" id="readingOverlay">
+  <div class="gomoku-container" style="flex-direction:column;max-width:420px;max-height:80vh;overflow-y:auto;">
+    <div class="gomoku-header" style="width:100%;">
+      <h3>📖 阅读进度</h3>
+      <button class="gomoku-close" onclick="closeReadingOverlay()">✕</button>
+    </div>
+    <div style="margin:12px 0;">
+      <div id="readingDetailContent"></div>
+      <div style="margin-top:12px;display:flex;gap:6px;">
+        <input type="text" id="bookInputDetail" placeholder="书名" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;">
+        <input type="number" id="bookPagesInputDetail" placeholder="总页数" style="width:80px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px;color:var(--text);font-size:13px;text-align:center;">
+        <button onclick="addBookDetail()" style="background:rgba(155,89,182,0.2);border:1px solid rgba(155,89,182,0.3);color:#9b59b6;padding:8px 12px;border-radius:8px;cursor:pointer;">+</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -4347,8 +4440,13 @@ const LoginUI = {
     // 跳过登录，直接进入应用
     const loginScreen = document.getElementById('loginScreen');
     if (loginScreen) { loginScreen.style.display = 'none'; loginScreen.classList.add('hidden'); }
+    let _initAttempts = 0;
     const _tryInit = () => {
       if (typeof window.initApp === 'function') { window.initApp(); }
+      else if (++_initAttempts > 200) {
+        document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;gap:16px;"><h2 style="color:#e74c3c;">⚠️ 应用初始化失败</h2><p style="color:#888;">window.initApp 未定义，可能是代码语法错误。</p><p style="color:#888;">请打开浏览器控制台（F12）查看报错，或联系开发者。</p><button onclick="location.reload()" style="padding:8px 24px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">刷新页面</button></div>';
+        return;
+      }
       else { setTimeout(_tryInit, 50); }
     };
     _tryInit();
@@ -9308,7 +9406,7 @@ function toggleBGMPanel() {
 // ============================================================
 const DB_NAME = 'JessicaDiaryDB';
 const DB_VERSION = 5;
-const APP_VERSION = '3.3.2';
+const APP_VERSION = '3.3.3';
 const APP_VERSION_NAME = '夏至';
 const APP_VERSION_DESC = '记忆全量备份 + 日历标记 + 登录跳过 + 英超移除';
 
@@ -14086,6 +14184,11 @@ function renderMiniCalendar() {
 }
 
 // ============================================================
+// ── Render homepage preview (V2) ──
+function renderJpPreview() {
+  const card = document.getElementById('jpPreviewCard');
+  if (!card) return;
+
   if (!jpEntries.length) {
     const cfg = loadConfig();
     const hasApi = cfg.apiBase && cfg.apiKey;
@@ -20630,7 +20733,7 @@ const cloudSync = {
   _saveToken(t) { localStorage.setItem('jessica_gist_token', t); },
 
   async _collectData() {
-    const data = { _version: 3, _exportedAt: new Date().toISOString(), _source: 'cloud-sync' };
+    const data = { _version: 4, _exportedAt: new Date().toISOString(), _source: 'cloud-sync' };
     const SKIP = new Set(['jessica_gist_token', 'jessica_gist_id', 'jessica_last_backup']);
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -20662,6 +20765,57 @@ const cloudSync = {
 
   async _restoreData(data) {
     if (!data || typeof data !== 'object') { showToast('❌ 无效的备份数据'); return false; }
+
+    // ── 版本检查与兼容处理 ──
+    const backupVersion = data._version || 1;
+    const currentVersion = 4;
+    console.log(`[CloudSync] 备份版本: v${backupVersion}, 当前版本: v${currentVersion}`);
+
+    if (backupVersion > currentVersion) {
+      showToast('⚠️ 备份版本高于当前 APP，建议更新 APP 后再恢复');
+      // 仍然尝试恢复，但警告用户
+    }
+
+    // 低版本备份 → 高版本恢复：补全缺失字段
+    const DEFAULTS = {
+      _version: currentVersion,
+      jessica_weatherCity: '',
+      jessica_model: 'default',
+      jessica_temperature: 0.7,
+      jessica_maxTokens: 2048,
+      jessica_notification: 'on',
+      jessica_bg_running: 'on',
+      jessica_proactive: 'off',
+      jessica_proactive_interval: 30,
+      jessica_search_engine: 'tavily',
+      jessica_nsfw: 'off',
+      jessica_private_chat: 'off',
+      jessica_writingStyle: 'emotional',
+      jessica_userName: '',
+      jessica_user_birthday: '',
+      jessica_affection: { level: 0, points: 0, history: [] },
+      jessica_memory_facts: [],
+      jessica_hp_actions: [],
+      jessica_ideas: [],
+      jessica_quote_history: [],
+      chat_conv_msgs: {},
+      chat_conv_store: {},
+      chat_current_user: 'user',
+    };
+
+    // 补全缺失字段（仅低版本 → 高版本时）
+    if (backupVersion < currentVersion) {
+      let filled = 0;
+      for (const [k, v] of Object.entries(DEFAULTS)) {
+        if (!(k in data) || data[k] === undefined || data[k] === null) {
+          data[k] = v;
+          filled++;
+        }
+      }
+      if (filled > 0) console.log(`[CloudSync] 补全了 ${filled} 个缺失字段`);
+      this._show(`正在从 v${backupVersion} 备份恢复（已补全 ${filled} 个字段）...`);
+    }
+
     const SKIP = new Set(['jessica_gist_token', 'jessica_gist_id', 'jessica_last_backup']);
     let count = 0;
     for (const [k, v] of Object.entries(data)) {
@@ -20759,7 +20913,7 @@ const cloudSync = {
       const now = new Date();
       const ts = now.toISOString().slice(0,19).replace(/[T:]/g,'-');
       const filename = `jessica-backup-${ts}.json`;
-      // 获取已有文件列表，保留最近 5 个备份
+      // 获取已有文件列表，保留最近 3 个备份
       let files = {};
       if (existing) {
         for (const [k, v] of Object.entries(existing.files)) {
@@ -20770,7 +20924,7 @@ const cloudSync = {
       files[filename] = { content };
       // 超过 5 个备份时删除最旧的
       const sorted = Object.keys(files).sort();
-      while (sorted.length > 5) {
+      while (sorted.length > 3) {
         const oldest = sorted.shift();
         files[oldest] = null; // GitHub API: 设为 null 删除文件
       }
@@ -20782,7 +20936,7 @@ const cloudSync = {
       let result;
       if (existing) {
         result = await this._api('PATCH', `/gists/${existing.id}`, body, token);
-        this._show(`✅ 已备份 (${sizeKB}KB) — ${now.toLocaleString('zh-CN')}，保留最近 ${Math.min(Object.keys(files).filter(k=>files[k]).length, 5)} 个版本`);
+        this._show(`✅ 已备份 (${sizeKB}KB) — ${now.toLocaleString('zh-CN')}，保留最近 ${Math.min(Object.keys(files).filter(k=>files[k]).length, 3)} 个版本`);
       } else {
         result = await this._api('POST', '/gists', body, token);
         localStorage.setItem('jessica_gist_id', result.id);
@@ -23113,160 +23267,6 @@ function openXiangqi() { Xiangqi.open(); }
 function closeXiangqi() { Xiangqi.close(); }
 
 // ============================================================
-// 2048 GAME
-// ============================================================
-const Game2048 = {
-  SIZE: 4, grid: [], score: 0, best: 0, gameActive: false,
-  init() {
-    this.grid = Array.from({length: 4}, () => Array(4).fill(0));
-    this.score = 0; this.gameActive = true;
-    this.best = parseInt(localStorage.getItem('game_2048_best') || '0');
-    this._addRandom(); this._addRandom();
-    this.render();
-    document.getElementById('game2048Overlay').classList.add('active');
-  },
-  close() { document.getElementById('game2048Overlay').classList.remove('active'); },
-  _addRandom() {
-    const empty = [];
-    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) if (!this.grid[r][c]) empty.push([r, c]);
-    if (!empty.length) return;
-    const [r, c] = empty[Math.floor(Math.random() * empty.length)];
-    this.grid[r][c] = Math.random() < 0.9 ? 2 : 4;
-  },
-  _slide(row) {
-    let arr = row.filter(v => v), score = 0;
-    for (let i = 0; i < arr.length - 1; i++) {
-      if (arr[i] === arr[i + 1]) { arr[i] *= 2; score += arr[i]; arr.splice(i + 1, 1); }
-    }
-    while (arr.length < 4) arr.push(0);
-    return { row: arr, score };
-  },
-  _move(dir) {
-    if (!this.gameActive) return;
-    let moved = false, score = 0;
-    const g = this.grid.map(r => [...r]);
-    if (dir === 'left') {
-      for (let r = 0; r < 4; r++) {
-        const { row, score: s } = this._slide(g[r]);
-        if (row.some((v, i) => v !== g[r][i])) moved = true;
-        this.grid[r] = row; score += s;
-      }
-    } else if (dir === 'right') {
-      for (let r = 0; r < 4; r++) {
-        const { row, score: s } = this._slide([...g[r]].reverse());
-        row.reverse();
-        if (row.some((v, i) => v !== g[r][i])) moved = true;
-        this.grid[r] = row; score += s;
-      }
-    } else if (dir === 'up') {
-      for (let c = 0; c < 4; c++) {
-        const col = [g[0][c], g[1][c], g[2][c], g[3][c]];
-        const { row, score: s } = this._slide(col);
-        if (row.some((v, i) => v !== col[i])) moved = true;
-        for (let r = 0; r < 4; r++) this.grid[r][c] = row[r]; score += s;
-      }
-    } else {
-      for (let c = 0; c < 4; c++) {
-        const col = [g[3][c], g[2][c], g[1][c], g[0][c]];
-        const { row, score: s } = this._slide(col);
-        row.reverse();
-        if (row.some((v, i) => v !== g[3 - i][c])) moved = true;
-        for (let r = 0; r < 4; r++) this.grid[r][c] = row[r]; score += s;
-      }
-    }
-    if (!moved) return;
-    this.score += score;
-    if (this.score > this.best) { this.best = this.score; localStorage.setItem('game_2048_best', String(this.best)); }
-    this._addRandom();
-    this.render();
-    if (this._isGameOver()) { this.gameActive = false; showToast('游戏结束！得分: ' + this.score); }
-  },
-  _isGameOver() {
-    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
-      if (!this.grid[r][c]) return false;
-      if (c < 3 && this.grid[r][c] === this.grid[r][c + 1]) return false;
-      if (r < 3 && this.grid[r][c] === this.grid[r + 1][c]) return false;
-    }
-    return true;
-  },
-  render() {
-    const el = document.getElementById('g2048Board');
-    const colors = {0:'var(--bg-input)',2:'#776e65',4:'#776e65',8:'#f9f6f2',16:'#f9f6f2',32:'#f9f6f2',64:'#f9f6f2',128:'#f9f6f2',256:'#f9f6f2',512:'#f9f6f2',1024:'#f9f6f2',2048:'#f9f6f2'};
-    const bg = {0:'var(--bg-input)',2:'#eee4da',4:'#ede0c8',8:'#f2b179',16:'#f59563',32:'#f67c5f',64:'#f65e3b',128:'#edcf72',256:'#edcc61',512:'#edc850',1024:'#edc53f',2048:'#edc22e'};
-    el.innerHTML = this.grid.flat().map(v => {
-      const size = v >= 1024 ? '14px' : v >= 128 ? '18px' : '24px';
-      return `<div style="width:64px;height:64px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:${size};font-weight:700;background:${bg[v]||'#3c3a32'};color:${colors[v]||'#f9f6f2'};">${v||''}</div>`;
-    }).join('');
-    document.getElementById('g2048Score').textContent = this.score;
-    document.getElementById('g2048Best').textContent = this.best;
-  },
-  handleKey(e) {
-    const map = {ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'};
-    if (map[e.key]) { e.preventDefault(); this._move(map[e.key]); }
-  },
-};
-function closeGame2048() { Game2048.close(); }
-
-// ============================================================
-// SNAKE GAME
-// ============================================================
-const SnakeGame = {
-  canvas: null, ctx: null, snake: [], food: null, dir: 'right', score: 0,
-  gameActive: false, timer: null, GRID: 15, CELL: 20,
-  init() {
-    this.canvas = document.getElementById('snakeCanvas');
-    this.ctx = this.canvas.getContext('2d');
-    this.snake = [{x:7,y:7},{x:6,y:7},{x:5,y:7}];
-    this.dir = 'right'; this.score = 0; this.gameActive = true;
-    this._spawnFood(); this.render();
-    document.getElementById('snakeOverlay').classList.add('active');
-    if (this.timer) clearInterval(this.timer);
-    this.timer = setInterval(() => this._tick(), 150);
-  },
-  close() {
-    document.getElementById('snakeOverlay').classList.remove('active');
-    if (this.timer) { clearInterval(this.timer); this.timer = null; }
-    this.gameActive = false;
-  },
-  _spawnFood() {
-    const occupied = new Set(this.snake.map(s => `${s.x},${s.y}`));
-    let x, y; do { x = Math.floor(Math.random() * this.GRID); y = Math.floor(Math.random() * this.GRID); } while (occupied.has(`${x},${y}`));
-    this.food = {x, y};
-  },
-  _tick() {
-    if (!this.gameActive) return;
-    const head = {...this.snake[0]};
-    if (this.dir === 'up') head.y--; else if (this.dir === 'down') head.y++;
-    else if (this.dir === 'left') head.x--; else head.x++;
-    if (head.x < 0 || head.x >= this.GRID || head.y < 0 || head.y >= this.GRID || this.snake.some(s => s.x === head.x && s.y === head.y)) {
-      this.gameActive = false; clearInterval(this.timer); this.timer = null;
-      showToast('游戏结束！得分: ' + this.score); return;
-    }
-    this.snake.unshift(head);
-    if (head.x === this.food.x && head.y === this.food.y) { this.score++; this._spawnFood(); }
-    else this.snake.pop();
-    this.render();
-  },
-  render() {
-    const c = this.ctx, cs = this.CELL, g = this.GRID;
-    c.fillStyle = '#111'; c.fillRect(0, 0, g * cs, g * cs);
-    c.fillStyle = '#e74c3c'; c.beginPath();
-    c.arc(this.food.x * cs + cs / 2, this.food.y * cs + cs / 2, cs / 2 - 2, 0, Math.PI * 2); c.fill();
-    this.snake.forEach((s, i) => {
-      c.fillStyle = i === 0 ? '#2ecc71' : '#27ae60';
-      c.fillRect(s.x * cs + 1, s.y * cs + 1, cs - 2, cs - 2);
-    });
-    document.getElementById('snakeScore').textContent = this.score;
-  },
-  handleKey(e) {
-    const map = {ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};
-    const opp = {up:'down',down:'up',left:'right',right:'left'};
-    if (map[e.key] && map[e.key] !== opp[this.dir]) { e.preventDefault(); this.dir = map[e.key]; }
-  },
-};
-function closeSnake() { SnakeGame.close(); }
-
-// ============================================================
 // TETRIS GAME
 // ============================================================
 const TetrisGame = {
@@ -23470,20 +23470,415 @@ function closeMinesweeper() { MinesweeperGame.close(); }
     if (game === 'gomoku') Gomoku.open();
     else if (game === 'go') Go.open();
     else if (game === 'xiangqi') Xiangqi.open();
-    else if (game === '2048') Game2048.init();
-    else if (game === 'snake') SnakeGame.init();
     else if (game === 'tetris') TetrisGame.init();
     else if (game === 'minesweeper') MinesweeperGame.init();
   };
   // Global key handler for games
   document.addEventListener('keydown', function(e) {
-    if (document.getElementById('game2048Overlay').classList.contains('active')) Game2048.handleKey(e);
-    else if (document.getElementById('snakeOverlay').classList.contains('active')) SnakeGame.handleKey(e);
-    else if (document.getElementById('tetrisOverlay').classList.contains('active')) TetrisGame.handleKey(e);
+if (document.getElementById('tetrisOverlay').classList.contains('active')) TetrisGame.handleKey(e);
   });
+
+  // ── 触屏手势控制（俄罗斯方块） ──
+  (function initGameTouch() {
+    let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+
+    document.addEventListener('touchstart', function(e) {
+      if (!document.getElementById('tetrisOverlay')?.classList.contains('active')) return;
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      touchStartTime = Date.now();
+    }, { passive: true });
+
+    document.addEventListener('touchend', function(e) {
+      if (!document.getElementById('tetrisOverlay')?.classList.contains('active')) return;
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - touchStartX;
+      const dy = touch.clientY - touchStartY;
+      const dt = Date.now() - touchStartTime;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 30 || dt > 1000) return;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 0) TetrisGame.handleKey({key:'ArrowRight'});
+        else TetrisGame.handleKey({key:'ArrowLeft'});
+      } else {
+        if (dy > 0) TetrisGame.handleKey({key:'ArrowDown'});
+        else TetrisGame.handleKey({key:'ArrowUp'});
+      }
+    }, { passive: true });
+  })();
+
+  // ── 俄罗斯方块虚拟按钮 ──
+  (function initTetrisButtons() {
+    const overlay = document.getElementById('tetrisOverlay');
+    if (!overlay) return;
+    const canvas = overlay.querySelector('canvas');
+    if (!canvas) return;
+    const btnBar = document.createElement('div');
+    btnBar.style.cssText = 'display:flex;gap:8px;margin-top:12px;justify-content:center;';
+    const btns = [
+      {label:'←', key:'ArrowLeft'},
+      {label:'↻', key:'ArrowUp'},
+      {label:'→', key:'ArrowRight'},
+      {label:'↓', key:'ArrowDown'},
+    ];
+    btns.forEach(b => {
+      const btn = document.createElement('button');
+      btn.textContent = b.label;
+      btn.style.cssText = 'width:56px;height:56px;font-size:22px;border-radius:12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:#fff;cursor:pointer;touch-action:manipulation;';
+      btn.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        TetrisGame.handleKey({key: b.key});
+      });
+      btn.addEventListener('click', function() {
+        TetrisGame.handleKey({key: b.key});
+      });
+      btnBar.appendChild(btn);
+    });
+    canvas.parentNode.insertBefore(btnBar, canvas.nextSibling);
+  })();
 })();
 
 // ============================================================
+// ============================================================
+// NEW HOMEPAGE CARDS: Todo, Habits, Weight, Reading, Weather
+// ============================================================
+
+// ── 今日待办 ──
+function getTodos() {
+  const today = new Date().toISOString().slice(0, 10);
+  const data = JSON.parse(localStorage.getItem('jessica_todos') || '{}');
+  if (data.date !== today) return { date: today, items: [] };
+  return data;
+}
+function saveTodos(data) { localStorage.setItem('jessica_todos', JSON.stringify(data)); }
+function renderTodos() {
+  const data = getTodos();
+  const el = document.getElementById('todoList');
+  if (!el) return;
+  if (!data.items.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--text-dim);opacity:0.5;padding:8px 0;">今天还没有待办</div>';
+    return;
+  }
+  el.innerHTML = data.items.map((item, i) => `
+    <div class="todo-item ${item.done ? 'done' : ''}">
+      <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleTodo(${i})">
+      <span>${item.text}</span>
+    </div>
+  `).join('');
+}
+function addTodo() {
+  const input = document.getElementById('todoInput');
+  if (!input || !input.value.trim()) return;
+  const data = getTodos();
+  data.items.push({ text: input.value.trim(), done: false });
+  saveTodos(data);
+  input.value = '';
+  renderTodos();
+}
+function toggleTodo(i) {
+  const data = getTodos();
+  if (data.items[i]) data.items[i].done = !data.items[i].done;
+  saveTodos(data);
+  renderTodos();
+}
+
+// ── 习惯打卡 ──
+const DEFAULT_HABITS = [
+  { icon: '💧', name: '喝水', checked: false },
+  { icon: '🏃', name: '运动', checked: false },
+  { icon: '😴', name: '早睡', checked: false },
+  { icon: '📚', name: '阅读', checked: false },
+  { icon: '🧘', name: '冥想', checked: false },
+];
+function getHabits() {
+  const today = new Date().toISOString().slice(0, 10);
+  const data = JSON.parse(localStorage.getItem('jessica_habits') || '{}');
+  if (data.date !== today) return { date: today, items: DEFAULT_HABITS.map(h => ({...h})) };
+  return data;
+}
+function saveHabits(data) { localStorage.setItem('jessica_habits', JSON.stringify(data)); }
+function renderHabits() {
+  const data = getHabits();
+  const el = document.getElementById('habitList');
+  if (!el) return;
+  el.innerHTML = data.items.map((h, i) => `
+    <div class="habit-row">
+      <span class="habit-icon">${h.icon}</span>
+      <span class="habit-name">${h.name}</span>
+      <div class="habit-check ${h.checked ? 'checked' : ''}" onclick="toggleHabit(${i})">${h.checked ? '✓' : ''}</div>
+    </div>
+  `).join('');
+}
+function toggleHabit(i) {
+  const data = getHabits();
+  if (data.items[i]) data.items[i].checked = !data.items[i].checked;
+  saveHabits(data);
+  renderHabits();
+}
+
+// ── 体重记录 ──
+function getWeightData() {
+  return JSON.parse(localStorage.getItem('jessica_weight') || '{"records":[]}');
+}
+function saveWeightData(data) { localStorage.setItem('jessica_weight', JSON.stringify(data)); }
+function renderWeight() {
+  const data = getWeightData();
+  const display = document.getElementById('weightDisplay');
+  const bmiEl = document.getElementById('bmiDisplay');
+  if (!display) return;
+  if (data.records.length) {
+    const latest = data.records[data.records.length - 1];
+    display.textContent = latest.weight + ' kg';
+    const height = parseFloat(localStorage.getItem('jessica_height') || '0');
+    if (height > 0) {
+      const bmi = (latest.weight / ((height/100) * (height/100))).toFixed(1);
+      let label = '', color = '#2ecc71';
+      if (bmi < 18.5) { label = '偏瘦'; color = '#3498db'; }
+      else if (bmi < 24) { label = '正常'; color = '#2ecc71'; }
+      else if (bmi < 28) { label = '偏胖'; color = '#f39c12'; }
+      else { label = '肥胖'; color = '#e74c3c'; }
+      bmiEl.innerHTML = `BMI <span class="bmi-value" style="color:${color}">${bmi}</span> <span style="color:${color}">${label}</span>`;
+    }
+  }
+}
+function saveWeight() {
+  const input = document.getElementById('weightInput');
+  if (!input || !input.value) return;
+  const w = parseFloat(input.value);
+  if (isNaN(w) || w < 20 || w > 300) return;
+  const data = getWeightData();
+  const today = new Date().toISOString().slice(0, 10);
+  // 替换今天的记录或新增
+  const idx = data.records.findIndex(r => r.date === today);
+  if (idx >= 0) data.records[idx].weight = w;
+  else data.records.push({ date: today, weight: w });
+  saveWeightData(data);
+  input.value = '';
+  renderWeight();
+  showToast('体重已记录: ' + w + ' kg');
+}
+
+// ── 阅读进度 ──
+function getBooks() {
+  return JSON.parse(localStorage.getItem('jessica_books') || '[]');
+}
+function saveBooks(data) { localStorage.setItem('jessica_books', JSON.stringify(data)); }
+function renderBooks() {
+  const books = getBooks();
+  const el = document.getElementById('readingList');
+  if (!el) return;
+  if (!books.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--text-dim);opacity:0.5;">还没有在读的书</div>';
+    return;
+  }
+  el.innerHTML = books.map((b, i) => {
+    const pct = b.total > 0 ? Math.min(100, Math.round(b.current / b.total * 100)) : 0;
+    return `
+      <div style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:13px;color:var(--text);">${b.name}</span>
+          <span style="font-size:11px;color:var(--text-dim);">${b.current}/${b.total}页 (${pct}%)</span>
+        </div>
+        <div class="reading-progress-bar"><div class="reading-progress-fill" style="width:${pct}%"></div></div>
+        <div style="display:flex;gap:4px;margin-top:4px;">
+          <button onclick="updateBookProgress(${i}, 10)" style="font-size:10px;padding:2px 8px;background:rgba(155,89,182,0.15);border:1px solid rgba(155,89,182,0.2);color:#9b59b6;border-radius:4px;cursor:pointer;">+10页</button>
+          <button onclick="updateBookProgress(${i}, -10)" style="font-size:10px;padding:2px 8px;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text-dim);border-radius:4px;cursor:pointer;">-10页</button>
+          <button onclick="removeBook(${i})" style="font-size:10px;padding:2px 8px;background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.2);color:#e74c3c;border-radius:4px;cursor:pointer;">删除</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+function addBook() {
+  const nameEl = document.getElementById('bookInput');
+  const pagesEl = document.getElementById('bookPagesInput');
+  if (!nameEl || !nameEl.value.trim()) return;
+  const total = parseInt(pagesEl?.value) || 0;
+  const books = getBooks();
+  books.push({ name: nameEl.value.trim(), total, current: 0 });
+  saveBooks(books);
+  nameEl.value = '';
+  if (pagesEl) pagesEl.value = '';
+  renderBooks();
+}
+function updateBookProgress(i, delta) {
+  const books = getBooks();
+  if (books[i]) {
+    books[i].current = Math.max(0, books[i].current + delta);
+    saveBooks(books);
+    renderBooks();
+  }
+}
+function removeBook(i) {
+  const books = getBooks();
+  books.splice(i, 1);
+  saveBooks(books);
+  renderBooks();
+}
+
+// 初始化首页新卡片
+renderTodos();
+renderHabits();
+renderWeight();
+renderBooks();
+
+// ── 体重详情弹窗 ──
+function openWeightOverlay() {
+  document.getElementById('weightOverlay').classList.add('active');
+  renderWeightDetail();
+}
+function closeWeightOverlay() {
+  document.getElementById('weightOverlay').classList.remove('active');
+}
+function saveWeightDetail() {
+  const input = document.getElementById('weightInputDetail');
+  if (!input || !input.value) return;
+  const w = parseFloat(input.value);
+  if (isNaN(w) || w < 20 || w > 300) return;
+  const data = getWeightData();
+  const today = new Date().toISOString().slice(0, 10);
+  const idx = data.records.findIndex(r => r.date === today);
+  if (idx >= 0) data.records[idx].weight = w;
+  else data.records.push({ date: today, weight: w });
+  saveWeightData(data);
+  input.value = '';
+  renderWeight();
+  renderWeightDetail();
+  showToast('体重已记录: ' + w + ' kg');
+}
+function renderWeightDetail() {
+  const data = getWeightData();
+  const records = data.records || [];
+  // Chart (simple CSS bar chart)
+  const chartEl = document.getElementById('weightChart');
+  if (chartEl && records.length > 1) {
+    const recent = records.slice(-14); // 最近14天
+    const weights = recent.map(r => r.weight);
+    const min = Math.min(...weights) - 1;
+    const max = Math.max(...weights) + 1;
+    const range = max - min || 1;
+    chartEl.innerHTML = `<div style="display:flex;align-items:flex-end;gap:4px;height:100px;padding:0 4px;">${recent.map(r => {
+      const pct = ((r.weight - min) / range * 80 + 20);
+      const isToday = r.date === new Date().toISOString().slice(0, 10);
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><span style="font-size:9px;color:var(--text-dim);">${r.weight}</span><div style="width:100%;height:${pct}px;background:${isToday ? '#e67e22' : 'rgba(230,126,34,0.3)'};border-radius:3px 3px 0 0;"></div><span style="font-size:8px;color:var(--text-dim);">${r.date.slice(5)}</span></div>`;
+    }).join('')}</div>`;
+  } else if (chartEl) {
+    chartEl.innerHTML = '<div style="text-align:center;font-size:12px;color:var(--text-dim);padding:20px;">记录 2 天以上显示趋势图</div>';
+  }
+  // History list
+  const histEl = document.getElementById('weightHistory');
+  if (histEl) {
+    if (!records.length) {
+      histEl.innerHTML = '<div style="text-align:center;font-size:12px;color:var(--text-dim);padding:20px;">还没有记录</div>';
+    } else {
+      const sorted = [...records].reverse();
+      histEl.innerHTML = sorted.map(r => {
+        const prev = records.find(p => p.date < r.date);
+        let diff = '';
+        if (prev) {
+          const d = (r.weight - prev.weight).toFixed(1);
+          if (d > 0) diff = `<span style="color:#e74c3c;font-size:11px;">+${d}</span>`;
+          else if (d < 0) diff = `<span style="color:#2ecc71;font-size:11px;">${d}</span>`;
+          else diff = '<span style="color:var(--text-dim);font-size:11px;">→</span>';
+        }
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="font-size:13px;color:var(--text-dim);">${r.date}</span><span style="font-size:14px;font-weight:600;color:#fff;">${r.weight} kg ${diff}</span></div>`;
+      }).join('');
+    }
+  }
+}
+
+// ── 习惯详情弹窗 ──
+function openHabitOverlay() {
+  document.getElementById('habitOverlay').classList.add('active');
+  renderHabitDetail();
+}
+function closeHabitOverlay() {
+  document.getElementById('habitOverlay').classList.remove('active');
+}
+function renderHabitDetail() {
+  const data = getHabits();
+  const el = document.getElementById('habitDetailContent');
+  if (!el) return;
+  const totalDone = data.items.filter(h => h.checked).length;
+  el.innerHTML = `
+    <div style="text-align:center;margin-bottom:16px;">
+      <span style="font-size:32px;font-weight:700;color:var(--accent);">${totalDone}</span>
+      <span style="font-size:14px;color:var(--text-dim);"> / ${data.items.length} 已完成</span>
+    </div>
+    ${data.items.map((h, i) => `
+      <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:8px;">
+        <span style="font-size:24px;">${h.icon}</span>
+        <span style="flex:1;font-size:14px;color:var(--text);">${h.name}</span>
+        <div onclick="toggleHabit(${i});renderHabitDetail();" style="width:32px;height:32px;border-radius:50%;border:2px solid ${h.checked ? '#3498db' : 'rgba(52,152,219,0.3)'};background:${h.checked ? 'rgba(52,152,219,0.3)' : 'transparent'};display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;">${h.checked ? '✓' : ''}</div>
+      </div>
+    `).join('')}
+  `;
+}
+function addNewHabit() {
+  const nameEl = document.getElementById('newHabitInput');
+  const iconEl = document.getElementById('newHabitIcon');
+  if (!nameEl || !nameEl.value.trim()) return;
+  const data = getHabits();
+  data.items.push({ icon: iconEl?.value || '✅', name: nameEl.value.trim(), checked: false });
+  saveHabits(data);
+  nameEl.value = '';
+  if (iconEl) iconEl.value = '';
+  renderHabits();
+  renderHabitDetail();
+}
+
+// ── 阅读详情弹窗 ──
+function openReadingOverlay() {
+  document.getElementById('readingOverlay').classList.add('active');
+  renderReadingDetail();
+}
+function closeReadingOverlay() {
+  document.getElementById('readingOverlay').classList.remove('active');
+}
+function renderReadingDetail() {
+  const books = getBooks();
+  const el = document.getElementById('readingDetailContent');
+  if (!el) return;
+  if (!books.length) {
+    el.innerHTML = '<div style="text-align:center;font-size:12px;color:var(--text-dim);padding:20px;">还没有在读的书</div>';
+    return;
+  }
+  el.innerHTML = books.map((b, i) => {
+    const pct = b.total > 0 ? Math.min(100, Math.round(b.current / b.total * 100)) : 0;
+    return `
+      <div style="padding:12px;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span style="font-size:15px;font-weight:600;color:var(--text);">${b.name}</span>
+          <span style="font-size:12px;color:var(--text-dim);">${b.current}/${b.total}页</span>
+        </div>
+        <div class="reading-progress-bar" style="height:8px;"><div class="reading-progress-fill" style="width:${pct}%"></div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+          <span style="font-size:13px;color:var(--accent2);font-weight:600;">${pct}%</span>
+          <div style="display:flex;gap:6px;">
+            <button onclick="updateBookProgress(${i}, 10);renderReadingDetail();" style="font-size:12px;padding:4px 12px;background:rgba(155,89,182,0.15);border:1px solid rgba(155,89,182,0.2);color:#9b59b6;border-radius:6px;cursor:pointer;">+10页</button>
+            <button onclick="updateBookProgress(${i}, -10);renderReadingDetail();" style="font-size:12px;padding:4px 12px;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text-dim);border-radius:6px;cursor:pointer;">-10页</button>
+            <button onclick="removeBook(${i});renderReadingDetail();" style="font-size:12px;padding:4px 12px;background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.2);color:#e74c3c;border-radius:6px;cursor:pointer;">删除</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+function addBookDetail() {
+  const nameEl = document.getElementById('bookInputDetail');
+  const pagesEl = document.getElementById('bookPagesInputDetail');
+  if (!nameEl || !nameEl.value.trim()) return;
+  const total = parseInt(pagesEl?.value) || 0;
+  const books = getBooks();
+  books.push({ name: nameEl.value.trim(), total, current: 0 });
+  saveBooks(books);
+  nameEl.value = '';
+  if (pagesEl) pagesEl.value = '';
+  renderBooks();
+  renderReadingDetail();
+}
+
 // FEATURE 1: TYPEWRITER EFFECT FOR JESSICA'S REPLIES
 // ============================================================
 (function initTypewriter() {
