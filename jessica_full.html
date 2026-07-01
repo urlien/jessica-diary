@@ -8387,20 +8387,27 @@ function renderPixelCity() {
   ctx.fillStyle = skyGrad;
   ctx.fillRect(0, 0, W, H);
 
-  // ---- Stars (night time) ----
-  if (hour >= 20 || hour < 6) {
-    const starAlpha = hour >= 22 || hour < 5 ? 0.9 : (hour >= 20 ? (hour - 20) * 0.45 : (5 - hour) * 0.18);
-    ctx.fillStyle = `rgba(255,255,240,${starAlpha})`;
-    const seed = 42;
-    for (let i = 0; i < 80; i++) {
-      const sx = ((seed * (i + 1) * 7919) % W);
-      const sy = ((seed * (i + 1) * 104729) % (H * 0.45));
-      const sz = S * (0.3 + ((i * 3) % 5) * 0.15);
-      const twinkle = Math.sin(Date.now() / 1000 + i * 2.1) * 0.3 + 0.7;
-      ctx.globalAlpha = starAlpha * twinkle;
-      ctx.fillRect(sx, sy, sz, sz);
+  // ---- Stars (gradual fade: 18:30 start appearing, 6:30 fully gone) ----
+  {
+    let starAlpha = 0;
+    if (hour >= 22 || hour < 5) starAlpha = 0.9;
+    else if (hour >= 18.5 && hour < 22) starAlpha = (hour - 18.5) / 3.5 * 0.9; // 18:30→22:00 fade in
+    else if (hour >= 5 && hour < 6.5) starAlpha = (6.5 - hour) / 1.5 * 0.9;   // 5:00→6:30 fade out
+    if (starAlpha > 0.01) {
+      const seed = 42;
+      for (let i = 0; i < 80; i++) {
+        const sx = ((seed * (i + 1) * 7919) % W);
+        const sy = ((seed * (i + 1) * 104729) % (H * 0.45));
+        const sz = S * (0.3 + ((i * 3) % 5) * 0.15);
+        const twinkle = Math.sin(Date.now() / 1000 + i * 2.1) * 0.3 + 0.7;
+        ctx.globalAlpha = starAlpha * twinkle;
+        // Star color temperature: warm near horizon, cool high up
+        const warm = sy < H * 0.15;
+        ctx.fillStyle = warm ? 'rgba(255,240,200,' : 'rgba(255,255,240,';
+        ctx.fillRect(sx, sy, sz, sz);
+      }
+      ctx.globalAlpha = 1;
     }
-    ctx.globalAlpha = 1;
   }
 
   // ---- Moon ----
@@ -8487,9 +8494,23 @@ function renderPixelCity() {
     const bh = b.h * H;
     const by = groundY - bh;
 
-    // Building body
-    const bColor = `rgb(${20 + bi % 3 * 3},${22 + bi % 4 * 2},${30 + bi % 3 * 4})`;
-    ctx.fillStyle = bColor;
+    // Building body with sunrise/sunset tinting
+    let bR = 20 + bi % 3 * 3, bG = 22 + bi % 4 * 2, bB = 30 + bi % 3 * 4;
+    // Sunrise tint (5:30-7:30): warm orange-pink
+    if (hour >= 5.5 && hour < 7.5) {
+      const st = hour < 6.5 ? (hour - 5.5) : (7.5 - hour); // 0→1→0
+      bR = Math.round(bR + (180 - bR) * st * 0.3);
+      bG = Math.round(bG + (100 - bG) * st * 0.2);
+      bB = Math.round(bB + (60 - bB) * st * 0.15);
+    }
+    // Sunset tint (17:00-19:30): warm red-orange
+    if (hour >= 17 && hour < 19.5) {
+      const st = hour < 18 ? (hour - 17) : (19.5 - hour) / 1.5; // 0→1→0
+      bR = Math.round(bR + (160 - bR) * st * 0.35);
+      bG = Math.round(bG + (70 - bG) * st * 0.2);
+      bB = Math.round(bB + (40 - bB) * st * 0.1);
+    }
+    ctx.fillStyle = `rgb(${bR},${bG},${bB})`;
     ctx.fillRect(bx, by, bw, bh);
 
     // Roof detail
@@ -8561,6 +8582,11 @@ function renderPixelCity() {
   }
 
   // ---- Weather effects ----
+  // Wind factor: 0 = no wind, 1 = strong wind (for rain/snow angle)
+  const windKmph = weatherData ? (parseInt(weatherData.windSpeed) || 0) : 0;
+  const windFactor = Math.min(windKmph / 60, 1); // normalize to 0-1
+  const windDx = windFactor * S * 2; // horizontal drift per raindrop length
+
   if (isRainy) {
     ctx.strokeStyle = 'rgba(180,200,255,0.35)';
     ctx.lineWidth = 1;
@@ -8572,7 +8598,7 @@ function renderPixelCity() {
       const rl = S * (isStormy ? 5 : 3);
       ctx.beginPath();
       ctx.moveTo(rx, ry);
-      ctx.lineTo(rx - S * 0.5, ry + rl);
+      ctx.lineTo(rx - S * 0.5 + windDx, ry + rl);
       ctx.stroke();
     }
   }
@@ -8580,17 +8606,26 @@ function renderPixelCity() {
   if (isSnowy) {
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
     const tOff = Date.now() / 200;
+    const snowDrift = windFactor * 40; // snow drifts more with wind
     for (let i = 0; i < 80; i++) {
-      const sx = ((i * 193 + Math.sin(tOff + i) * 30) % W);
+      const wobble = Math.sin(tOff + i) * 30;
+      const sx = ((i * 193 + wobble + snowDrift * Math.sin(i * 0.5)) % W);
       const sy = ((i * 251 + tOff * 2) % H);
       const sz = S * (0.5 + (i % 4) * 0.3);
       ctx.beginPath();
       ctx.arc(sx, sy, sz, 0, Math.PI * 2);
       ctx.fill();
     }
-    // Snow accumulation on ground
+    // Snow accumulation on ground + rooftops
     ctx.fillStyle = 'rgba(255,255,255,0.15)';
     ctx.fillRect(0, groundY - S, W, S * 2);
+    // Snow on building rooftops
+    mainBuildings.forEach((b, bi) => {
+      const bx = b.x * W, bw = b.w * W, bh = b.h * H;
+      const by = groundY - bh;
+      ctx.fillStyle = 'rgba(255,255,255,0.12)';
+      ctx.fillRect(bx + S, by - S * 2.5, bw - S * 2, S * 1);
+    });
   }
 
   if (isFoggy) {
