@@ -9506,7 +9506,8 @@ const HotUpdate = {
     } catch(e) {
       this._lastError = e.message;
       console.warn('[HotUpdate] 检查失败:', e);
-      if (!silent) HotUpdateUI.setState('failed', e.message);
+      if (!silent) HotUpdateUI.setState('failed');
+      // silent 模式下什么都不做，下次启动再试
       return null;
     }
   },
@@ -9597,7 +9598,7 @@ const HotUpdateUI = {
       case 'has-update': this._el.classList.add('has-update'); this._icon.textContent = '🆕'; this._title.textContent = `发现新版本 v${data.ver}${data.name ? ' 「'+data.name+'」' : ''}`; this._desc.textContent = `当前版本 v${APP_VERSION}，点击下载更新`; this._btn.className = 'hot-update-btn hu-apply'; this._btn.textContent = '下载更新'; this._btn.onclick = () => HotUpdate.downloadWithProgress(); break;
       case 'downloading': this._el.classList.add('downloading'); this._icon.textContent = '⬇️'; this._title.textContent = '正在下载...'; this._desc.textContent = '请稍候'; this._btn.disabled = true; this._btn.textContent = '下载中'; this._progress.style.display = 'block'; break;
       case 'done': this._el.classList.add('done'); this._icon.textContent = '✅'; this._title.textContent = `v${data.ver}${data.name ? ' 「'+data.name+'」' : ''} 下载完成`; this._desc.textContent = '点击「立即更新」应用新版本'; this._btn.className = 'hot-update-btn hu-apply'; this._btn.textContent = '立即更新'; this._btn.onclick = () => HotUpdate.apply(); break;
-      case 'failed': this._el.classList.add('failed'); this._icon.textContent = '⚠️'; this._title.textContent = '检查失败'; this._desc.textContent = (typeof data === 'string' ? data : '网络错误，请稍后重试').split('\n')[0]; this._btn.textContent = '重试'; this._btn.onclick = () => HotUpdateUI.check(); break;
+      case 'failed': this._el.classList.add('failed'); this._icon.textContent = '📶'; this._title.textContent = '无法连接服务器'; this._desc.textContent = '网络不通或服务器繁忙，稍后再试'; this._btn.textContent = '重试'; this._btn.onclick = () => HotUpdateUI.check(); break;
       case 'latest': this._icon.textContent = '✅'; this._title.textContent = `v${APP_VERSION} 「${APP_VERSION_NAME}」`; this._desc.textContent = '已是最新版本'; break;
     }
   },
