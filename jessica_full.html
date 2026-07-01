@@ -8622,6 +8622,44 @@ function renderPixelCity() {
     }
   });
 
+  // ---- Drainage canal with dynamic water level ----
+  {
+    const canalY = groundY + S * 11;
+    const canalH = S * 3;
+    // Water level rises during rain, slowly drains after
+    const waterTarget = isRainy ? (isStormy ? 0.9 : 0.6) : (isSnowy ? 0.3 : 0.1);
+    // Smooth animation: use sin to simulate gradual fill/drain
+    const waterPhase = Math.sin(Date.now() / 5000) * 0.1 + 0.5;
+    const waterLevel = Math.min(waterTarget, waterPhase * waterTarget * 2);
+    const waterH = canalH * waterLevel;
+    if (waterH > S * 0.3) {
+      const waterTop = canalY + canalH - waterH;
+      // Water body
+      ctx.fillStyle = isRainy ? 'rgba(40,60,100,0.4)' : 'rgba(50,70,110,0.25)';
+      ctx.fillRect(S * 2, waterTop, W - S * 4, waterH);
+      // Water surface shimmer
+      const t = Date.now() / 1000;
+      for (let i = 0; i < 6; i++) {
+        const wx = S * 4 + i * (W - S * 8) / 6;
+        const ww = S * (2 + (i % 3));
+        const wave = Math.sin(t * 2 + i * 3) * S * 0.2;
+        ctx.fillStyle = `rgba(120,160,220,${0.08 + waterLevel * 0.05})`;
+        ctx.fillRect(wx, waterTop + wave, ww, S * 0.3);
+      }
+      // Edge foam at waterline
+      if (waterLevel > 0.3) {
+        ctx.fillStyle = 'rgba(200,210,230,0.15)';
+        for (let i = 0; i < 8; i++) {
+          const fx = S * 3 + ((i * 127 + Date.now() / 2000) % (W - S * 6));
+          const foam = Math.sin(t * 3 + i * 5) * 0.5 + 0.5;
+          if (foam > 0.4) {
+            ctx.fillRect(fx, waterTop - S * 0.2, S * (1 + (i % 2)), S * 0.3);
+          }
+        }
+      }
+    }
+  }
+
   // ---- Street lamps ----
   for (let x = 0; x < W; x += S * 30) {
     const lampX = x + S * 2;
@@ -8671,22 +8709,34 @@ function renderPixelCity() {
       ctx.lineTo(rx + dx, ry + rl);
       ctx.stroke();
     }
-    // Rain splash on ground
-    const splashCount = isStormy ? 30 : 15;
-    ctx.strokeStyle = 'rgba(180,200,255,0.2)';
-    ctx.lineWidth = 0.5;
+    // Rain splash with foam particles
+    const splashCount = isStormy ? 25 : 12;
     for (let i = 0; i < splashCount; i++) {
-      const tSplash = (Date.now() / 100 + i * 7.3) % 10; // 0-10 cycle
-      if (tSplash > 2) continue; // only show splash for 20% of cycle
+      const tSplash = (Date.now() / 100 + i * 7.3) % 10;
+      if (tSplash > 3) continue;
       const splashX = ((i * 251 + Date.now() / 200) % W);
-      const splashY = groundY + S * 2 + (i % 5) * S; // on road surface
-      const splashR = S * (0.5 + tSplash * 0.3);
+      const splashY = groundY + S * 2 + (i % 5) * S;
+      const progress = tSplash / 3; // 0 to 1
+      const splashR = S * (0.3 + progress * 0.5);
       // V-shape splash
+      ctx.strokeStyle = `rgba(180,200,255,${0.25 * (1 - progress)})`;
+      ctx.lineWidth = 0.5;
       ctx.beginPath();
       ctx.moveTo(splashX - splashR, splashY);
-      ctx.lineTo(splashX, splashY - splashR * 0.8);
+      ctx.lineTo(splashX, splashY - splashR * 0.6);
       ctx.lineTo(splashX + splashR, splashY);
       ctx.stroke();
+      // Foam droplets (2-3 tiny dots flying outward)
+      if (progress < 0.7) {
+        ctx.fillStyle = `rgba(220,235,255,${0.3 * (1 - progress)})`;
+        for (let d = 0; d < 2; d++) {
+          const angle = (d === 0 ? -0.8 : 0.8) + (i % 3) * 0.2;
+          const dist = progress * S * 1.2;
+          const dx = splashX + Math.cos(angle) * dist;
+          const dy = splashY - Math.sin(Math.abs(angle)) * dist * 0.5;
+          ctx.fillRect(dx, dy, S * 0.3, S * 0.3);
+        }
+      }
     }
   }
 
@@ -8715,28 +8765,67 @@ function renderPixelCity() {
     });
   }
 
-  // ---- Wet road reflections (after rain) ----
-  if (isRainy || isStormy) {
-    // Wet road surface - slightly reflective
-    ctx.fillStyle = 'rgba(100,120,160,0.06)';
-    ctx.fillRect(0, groundY + S * 2, W, S * 6);
-    // Reflection highlights on road
-    for (let i = 0; i < 8; i++) {
-      const rx = ((i * 311 + Date.now() / 3000) % W);
-      const rw = S * (3 + (i % 4) * 2);
-      ctx.fillStyle = 'rgba(180,200,255,0.04)';
-      ctx.fillRect(rx, groundY + S * 3, rw, S * 0.5);
+  // ---- Night sky puddle reflection (clear night after rain) ----
+  if (!isRainy && !isStormy && !isSnowy && (hour >= 20 || hour < 5)) {
+    const roadY = groundY + S * 2;
+    const t = Date.now() / 1000;
+    // A few puddles on the road reflecting stars
+    for (let p = 0; p < 4; p++) {
+      const px = ((p * 479 + 50) % (W - S * 20)) + S * 10;
+      const pw = S * (4 + (p % 3) * 2);
+      const ph = S * 1.5;
+      const py = roadY + S * (2 + p * 1.2);
+      // Puddle base
+      ctx.fillStyle = 'rgba(40,50,70,0.15)';
+      ctx.fillRect(px, py, pw, ph);
+      // Reflected star dots with wave distortion
+      for (let st = 0; st < 3; st++) {
+        const sx = px + (st + 0.5) * (pw / 3);
+        const sy = py + ph * 0.5;
+        const wave = Math.sin(t * 1.2 + p * 3 + st * 5) * S * 0.2;
+        const twinkle = Math.sin(t * 2 + st * 7 + p) * 0.3 + 0.5;
+        ctx.fillStyle = `rgba(200,210,255,${twinkle * 0.12})`;
+        ctx.fillRect(sx + wave, sy, S * 0.4, S * 0.4);
+      }
     }
-    // Reflect building windows on wet road
+  }
+
+  // ---- Wet road reflections with wave distortion ----
+  if (isRainy || isStormy) {
+    const roadY = groundY + S * 2;
+    const roadH = S * 6;
+    // Wet road base
+    ctx.fillStyle = 'rgba(100,120,160,0.06)';
+    ctx.fillRect(0, roadY, W, roadH);
+    // Building reflections with sine wave distortion
     if (nightFactor > 0) {
+      const t = Date.now() / 1000;
       mainBuildings.forEach((b, bi) => {
         const bx = b.x * W, bw = b.w * W;
-        const reflectY = groundY + S * 3;
-        const reflectH = S * 3;
-        // Dim, stretched reflection of building
-        ctx.fillStyle = `rgba(255,220,130,${nightFactor * 0.03})`;
-        ctx.fillRect(bx, reflectY, bw, reflectH);
+        // Each building reflection has its own wave phase
+        const waveOffset = Math.sin(t * 1.5 + bi * 2) * S * 0.3;
+        const shimmer = Math.sin(t * 2 + bi * 3) * 0.01 + 0.03;
+        // Stretched, distorted reflection
+        ctx.fillStyle = `rgba(255,220,130,${nightFactor * shimmer})`;
+        ctx.fillRect(bx + waveOffset, roadY + S, bw, S * 2);
+        // Window reflection highlights (scattered)
+        for (let wc = 0; wc < b.wt; wc++) {
+          const wx = bx + (wc + 0.5) * (bw / (b.wt + 1));
+          const wShimmer = Math.sin(t * 3 + bi * 5 + wc * 7) * 0.5 + 0.5;
+          if (wShimmer > 0.6) {
+            ctx.fillStyle = `rgba(255,230,150,${nightFactor * wShimmer * 0.08})`;
+            ctx.fillRect(wx + waveOffset, roadY + S * 1.5, S * 1, S * 0.5);
+          }
+        }
       });
+    }
+    // Scattered reflection highlights (rain puddles)
+    for (let i = 0; i < 6; i++) {
+      const rx = ((i * 311 + Date.now() / 4000) % W);
+      const rw = S * (2 + (i % 3) * 2);
+      const wave = Math.sin(Date.now() / 800 + i * 4) * S * 0.2;
+      ctx.fillStyle = 'rgba(180,200,255,0.05)';
+      ctx.fillRect(rx, roadY + S * 2 + wave, rw, S * 0.4);
     }
   }
 
