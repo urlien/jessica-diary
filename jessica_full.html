@@ -3099,19 +3099,13 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
     <!-- ══ 新增卡片 ══ -->
 
     <!-- 今日待办 -->
-    <div class="hp-card todo-card" style="cursor:pointer;">
+    <div class="hp-card todo-card" onclick="openTodoOverlay()" style="cursor:pointer;">
       <div class="hp-card-title">📌 今日待办</div>
       <div id="todoList" style="max-height:140px;overflow-y:auto;"></div>
       <div class="todo-add">
         <input type="text" id="todoInput" placeholder="添加待办..." onkeydown="if(event.key==='Enter'){event.preventDefault();addTodo();}">
         <button onclick="addTodo()">+</button>
       </div>
-    </div>
-
-    <!-- 习惯打卡 -->
-    <div class="hp-card habit-card" onclick="openHabitOverlay()" style="cursor:pointer;">
-      <div class="hp-card-title">🏃 习惯打卡</div>
-      <div id="habitList"></div>
     </div>
 
     <!-- 体重记录 -->
@@ -3121,6 +3115,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       <div class="weight-bmi" id="bmiDisplay">设置身高后计算 BMI</div>
       <div class="weight-input-row">
         <input type="number" id="weightInput" placeholder="体重(kg)" step="0.1" min="20" max="300">
+        <input type="number" id="heightInput" placeholder="身高(cm)" step="0.1" min="100" max="250" style="width:80px;">
         <button onclick="saveWeight()" style="background:rgba(230,126,34,0.2);border:1px solid rgba(230,126,34,0.3);color:#e67e22;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;">记录</button>
       </div>
     </div>
@@ -3323,7 +3318,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       <input type="text" id="userName" placeholder="你的名字" />
       <label>天气城市</label>
       <div style="display:flex;gap:8px;align-items:center;">
-        <input type="text" id="weatherCity" placeholder="例：Beijing" style="flex:1" />
+        <input type="text" id="weatherCity" placeholder="例：北京" style="flex:1" />
         <button onclick="fetchWeather(true)" class="settings-action-btn">刷新</button>
       </div>
     </div>
@@ -4199,6 +4194,23 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
   </div>
 </div>
 
+<!-- Todo Detail Overlay -->
+<div class="gomoku-overlay" id="todoOverlay">
+  <div class="gomoku-container" style="flex-direction:column;max-width:420px;max-height:80vh;overflow-y:auto;">
+    <div class="gomoku-header" style="width:100%;">
+      <h3>📌 今日待办</h3>
+      <button class="gomoku-close" onclick="closeTodoOverlay()">✕</button>
+    </div>
+    <div style="margin:12px 0;">
+      <div id="todoDetailContent"></div>
+      <div style="margin-top:12px;display:flex;gap:6px;">
+        <input type="text" id="todoInputDetail" placeholder="添加待办..." style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;" onkeydown="if(event.key==='Enter'){event.preventDefault();addTodoDetail();}">
+        <button onclick="addTodoDetail()" style="background:rgba(46,204,113,0.2);border:1px solid rgba(46,204,113,0.3);color:#2ecc71;padding:8px 12px;border-radius:8px;cursor:pointer;">+</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Weight Detail Overlay -->
 <div class="gomoku-overlay" id="weightOverlay">
   <div class="gomoku-container" style="flex-direction:column;max-width:420px;max-height:80vh;overflow-y:auto;">
@@ -4209,6 +4221,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
     <div style="margin:12px 0;">
       <div style="display:flex;gap:8px;margin-bottom:12px;">
         <input type="number" id="weightInputDetail" placeholder="体重(kg)" step="0.1" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:14px;">
+        <input type="number" id="heightInputDetail" placeholder="身高(cm)" step="0.1" min="100" max="250" style="width:80px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:14px;">
         <button onclick="saveWeightDetail()" style="background:rgba(230,126,34,0.2);border:1px solid rgba(230,126,34,0.3);color:#e67e22;padding:8px 16px;border-radius:8px;cursor:pointer;">记录</button>
       </div>
       <div id="weightChart" style="margin-bottom:12px;"></div>
@@ -8836,7 +8849,11 @@ function updateHpMsgCount() {
     const wIcon = document.getElementById('hpDiaryWeatherIcon');
     const wText = document.getElementById('hpDiaryWeatherText');
     if (wIcon) wIcon.textContent = getWeatherEmoji(getWeatherType());
-    if (wText) wText.textContent = `${weatherData.city} · ${weatherData.temp}° · ${weatherData.desc || ''}`;
+    if (wText) {
+      const _descMap2={'Sunny':'晴天','Clear':'晴朗','Partly cloudy':'多云间晴','Partly Cloudy':'多云间晴','Cloudy':'多云','Overcast':'阴天','Mist':'薄雾','Fog':'雾','Light rain':'小雨','Moderate rain':'中雨','Heavy rain':'大雨','Light drizzle':'毛毛雨','Light snow':'小雪','Moderate snow':'中雪','Heavy snow':'大雪'};
+      const _descCN2=_descMap2[weatherData.desc]||_descMap2[weatherData.desc?.charAt(0)?.toUpperCase()+weatherData.desc?.slice(1)]||weatherData.desc||'';
+      wText.textContent = `${weatherData.city} · ${weatherData.temp}° · ${_descCN2}`;
+    }
   }
   // Update title based on latest Jessica diary entry
   const titleEl = document.getElementById('hpDiaryTitle');
@@ -11925,8 +11942,8 @@ async function fetchWeather(force=false){
   try{
     const res=await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`);if(!res.ok)throw new Error();
     const data=await res.json();const cur=data.current_condition?.[0];if(!cur)throw new Error();
-    weatherData={temp:cur.temp_C,feelsLike:cur.FeelsLikeC,desc:cur.lang_zh?.[0]?.value||cur.weatherDesc?.[0]?.value||'',humidity:cur.humidity,windSpeed:cur.windspeedKmph,city:data.nearest_area?.[0]?.areaName?.[0]?.value||city};
-    weatherCache={city,data:weatherData,ts:Date.now()};renderWeather(weatherData);updateHpWeather();applyDynamicBackground();
+    weatherData={temp:cur.temp_C,feelsLike:cur.FeelsLikeC,desc:cur.lang_zh?.[0]?.value||cur.weatherDesc?.[0]?.value||'',humidity:cur.humidity,windSpeed:cur.windspeedKmph,city:city};
+    weatherCache={city,data:weatherData,ts:Date.now()};renderWeather(weatherData);updateHpWeather();applyDynamicBackground();if(force)showToast('天气已更新: '+city);
   }catch(e){document.getElementById('weatherText').textContent='获取失败';}
 }
 function renderWeather(w){
@@ -11973,7 +11990,7 @@ function renderWeatherDetail(data) {
   const today = data.weather?.[0];
   if (!cur || !today) { document.getElementById('wdCity').textContent = '数据异常'; return; }
 
-  const city = area?.areaName?.[0]?.value || localStorage.getItem('jessica_weatherCity') || '--';
+  const city = localStorage.getItem('jessica_weatherCity') || area?.areaName?.[0]?.value || '--';
   const desc = cur.lang_zh?.[0]?.value || cur.weatherDesc?.[0]?.value || '';
   const temp = cur.temp_C;
   const feelsLike = cur.FeelsLikeC;
@@ -12414,6 +12431,12 @@ async function handleFileSelect(e){
     const entry={name:file.name,size:file.size,type:file.type||'application/octet-stream',content:null,dataUrl:null};
     if(file.type.startsWith('image/')){entry.dataUrl=await readAsDataUrl(file);entry.content=`[图片: ${file.name}]`;entry.isImage=true;}
     else if(file.type.startsWith('audio/')){entry.dataUrl=await readAsDataUrl(file);entry.content=`[音乐文件: ${file.name}]`;entry.isAudio=true;}
+    else if(file.type==='application/pdf'||file.name.endsWith('.pdf')){
+      try{entry.content=await V2DocParser.parsePDF(file);}catch(err){console.warn('PDF解析失败:',err);entry.content=`[PDF文件: ${file.name} - 解析失败]`;}
+    }
+    else if(file.type==='application/vnd.openxmlformats-officedocument.wordprocessingml.document'||file.name.endsWith('.docx')){
+      try{entry.content=await V2DocParser.parseDOCX(file);}catch(err){console.warn('DOCX解析失败:',err);entry.content=`[Word文件: ${file.name} - 解析失败]`;}
+    }
     else if(isTextFile(file)){entry.content=await readAsText(file);}
     else{entry.content=`[文件: ${file.name}]`;}
     pendingFiles.push(entry);
@@ -12755,7 +12778,12 @@ function createMessageElement(msg) {
   // Time
   const time = document.createElement('div');
   time.className = 'msg-time';
-  const timeStr = new Date(msg.timestamp).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+  const _d = new Date(msg.timestamp);
+  const _now = new Date();
+  const _isToday = _d.toDateString() === _now.toDateString();
+  const _isYesterday = new Date(_now - 86400000).toDateString() === _d.toDateString();
+  const _timePart = _d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+  const timeStr = _isToday ? _timePart : (_isYesterday ? '昨天 ' + _timePart : `${_d.getMonth()+1}/${_d.getDate()} ${_timePart}`);
   time.innerHTML = timeStr + getReadReceiptHTML(msg);
 
   if (!msg.files?.length && !msg.location) wrap.appendChild(label);
@@ -23626,11 +23654,15 @@ function renderWeight() {
   const data = getWeightData();
   const display = document.getElementById('weightDisplay');
   const bmiEl = document.getElementById('bmiDisplay');
+  // 显示已保存的身高
+  const heightInput = document.getElementById('heightInput');
+  const savedHeight = localStorage.getItem('jessica_height');
+  if (heightInput && savedHeight && !heightInput.value) heightInput.placeholder = savedHeight + 'cm';
   if (!display) return;
   if (data.records.length) {
     const latest = data.records[data.records.length - 1];
     display.textContent = latest.weight + ' kg';
-    const height = parseFloat(localStorage.getItem('jessica_height') || '0');
+    const height = parseFloat(savedHeight || '0');
     if (height > 0) {
       const bmi = (latest.weight / ((height/100) * (height/100))).toFixed(1);
       let label = '', color = '#2ecc71';
@@ -23644,6 +23676,14 @@ function renderWeight() {
 }
 function saveWeight() {
   const input = document.getElementById('weightInput');
+  const heightInput = document.getElementById('heightInput');
+  // 保存身高（如果有输入）
+  if (heightInput && heightInput.value) {
+    const h = parseFloat(heightInput.value);
+    if (!isNaN(h) && h >= 100 && h <= 250) {
+      localStorage.setItem('jessica_height', h.toString());
+    }
+  }
   if (!input || !input.value) return;
   const w = parseFloat(input.value);
   if (isNaN(w) || w < 20 || w > 300) return;
@@ -23655,6 +23695,7 @@ function saveWeight() {
   else data.records.push({ date: today, weight: w });
   saveWeightData(data);
   input.value = '';
+  if (heightInput) heightInput.value = '';
   renderWeight();
   showToast('体重已记录: ' + w + ' kg');
 }
@@ -23717,6 +23758,50 @@ function removeBook(i) {
   renderBooks();
 }
 
+// ── 待办详情弹窗 ──
+function openTodoOverlay() {
+  document.getElementById('todoOverlay').classList.add('active');
+  renderTodoDetail();
+}
+function closeTodoOverlay() { document.getElementById('todoOverlay').classList.remove('active'); }
+function renderTodoDetail() {
+  const data = getTodos();
+  const el = document.getElementById('todoDetailContent');
+  if (!el) return;
+  if (!data.items.length) { el.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:20px;">暂无待办</div>'; return; }
+  el.innerHTML = data.items.map((t, i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+      <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTodoDetail(${i})" style="accent-color:#2ecc71;width:16px;height:16px;cursor:pointer;">
+      <span style="flex:1;font-size:13px;${t.done ? 'text-decoration:line-through;opacity:0.4;' : ''}">${escapeHtml(t.text)}</span>
+      <button onclick="deleteTodoDetail(${i})" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:14px;">✕</button>
+    </div>
+  `).join('');
+}
+function addTodoDetail() {
+  const input = document.getElementById('todoInputDetail');
+  if (!input || !input.value.trim()) return;
+  const data = getTodos();
+  data.items.push({ text: input.value.trim(), done: false });
+  saveTodos(data);
+  input.value = '';
+  renderTodos();
+  renderTodoDetail();
+}
+function toggleTodoDetail(i) {
+  const data = getTodos();
+  if (data.items[i]) data.items[i].done = !data.items[i].done;
+  saveTodos(data);
+  renderTodos();
+  renderTodoDetail();
+}
+function deleteTodoDetail(i) {
+  const data = getTodos();
+  data.items.splice(i, 1);
+  saveTodos(data);
+  renderTodos();
+  renderTodoDetail();
+}
+
 // 初始化首页新卡片
 renderTodos();
 renderHabits();
@@ -23726,6 +23811,10 @@ renderBooks();
 // ── 体重详情弹窗 ──
 function openWeightOverlay() {
   document.getElementById('weightOverlay').classList.add('active');
+  // 显示已保存的身高
+  const heightInputDetail = document.getElementById('heightInputDetail');
+  const savedHeight = localStorage.getItem('jessica_height');
+  if (heightInputDetail && savedHeight) heightInputDetail.placeholder = savedHeight + 'cm';
   renderWeightDetail();
 }
 function closeWeightOverlay() {
@@ -23733,6 +23822,14 @@ function closeWeightOverlay() {
 }
 function saveWeightDetail() {
   const input = document.getElementById('weightInputDetail');
+  const heightInput = document.getElementById('heightInputDetail');
+  // 保存身高
+  if (heightInput && heightInput.value) {
+    const h = parseFloat(heightInput.value);
+    if (!isNaN(h) && h >= 100 && h <= 250) {
+      localStorage.setItem('jessica_height', h.toString());
+    }
+  }
   if (!input || !input.value) return;
   const w = parseFloat(input.value);
   if (isNaN(w) || w < 20 || w > 300) return;
@@ -23743,11 +23840,16 @@ function saveWeightDetail() {
   else data.records.push({ date: today, weight: w });
   saveWeightData(data);
   input.value = '';
+  if (heightInput) heightInput.value = '';
   renderWeight();
   renderWeightDetail();
   showToast('体重已记录: ' + w + ' kg');
 }
 function renderWeightDetail() {
+  // 显示已保存的身高
+  const heightInputDetail = document.getElementById('heightInputDetail');
+  const savedHeight = localStorage.getItem('jessica_height');
+  if (heightInputDetail && savedHeight && !heightInputDetail.value) heightInputDetail.placeholder = savedHeight + 'cm';
   const data = getWeightData();
   const records = data.records || [];
   // Chart (simple CSS bar chart)
