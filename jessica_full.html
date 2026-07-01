@@ -8424,6 +8424,33 @@ function renderPixelCity() {
     ctx.fill();
   }
 
+  // ---- Sun (daytime, 6:30-18:30) ----
+  if (hour >= 6.5 && hour < 18.5) {
+    // Sun position: arc from east to west
+    const sunProgress = (hour - 6.5) / 12; // 0 at 6:30, 1 at 18:30
+    const sunX = W * (0.15 + sunProgress * 0.7); // east to west
+    const sunY = H * (0.25 - Math.sin(sunProgress * Math.PI) * 0.18); // arc peak at noon
+    const sunR = S * 5;
+    // Sun glow (larger, softer)
+    const sunGlow = ctx.createRadialGradient(sunX, sunY, sunR * 0.5, sunX, sunY, sunR * 4);
+    // Sunrise/sunset: warm orange; midday: white-yellow
+    const isGolden = hour < 7.5 || hour > 17;
+    if (isGolden) {
+      sunGlow.addColorStop(0, 'rgba(255,200,100,0.2)');
+      sunGlow.addColorStop(0.5, 'rgba(255,160,60,0.06)');
+      sunGlow.addColorStop(1, 'rgba(255,100,30,0)');
+    } else {
+      sunGlow.addColorStop(0, 'rgba(255,255,220,0.15)');
+      sunGlow.addColorStop(0.5, 'rgba(255,255,200,0.04)');
+      sunGlow.addColorStop(1, 'rgba(255,255,180,0)');
+    }
+    ctx.fillStyle = sunGlow;
+    ctx.fillRect(sunX - sunR * 4, sunY - sunR * 4, sunR * 8, sunR * 8);
+    // Sun body
+    ctx.fillStyle = isGolden ? 'rgba(255,220,150,0.9)' : 'rgba(255,255,230,0.85)';
+    ctx.beginPath(); ctx.arc(sunX, sunY, sunR, 0, Math.PI * 2); ctx.fill();
+  }
+
   // ---- Clouds (layered, with depth) ----
   {
     const cloudLayers = isRainy ? 3 : (isSnowy ? 2 : (isCloudy ? 2 : 0));
@@ -8434,11 +8461,23 @@ function renderPixelCity() {
         const speed = (0.5 + depth * 1.5) * (1 + windFactor * 2); // wind speeds up clouds
         const count = 4 + layer * 2;
         const baseY = H * (0.05 + layer * 0.04);
-        // Darker clouds for rain
-        const cr = isRainy ? Math.round(100 + depth * 40) : Math.round(160 + depth * 30);
-        const cg = isRainy ? Math.round(105 + depth * 35) : Math.round(165 + depth * 25);
-        const cb = isRainy ? Math.round(120 + depth * 30) : Math.round(180 + depth * 20);
-        ctx.fillStyle = `rgba(${cr},${cg},${cb},${alpha})`;
+        // Cloud color: night = dark gray, day = lighter
+        const nightCloud = hour >= 19 || hour < 6; // night mode
+        let cr, cg, cb, ca;
+        if (nightCloud) {
+          // Night: dark gray, low alpha
+          cr = isRainy ? Math.round(60 + depth * 25) : Math.round(80 + depth * 15);
+          cg = isRainy ? Math.round(62 + depth * 22) : Math.round(82 + depth * 12);
+          cb = isRainy ? Math.round(70 + depth * 20) : Math.round(90 + depth * 10);
+          ca = isRainy ? (0.15 + depth * 0.2) : (0.08 + depth * 0.1);
+        } else {
+          // Daytime: lighter, more visible
+          cr = isRainy ? Math.round(140 + depth * 30) : Math.round(200 + depth * 20);
+          cg = isRainy ? Math.round(145 + depth * 25) : Math.round(205 + depth * 15);
+          cb = isRainy ? Math.round(160 + depth * 20) : Math.round(220 + depth * 10);
+          ca = isRainy ? (0.35 + depth * 0.3) : (0.2 + depth * 0.15);
+        }
+        ctx.fillStyle = `rgba(${cr},${cg},${cb},${ca})`;
         for (let i = 0; i < count; i++) {
           const seed = layer * 100 + i;
           const cx = ((seed * 7919 + Date.now() / (10000 / speed)) % (W + 300)) - 150;
@@ -8694,6 +8733,33 @@ function renderPixelCity() {
     fogGrad.addColorStop(1, 'rgba(160,170,180,0.4)');
     ctx.fillStyle = fogGrad;
     ctx.fillRect(0, groundY - H * 0.3, W, H * 0.3 + S * 10);
+  }
+
+  // ---- Sandstorm particles ----
+  if (weather === 'sandstorm') {
+    const sandT = Date.now() / 100;
+    for (let i = 0; i < 120; i++) {
+      const sx = ((i * 193 + sandT * 2 + Math.sin(i * 0.7) * 50) % (W + 100)) - 50;
+      const sy = ((i * 251 + Math.sin(sandT + i) * 20) % H);
+      const ss = S * (0.5 + (i % 5) * 0.4);
+      ctx.fillStyle = `rgba(180,150,100,${0.15 + (i % 3) * 0.08})`;
+      ctx.fillRect(sx, sy, ss, ss * 0.5);
+    }
+    // Sand haze overlay
+    ctx.fillStyle = 'rgba(160,130,80,0.1)';
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // ---- Cloud ground shadows ----
+  if ((isCloudy || isRainy || isSnowy) && !isFoggy) {
+    const shadowAlpha = isRainy ? 0.06 : 0.04;
+    for (let i = 0; i < 5; i++) {
+      const seed = i * 77;
+      const sx = ((seed * 7919 + Date.now() / 15000) % (W + 200)) - 100;
+      const sw = S * (15 + (seed % 10) * 3);
+      ctx.fillStyle = `rgba(0,0,0,${shadowAlpha})`;
+      ctx.fillRect(sx, groundY - S, sw, S * 12);
+    }
   }
 
   if (isStormy && Math.random() < 0.03) {
