@@ -8424,20 +8424,37 @@ function renderPixelCity() {
     ctx.fill();
   }
 
-  // ---- Clouds ----
-  if (isCloudy || isRainy || isSnowy) {
-    const ca = isRainy ? 0.5 : 0.3;
-    ctx.fillStyle = `rgba(180,180,190,${ca})`;
-    for (let i = 0; i < 5; i++) {
-      const cx = (i * W / 4 + Date.now() / 8000) % (W + 200) - 100;
-      const cy = H * 0.08 + i * H * 0.06;
-      const cw = S * 20 + i * S * 5;
-      for (let j = 0; j < 4; j++) {
-        const px = cx + j * cw * 0.25;
-        const pr = S * (3 + (j % 3));
-        ctx.beginPath();
-        ctx.arc(px, cy, pr, 0, Math.PI * 2);
-        ctx.fill();
+  // ---- Clouds (layered, with depth) ----
+  {
+    const cloudLayers = isRainy ? 3 : (isSnowy ? 2 : (isCloudy ? 2 : 0));
+    if (cloudLayers > 0) {
+      for (let layer = 0; layer < cloudLayers; layer++) {
+        const depth = layer / cloudLayers; // 0=far, 1=near
+        const alpha = isRainy ? (0.3 + depth * 0.35) : (0.15 + depth * 0.2);
+        const speed = (0.5 + depth * 1.5) * (1 + windFactor * 2); // wind speeds up clouds
+        const count = 4 + layer * 2;
+        const baseY = H * (0.05 + layer * 0.04);
+        // Darker clouds for rain
+        const cr = isRainy ? Math.round(100 + depth * 40) : Math.round(160 + depth * 30);
+        const cg = isRainy ? Math.round(105 + depth * 35) : Math.round(165 + depth * 25);
+        const cb = isRainy ? Math.round(120 + depth * 30) : Math.round(180 + depth * 20);
+        ctx.fillStyle = `rgba(${cr},${cg},${cb},${alpha})`;
+        for (let i = 0; i < count; i++) {
+          const seed = layer * 100 + i;
+          const cx = ((seed * 7919 + Date.now() / (10000 / speed)) % (W + 300)) - 150;
+          const cy = baseY + Math.sin(seed * 2.3) * H * 0.03;
+          // Cloud shape: 5-7 overlapping circles
+          const cloudW = S * (12 + (seed % 8) * 3);
+          const blobCount = 5 + (seed % 3);
+          for (let j = 0; j < blobCount; j++) {
+            const bx = cx + (j / blobCount) * cloudW;
+            const by = cy + Math.sin(j * 1.5 + seed) * S * 1.5;
+            const br = S * (2.5 + (j % 3) * 1.5 + (seed % 4) * 0.3);
+            ctx.beginPath();
+            ctx.arc(bx, by, br, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
       }
     }
   }
@@ -8601,6 +8618,23 @@ function renderPixelCity() {
       ctx.lineTo(rx - S * 0.5 + windDx, ry + rl);
       ctx.stroke();
     }
+    // Rain splash on ground
+    const splashCount = isStormy ? 30 : 15;
+    ctx.strokeStyle = 'rgba(180,200,255,0.2)';
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i < splashCount; i++) {
+      const tSplash = (Date.now() / 100 + i * 7.3) % 10; // 0-10 cycle
+      if (tSplash > 2) continue; // only show splash for 20% of cycle
+      const splashX = ((i * 251 + Date.now() / 200) % W);
+      const splashY = groundY + S * 2 + (i % 5) * S; // on road surface
+      const splashR = S * (0.5 + tSplash * 0.3);
+      // V-shape splash
+      ctx.beginPath();
+      ctx.moveTo(splashX - splashR, splashY);
+      ctx.lineTo(splashX, splashY - splashR * 0.8);
+      ctx.lineTo(splashX + splashR, splashY);
+      ctx.stroke();
+    }
   }
 
   if (isSnowy) {
@@ -8628,6 +8662,31 @@ function renderPixelCity() {
     });
   }
 
+  // ---- Wet road reflections (after rain) ----
+  if (isRainy || isStormy) {
+    // Wet road surface - slightly reflective
+    ctx.fillStyle = 'rgba(100,120,160,0.06)';
+    ctx.fillRect(0, groundY + S * 2, W, S * 6);
+    // Reflection highlights on road
+    for (let i = 0; i < 8; i++) {
+      const rx = ((i * 311 + Date.now() / 3000) % W);
+      const rw = S * (3 + (i % 4) * 2);
+      ctx.fillStyle = 'rgba(180,200,255,0.04)';
+      ctx.fillRect(rx, groundY + S * 3, rw, S * 0.5);
+    }
+    // Reflect building windows on wet road
+    if (nightFactor > 0) {
+      mainBuildings.forEach((b, bi) => {
+        const bx = b.x * W, bw = b.w * W;
+        const reflectY = groundY + S * 3;
+        const reflectH = S * 3;
+        // Dim, stretched reflection of building
+        ctx.fillStyle = `rgba(255,220,130,${nightFactor * 0.03})`;
+        ctx.fillRect(bx, reflectY, bw, reflectH);
+      });
+    }
+  }
+
   if (isFoggy) {
     const fogGrad = ctx.createLinearGradient(0, groundY - H * 0.3, 0, groundY + S * 10);
     fogGrad.addColorStop(0, 'rgba(160,170,180,0)');
@@ -8638,9 +8697,34 @@ function renderPixelCity() {
   }
 
   if (isStormy && Math.random() < 0.03) {
-    // Lightning flash
+    // Lightning flash - full screen
     ctx.fillStyle = 'rgba(255,255,255,0.15)';
     ctx.fillRect(0, 0, W, H);
+    // Lightning illuminates building silhouettes
+    mainBuildings.forEach((b, bi) => {
+      const bx = b.x * W, bw = b.w * W, bh = b.h * H, by = groundY - bh;
+      // Building edge highlight
+      ctx.fillStyle = 'rgba(200,210,255,0.08)';
+      ctx.fillRect(bx, by, bw, bh);
+      // Edge glow
+      ctx.strokeStyle = 'rgba(200,210,255,0.12)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(bx, by, bw, bh);
+    });
+    // Lightning bolt (occasional)
+    if (Math.random() < 0.3) {
+      ctx.strokeStyle = 'rgba(255,255,240,0.6)';
+      ctx.lineWidth = 2;
+      const lx = W * (0.2 + Math.random() * 0.6);
+      ctx.beginPath();
+      ctx.moveTo(lx, 0);
+      let ly = 0;
+      for (let seg = 0; seg < 4; seg++) {
+        ly += H * 0.08;
+        ctx.lineTo(lx + (Math.random() - 0.5) * S * 8, ly);
+      }
+      ctx.stroke();
+    }
   }
 }
 
