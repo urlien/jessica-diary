@@ -9423,77 +9423,132 @@ function toggleBGMPanel() {
 // ============================================================
 const DB_NAME = 'JessicaDiaryDB';
 const DB_VERSION = 5;
-const APP_VERSION = '3.3.3';
-const APP_VERSION_NAME = '夏至';
-const APP_VERSION_DESC = '记忆全量备份 + 日历标记 + 登录跳过 + 英超移除';
+const APP_VERSION = '3.3.4';
+const APP_VERSION_NAME = '小暑';
+const APP_VERSION_DESC = '消息日期 + 天气中文 + BMI身高 + 待办详情 + 文件上传修复 + 热更新多源';
 
 // ============================================================
 // 热更新 (Hot Update) - 仅设置面板，无自动应用
 // ============================================================
 const HotUpdate = {
-  REMOTE_URL: 'https://urlien.github.io/jessica-diary/jessica_full.html',
-  CACHE_KEY: 'jessic…ache',
-  VERSION_KEY: 'jessic…sion',
+  CACHE_KEY: 'jessica_hot_cache',
+  VERSION_KEY: 'jessica_hot_version',
+  NAME_KEY: 'jessica_hot_name',
+  // 多源：GitHub Pages（首选）→ GitHub Raw（备用）→ GitHub API（兜底）
+  SOURCES: [
+    'https://urlien.github.io/jessica-diary/jessica_full.html',
+    'https://raw.githubusercontent.com/urlien/jessica-diary/main/jessica_full.html',
+  ],
+  _lastError: null,
 
+  // 从任意源获取 HTML，自动 fallback
+  async _fetchHTML() {
+    const errors = [];
+    for (const url of this.SOURCES) {
+      try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 15000); // 15s 超时
+        const res = await fetch(url, { cache: 'no-cache', signal: ctrl.signal });
+        clearTimeout(timer);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const html = await res.text();
+        if (!html || html.length < 1000) throw new Error('内容过短');
+        const match = html.match(/const APP_VERSION\s*=\s*'([^']+)'/);
+        if (!match) throw new Error('无法解析版本号');
+        return html;
+      } catch(e) {
+        errors.push(`${url}: ${e.message}`);
+        console.warn(`[HotUpdate] 源失败: ${url} — ${e.message}`);
+      }
+    }
+    throw new Error('所有源均不可用：\n' + errors.join('\n'));
+  },
+
+  // 启动时自动应用缓存的更新（在 initApp 最开头调用）
+  applyCached() {
+    try {
+      const cached = localStorage.getItem(this.CACHE_KEY);
+      const cachedVer = localStorage.getItem(this.VERSION_KEY);
+      if (!cached || !cachedVer) return false;
+      if (!this._isNewer(cachedVer, APP_VERSION)) { this.clearCache(); return false; }
+      console.log(`[HotUpdate] 应用缓存更新 v${cachedVer} → 覆盖当前 v${APP_VERSION}`);
+      document.open(); document.write(cached); document.close();
+      return true;
+    } catch(e) {
+      console.warn('[HotUpdate] 应用缓存失败:', e);
+      return false;
+    }
+  },
+
+  // 检查更新（手动或自动）
   async check(silent) {
     try {
       if (!silent) HotUpdateUI.setState('checking');
-      const res = await fetch(this.REMOTE_URL, { cache: 'no-cache' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const html = await res.text();
+      const html = await this._fetchHTML();
       const match = html.match(/const APP_VERSION\s*=\s*'([^']+)'/);
-      if (!match) throw new Error('无法解析版本号');
       const remoteVer = match[1];
       const nameMatch = html.match(/const APP_VERSION_NAME\s*=\s*'([^']+)'/);
       const remoteName = nameMatch ? nameMatch[1] : '';
+      const descMatch = html.match(/const APP_VERSION_DESC\s*=\s*'([^']+)'/);
+      const remoteDesc = descMatch ? descMatch[1] : '';
       if (this._isNewer(remoteVer, APP_VERSION)) {
         localStorage.setItem(this.CACHE_KEY, html);
         localStorage.setItem(this.VERSION_KEY, remoteVer);
-        if (!silent) HotUpdateUI.setState('has-update', { ver: remoteVer, name: remoteName });
-        showToast(`🆕 发现新版本 v${remoteVer}${remoteName ? ' 「' + remoteName + '」' : ''}`);
+        localStorage.setItem(this.NAME_KEY, remoteName);
+        if (!silent) HotUpdateUI.setState('has-update', { ver: remoteVer, name: remoteName, desc: remoteDesc });
+        else showToast(`🆕 新版本 v${remoteVer}${remoteName ? ' 「' + remoteName + '」' : ''} 已缓存，下次启动自动应用`);
         return remoteVer;
       } else {
         if (!silent) HotUpdateUI.setState('latest');
-        showToast('✅ 已是最新版本');
+        else console.log('[HotUpdate] 已是最新 v' + APP_VERSION);
         return null;
       }
     } catch(e) {
+      this._lastError = e.message;
       console.warn('[HotUpdate] 检查失败:', e);
-      if (!silent) HotUpdateUI.setState('latest');
-      showToast('✅ 已是最新版本');
+      if (!silent) HotUpdateUI.setState('failed', e.message);
       return null;
     }
   },
 
+  // 下载更新（带进度条）
   async downloadWithProgress() {
     try {
       HotUpdateUI.setState('downloading');
       showToast('⬇️ 开始下载更新...');
-      const res = await fetch(this.REMOTE_URL, { cache: 'no-cache' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const total = parseInt(res.headers.get('content-length') || '0');
-      const reader = res.body.getReader();
-      let received = 0; const chunks = [];
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-        received += value.length;
-        if (total > 0) HotUpdateUI.setProgress(Math.round(received / total * 100));
-        else HotUpdateUI.setProgress(-1);
+      const errors = [];
+      for (const url of this.SOURCES) {
+        try {
+          const res = await fetch(url, { cache: 'no-cache' });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const total = parseInt(res.headers.get('content-length') || '0');
+          const reader = res.body.getReader();
+          let received = 0; const chunks = [];
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+            received += value.length;
+            if (total > 0) HotUpdateUI.setProgress(Math.round(received / total * 100));
+            else HotUpdateUI.setProgress(-1);
+          }
+          const allBytes = new Uint8Array(received); let offset = 0;
+          for (const chunk of chunks) { allBytes.set(chunk, offset); offset += chunk.length; }
+          const htmlStr = new TextDecoder().decode(allBytes);
+          const match = htmlStr.match(/const APP_VERSION\s*=\s*'([^']+)'/);
+          if (!match) throw new Error('无法解析版本号');
+          localStorage.setItem(this.CACHE_KEY, htmlStr);
+          localStorage.setItem(this.VERSION_KEY, match[1]);
+          const doneNameMatch = htmlStr.match(/const APP_VERSION_NAME\s*=\s*'([^']+)'/);
+          const doneName = doneNameMatch ? doneNameMatch[1] : '';
+          HotUpdateUI.setState('done', { ver: match[1], name: doneName });
+          showToast(`✅ v${match[1]}${doneName ? ' 「' + doneName + '」' : ''} 下载完成，重启后生效`);
+          return match[1];
+        } catch(e) {
+          errors.push(`${url}: ${e.message}`);
+        }
       }
-      const allBytes = new Uint8Array(received); let offset = 0;
-      for (const chunk of chunks) { allBytes.set(chunk, offset); offset += chunk.length; }
-      const htmlStr = new TextDecoder().decode(allBytes);
-      const match = htmlStr.match(/const APP_VERSION\s*=\s*'([^']+)'/);
-      if (!match) throw new Error('无法解析版本号');
-      localStorage.setItem(this.CACHE_KEY, htmlStr);
-      localStorage.setItem(this.VERSION_KEY, match[1]);
-      const doneNameMatch = htmlStr.match(/const APP_VERSION_NAME\s*=\s*'([^']+)'/);
-      const doneName = doneNameMatch ? doneNameMatch[1] : '';
-      HotUpdateUI.setState('done', { ver: match[1], name: doneName });
-      showToast(`✅ v${match[1]}${doneName ? ' 「' + doneName + '」' : ''} 下载完成`);
-      return match[1];
+      throw new Error('所有源均不可用');
     } catch(e) {
       HotUpdateUI.setState('failed', e.message);
       showToast('❌ 下载失败：' + (e.message || '网络错误'));
@@ -9501,6 +9556,7 @@ const HotUpdate = {
     }
   },
 
+  // 应用缓存更新（手动点击"立即更新"）
   apply() {
     const cached = localStorage.getItem(this.CACHE_KEY);
     const cachedVer = localStorage.getItem(this.VERSION_KEY);
@@ -9509,7 +9565,7 @@ const HotUpdate = {
     document.open(); document.write(cached); document.close(); return true;
   },
 
-  clearCache() { localStorage.removeItem(this.CACHE_KEY); localStorage.removeItem(this.VERSION_KEY); },
+  clearCache() { localStorage.removeItem(this.CACHE_KEY); localStorage.removeItem(this.VERSION_KEY); localStorage.removeItem(this.NAME_KEY); },
 
   _isNewer(a, b) {
     const pa = a.split('.').map(Number), pb = b.split('.').map(Number);
@@ -9541,7 +9597,7 @@ const HotUpdateUI = {
       case 'has-update': this._el.classList.add('has-update'); this._icon.textContent = '🆕'; this._title.textContent = `发现新版本 v${data.ver}${data.name ? ' 「'+data.name+'」' : ''}`; this._desc.textContent = `当前版本 v${APP_VERSION}，点击下载更新`; this._btn.className = 'hot-update-btn hu-apply'; this._btn.textContent = '下载更新'; this._btn.onclick = () => HotUpdate.downloadWithProgress(); break;
       case 'downloading': this._el.classList.add('downloading'); this._icon.textContent = '⬇️'; this._title.textContent = '正在下载...'; this._desc.textContent = '请稍候'; this._btn.disabled = true; this._btn.textContent = '下载中'; this._progress.style.display = 'block'; break;
       case 'done': this._el.classList.add('done'); this._icon.textContent = '✅'; this._title.textContent = `v${data.ver}${data.name ? ' 「'+data.name+'」' : ''} 下载完成`; this._desc.textContent = '点击「立即更新」应用新版本'; this._btn.className = 'hot-update-btn hu-apply'; this._btn.textContent = '立即更新'; this._btn.onclick = () => HotUpdate.apply(); break;
-      case 'failed': this._el.classList.add('failed'); this._icon.textContent = '❌'; this._title.textContent = '更新失败'; this._desc.textContent = data || '网络错误，请稍后重试'; this._btn.textContent = '重试'; this._btn.onclick = () => HotUpdateUI.check(); break;
+      case 'failed': this._el.classList.add('failed'); this._icon.textContent = '⚠️'; this._title.textContent = '检查失败'; this._desc.textContent = (typeof data === 'string' ? data : '网络错误，请稍后重试').split('\n')[0]; this._btn.textContent = '重试'; this._btn.onclick = () => HotUpdateUI.check(); break;
       case 'latest': this._icon.textContent = '✅'; this._title.textContent = `v${APP_VERSION} 「${APP_VERSION_NAME}」`; this._desc.textContent = '已是最新版本'; break;
     }
   },
@@ -18142,6 +18198,10 @@ function triggerHomepageAnimations() {
 // INIT (called by login system after auth)
 // ============================================================
 window.initApp = async function(){
+  // === 热更新：启动时自动应用缓存更新 ===
+  // 这行必须在所有初始化之前，这样如果有缓存的新版本，直接覆盖整个页面
+  if (typeof HotUpdate !== 'undefined' && HotUpdate.applyCached()) return; // applyCached 会 document.write 替换整个页面
+
   // Safety: reset generation state on app init (in case previous session ended mid-generation)
   if (isGenerating) { safeResetGeneration('initApp: force reset on load'); }
   isGenerating = false; _isGeneratingSince = 0; _generationId = 0;
@@ -18162,6 +18222,8 @@ window.initApp = async function(){
   fetchWeather();rollMood();refreshStatus();renderStatusBar();renderRelationshipInfo();
   NotificationBridge.init(); updateHpMemories();
   fetchDailyQuote();
+  // === 热更新：启动后静默检查（延迟 30 秒，不影响启动速度）===
+  setTimeout(() => { if (typeof HotUpdate !== 'undefined') HotUpdate.check(true).catch(()=>{}); }, 30000);
   // Holiday countdown
   updateHolidayCountdown();
   setInterval(updateHolidayCountdown, 1800000); // every 30 min
