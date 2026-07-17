@@ -94,27 +94,27 @@
     --bg-card: rgba(12,18,30,0.88);
     --bg-card-light: rgba(18,28,48,0.85);
     --bg-chat: #0a0f1a;
-    --bg-msg-j: rgba(59,130,246,0.06);
+    --bg-msg-j: rgba(29,78,216,0.06);
     --bg-msg-h: rgba(34,197,94,0.06);
     --bg-input: rgba(15,23,40,0.9);
     --bg-sidebar: #060a12;
     --border: rgba(100,140,220,0.08);
     --text: #e0e8f4;
     --text-dim: #5a6d8a;
-    --accent: #3b82f6;
+    --accent: #1d4ed8;
     --accent2: #f59e0b;
 
   /* Fixed viewport - prevent zoom/jitter on mobile */
   html, body { position: fixed; width: 100%; height: 100%; overflow: hidden; touch-action: manipulation; overscroll-behavior: none; -webkit-overflow-scrolling: auto; }
   html { height: 100%; }
   body { height: 100%; min-height: 100%; }
-    --accent-dim: rgba(59,130,246,0.3);
+    --accent-dim: rgba(29,78,216,0.3);
     --red: #ef4444;
     --green: #22c55e;
     --pink: #ec4899;
     --orange: #f59e0b;
-    --calendar-today: #3b82f6;
-    --calendar-hover: rgba(59,130,246,0.1);
+    --calendar-today: #1d4ed8;
+    --calendar-hover: rgba(29,78,216,0.1);
     --dyn-bg1: #060a12;
     --dyn-bg2: #0c1628;
     --dyn-bg3: #080c14;
@@ -133,7 +133,7 @@
   select:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
-    box-shadow: 0 0 0 4px rgba(59,130,246,0.15);
+    box-shadow: 0 0 0 4px rgba(29,78,216,0.15);
   }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
@@ -195,9 +195,9 @@
   }
   .hp-card::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(59,130,246,0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(29,78,216,0.1), transparent);
   }
-  .hp-card:hover { transform: translateY(-2px); border-color: rgba(59,130,246,0.2); box-shadow: 0 8px 32px rgba(59,130,246,0.08); }
+  .hp-card:hover { transform: translateY(-2px); border-color: rgba(29,78,216,0.2); box-shadow: 0 8px 32px rgba(29,78,216,0.08); }
   /* Staggered entry animation for homepage cards */
   .hp-card.hp-enter { opacity: 0; transform: translateY(24px) scale(0.96); animation: hp-card-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
   .hp-card.hp-enter:nth-child(1) { animation-delay: 0.05s; }
@@ -236,12 +236,12 @@
   }
   .hp-card-label { font-size: 11px; color: var(--text-dim); position: absolute; bottom: 12px; right: 16px; opacity: 0.5; }
   .hp-card-title { font-size: 13px; color: var(--text-dim); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-  .hp-card-value { font-size: 28px; font-weight: 600; background: linear-gradient(135deg, #3b82f6, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.2; }
+  .hp-card-value { font-size: 28px; font-weight: 600; background: linear-gradient(135deg, #1d4ed8, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.2; }
   .hp-card-sub { font-size: 12px; color: var(--text-dim); margin-top: 6px; line-height: 1.5; }
-  .hp-card.diary-card { grid-column: span 1; grid-row: span 2; background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(245,158,11,0.1)); border-color: rgba(59,130,246,0.2); }
+  .hp-card.diary-card { grid-column: span 1; grid-row: span 2; background: linear-gradient(135deg, rgba(29,78,216,0.15), rgba(245,158,11,0.1)); border-color: rgba(29,78,216,0.2); }
   .hp-card.diary-card .hp-card-value { font-size: 22px; }
   .hp-card.pomodoro-card .hp-card-value { font-size: 48px; font-variant-numeric: tabular-nums; }
-  .hp-card.days-card .hp-card-value { font-size: 42px; background: linear-gradient(135deg, #3b82f6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hp-card.days-card .hp-card-value { font-size: 42px; background: linear-gradient(135deg, #1d4ed8, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   .hp-card .hp-memo-display {
     width: 100%; color: var(--text); font-size: 13px; line-height: 1.6;
     min-height: 60px; white-space: pre-wrap; word-break: break-word;
@@ -294,7 +294,7 @@
   .wd-hourly { display: flex; gap: 0; overflow-x: auto; padding: 4px 0; scrollbar-width: none; -ms-overflow-style: none; gap: 2px; }
   .wd-hourly::-webkit-scrollbar { display: none; }
   .wd-hour-item { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 56px; padding: 10px 4px; border-radius: 12px; background: rgba(255,255,255,0.04); }
-  .wd-hour-item.now { background: rgba(59,130,246,0.2); }
+  .wd-hour-item.now { background: rgba(29,78,216,0.2); }
   .wd-hour-time { font-size: 12px; color: rgba(255,255,255,0.6); }
   .wd-hour-icon { font-size: 22px; }
   .wd-hour-temp { font-size: 15px; font-weight: 500; color: #fff; }
@@ -344,7 +344,7 @@
     cursor: pointer; transition: all 0.2s;
     min-width: 72px;
   }
-  .hp-bottom-btn:hover { transform: translateY(-2px); border-color: rgba(59,130,246,0.3); }
+  .hp-bottom-btn:hover { transform: translateY(-2px); border-color: rgba(29,78,216,0.3); }
   .hp-bottom-btn .btn-icon { font-size: 22px; }
   .hp-bottom-btn .btn-label { font-size: 10px; color: var(--text-dim); }
   .hp-search-bar {
@@ -363,10 +363,10 @@
   .hp-pomodoro-controls { display: flex; gap: 8px; margin-top: 8px; }
   .hp-pomodoro-controls button {
     padding: 4px 12px; border-radius: 6px; font-size: 11px;
-    background: rgba(59,130,246,0.2); border: none; color: var(--accent);
+    background: rgba(29,78,216,0.2); border: none; color: var(--accent);
     cursor: pointer; font-family: inherit; transition: all 0.15s;
   }
-  .hp-pomodoro-controls button:hover { background: rgba(59,130,246,0.35); }
+  .hp-pomodoro-controls button:hover { background: rgba(29,78,216,0.35); }
   .hp-pomodoro-controls button.active { background: var(--accent); color: #fff; }
   .hp-memories { max-height: 80px; overflow-y: auto; }
   .hp-memories::-webkit-scrollbar { width: 3px; }
@@ -392,8 +392,8 @@
     flex-shrink: 0;
   }
   .holiday-item:hover { background: rgba(255,255,255,0.06); }
-  .holiday-item.today { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); }
-  .holiday-item.soon { background: rgba(232,139,167,0.08); }
+  .holiday-item.today { background: rgba(29,78,216,0.15); border: 1px solid rgba(29,78,216,0.3); }
+  .holiday-item.soon { background: rgba(29,78,216,0.08); }
   .holiday-info { display: flex; flex-direction: column; gap: 1px; min-width: 70px; }
   .holiday-name { font-size: 13px; font-weight: 600; color: #fff; }
   .holiday-date { font-size: 10px; color: var(--text-dim); }
@@ -498,10 +498,10 @@
   .jp-entry-actions { display: flex; gap: 6px; }
   .jp-action-btn {
     padding: 3px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;
-    background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2);
+    background: rgba(29,78,216,0.1); border: 1px solid rgba(29,78,216,0.2);
     color: var(--accent); transition: all 0.2s; font-family: inherit;
   }
-  .jp-action-btn:hover { background: rgba(59,130,246,0.2); transform: scale(1.05); }
+  .jp-action-btn:hover { background: rgba(29,78,216,0.2); transform: scale(1.05); }
   .jp-empty {
     text-align: center; padding: 24px; color: var(--text-dim); font-size: 12px; opacity: 0.5;
   }
@@ -702,8 +702,8 @@
   .ws-option:has(input:checked) { border-color: var(--pink) !important; background: rgba(232,139,167,0.08); }
   .ws-option-item { display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:all 0.15s;border-bottom:1px solid rgba(255,255,255,0.04); }
   .ws-option-item:last-child { border-bottom:none; }
-  .ws-option-item:hover { background:rgba(59,130,246,0.12); }
-  .ws-option-item.selected { background:rgba(59,130,246,0.2); }
+  .ws-option-item:hover { background:rgba(29,78,216,0.12); }
+  .ws-option-item.selected { background:rgba(29,78,216,0.2); }
   .ws-option-item .ws-icon { font-size:16px;flex-shrink:0; }
   .ws-option-item .ws-text { font-size:12px;color:var(--text);line-height:1.4; }
 
@@ -836,7 +836,7 @@
   @media (max-width: 768px) { .hp-quote { padding: 0 16px; } }
 
   /* ========== CHAT VIEW ========== */
-  #chatView { display: flex; flex-direction: row; height: 100%; z-index: 201; position: relative; opacity: 0; transform: translateX(20px); pointer-events: none; transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+  #chatView { display: flex; flex-direction: row; height: 100%; z-index: 201; position: relative; opacity: 0; transform: translateX(20px); pointer-events: none; transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); background-size: cover; background-position: center; }
   #chatView.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
 
   .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
@@ -847,7 +847,7 @@
   .sidebar.hidden { transform: translateX(-100%); }
   .sidebar-header { padding: calc(20px + env(safe-area-inset-top, 0px)) 20px 12px; border-bottom: 1px solid var(--border); }
   .sidebar-header h2 { font-size: 15px; font-weight: 600; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-  .relationship-info { display: flex; gap: 12px; margin-bottom: 14px; padding: 10px 12px; background: rgba(59,130,246,0.06); border-radius: 10px; border: 1px solid rgba(59,130,246,0.1); }
+  .relationship-info { display: flex; gap: 12px; margin-bottom: 14px; padding: 10px 12px; background: rgba(29,78,216,0.06); border-radius: 10px; border: 1px solid rgba(29,78,216,0.1); }
   .rel-item { text-align: center; flex: 1; }
   .rel-item .rel-num { font-size: 20px; font-weight: 700; color: var(--accent); line-height: 1.2; }
   .rel-item .rel-label { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
@@ -862,8 +862,8 @@
   .calendar-grid .day-header { font-size: 10px; color: var(--text-dim); padding: 6px 0; font-weight: 600; }
   .calendar-grid .day-cell { font-size: 12px; padding: 7px 0; border-radius: 8px; cursor: pointer; transition: all 0.15s; position: relative; color: var(--text-dim); }
   .calendar-grid .day-cell:hover { background: var(--calendar-hover); color: var(--text); }
-  .calendar-grid .day-cell.today { background: var(--calendar-today); color: #fff; font-weight: 700; border-radius: 50%; box-shadow: 0 0 10px rgba(59,130,246,0.3); }
-  .calendar-grid .day-cell.has-entry { background: rgba(59,130,246,0.12); color: var(--accent); font-weight: 500; }
+  .calendar-grid .day-cell.today { background: var(--calendar-today); color: #fff; font-weight: 700; border-radius: 50%; box-shadow: 0 0 10px rgba(29,78,216,0.3); }
+  .calendar-grid .day-cell.has-entry { background: rgba(29,78,216,0.12); color: var(--accent); font-weight: 500; }
   .calendar-grid .day-cell.has-entry.today { background: var(--calendar-today); color: #fff; }
   .calendar-grid .day-cell.has-jp { box-shadow: inset 0 -3px 0 var(--accent2); }
   .calendar-grid .day-cell.has-jp.today { box-shadow: inset 0 -3px 0 rgba(255,255,255,0.5); }
@@ -908,16 +908,16 @@
   .header-actions button:hover { border-color: var(--accent); color: var(--accent); }
   .header-actions button.nsfw-active { border-color: var(--red); color: var(--red); background: rgba(199,123,123,0.1); }
 
-  .jessica-status { padding: 6px 24px; background: rgba(59,130,246,0.05); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-dim); flex-shrink: 0; flex-wrap: wrap; }
+  .jessica-status { padding: 6px 24px; background: rgba(29,78,216,0.05); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-dim); flex-shrink: 0; flex-wrap: wrap; }
   .mood-stack { display: flex; gap: 4px; align-items: center; }
-  .mood-tag { font-size: 11px; padding: 1px 6px; border-radius: 8px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.15); }
+  .mood-tag { font-size: 11px; padding: 1px 6px; border-radius: 8px; background: rgba(29,78,216,0.1); border: 1px solid rgba(29,78,216,0.15); }
 
   .mood-tag.primary { background: rgba(245,158,11,0.15); border-color: rgba(245,158,11,0.25); color: var(--accent2); }
   .status-stack { display: flex; gap: 4px; align-items: center; }
-  .status-tag { font-size: 11px; padding: 1px 6px; border-radius: 8px; background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.12); }
+  .status-tag { font-size: 11px; padding: 1px 6px; border-radius: 8px; background: rgba(29,78,216,0.08); border: 1px solid rgba(29,78,216,0.12); }
   .status-section-label { font-size: 10px; color: var(--text-dim); opacity: 0.5; margin-right: 4px; flex-shrink: 0; }
 
-  .chat-area { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; overscroll-behavior: contain; background: rgba(22,25,32,0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .chat-area { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; overscroll-behavior: contain; background: rgba(8,12,20,0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
   .chat-area::-webkit-scrollbar { width: 4px; }
   .chat-area::-webkit-scrollbar-track { background: transparent; }
   .chat-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -945,9 +945,9 @@
   .msg-label { font-size: 11px; color: var(--text-dim); padding: 0 4px; }
   .message.henderson .msg-label { text-align: right; }
   .msg-bubble { padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
-  .message.jessica .msg-bubble { background: var(--bg-msg-j); border-top-left-radius: 4px; color: var(--text); border-left: 2px solid rgba(59,130,246,0.2); }
+  .message.jessica .msg-bubble { background: var(--bg-msg-j); border-top-left-radius: 4px; color: var(--text); border-left: 2px solid rgba(29,78,216,0.2); }
   .message.henderson .msg-bubble { background: var(--bg-msg-h); border-top-right-radius: 4px; color: var(--text); border-right: 2px solid rgba(34,197,94,0.2); }
-  .msg-file { display: inline-flex; align-items: center; gap: 6px; background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25); border-radius: 8px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px; color: var(--accent); }
+  .msg-file { display: inline-flex; align-items: center; gap: 6px; background: rgba(29,78,216,0.12); border: 1px solid rgba(29,78,216,0.25); border-radius: 8px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px; color: var(--accent); }
   .msg-image { max-width: 280px; max-height: 280px; border-radius: 10px; margin-bottom: 6px; cursor: pointer; transition: transform 0.2s; }
   .msg-image:hover { transform: scale(1.02); }
   .msg-time { font-size: 10px; color: var(--text-dim); padding: 0 4px; opacity: 0.6; display: inline-flex; align-items: center; gap: 4px; }
@@ -981,27 +981,27 @@
   .action-bar::-webkit-scrollbar { display: none; }
   .action-btn { display:flex;align-items:center;gap:5px;padding:6px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.2s;white-space:nowrap;flex-shrink:0; }
   .action-btn:hover { border-color:var(--accent);color:var(--text);background:var(--bg-card-light); }
-  .action-btn.active { background:rgba(59,130,246,0.15);border-color:var(--accent);color:var(--accent); }
+  .action-btn.active { background:rgba(29,78,216,0.15);border-color:var(--accent);color:var(--accent); }
   .action-btn .a-icon { font-size:14px; }
   /* Model Switcher */
   .model-switcher { position:relative; flex-shrink:0; }
-  .model-switcher-btn { display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;border:1px solid rgba(59,130,246,0.2);background:rgba(59,130,246,0.06);color:var(--accent);font-size:11px;cursor:pointer;font-family:inherit;transition:all 0.2s;white-space:nowrap;font-weight:600; }
-  .model-switcher-btn:hover { background:rgba(59,130,246,0.12);border-color:rgba(59,130,246,0.3); }
+  .model-switcher-btn { display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;border:1px solid rgba(29,78,216,0.2);background:rgba(29,78,216,0.06);color:var(--accent);font-size:11px;cursor:pointer;font-family:inherit;transition:all 0.2s;white-space:nowrap;font-weight:600; }
+  .model-switcher-btn:hover { background:rgba(29,78,216,0.12);border-color:rgba(29,78,216,0.3); }
   .model-switcher-btn .ms-icon { font-size:13px; }
   .model-switcher-btn .ms-arrow { font-size:8px;opacity:0.6;margin-left:2px;transition:transform 0.2s; }
   .model-switcher-btn.open .ms-arrow { transform:rotate(180deg); }
-  .model-switcher-dropdown { display:none;position:fixed;min-width:220px;background:#0c1220;border:1px solid var(--border);border-radius:12px;overflow:hidden;z-index:9999;box-shadow:0 -8px 32px rgba(0,0,0,0.5); }
+  .model-switcher-dropdown { display:none;position:fixed;min-width:220px;background:#080e1a;border:1px solid var(--border);border-radius:12px;overflow:hidden;z-index:9999;box-shadow:0 -8px 32px rgba(0,0,0,0.5); }
   .model-switcher-dropdown.show { display:block;animation:msSlideUp 0.15s ease; }
   @keyframes msSlideUp { from { opacity:0;transform:translateY(8px); } to { opacity:1;transform:translateY(0); } }
   .ms-option { display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:all 0.15s;border-bottom:1px solid rgba(255,255,255,0.03); }
   .ms-option:last-child { border-bottom:none; }
-  .ms-option:hover { background:rgba(59,130,246,0.1); }
-  .ms-option.active { background:rgba(59,130,246,0.15); }
+  .ms-option:hover { background:rgba(29,78,216,0.1); }
+  .ms-option.active { background:rgba(29,78,216,0.15); }
   .ms-option-icon { font-size:18px;width:28px;text-align:center;flex-shrink:0; }
   .ms-option-info { flex:1;min-width:0; }
   .ms-option-name { font-size:13px;color:#fff;font-weight:600; }
   .ms-option-model { font-size:10px;color:var(--text-dim);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
-  .ms-option-badge { font-size:9px;padding:2px 6px;border-radius:6px;background:rgba(59,130,246,0.2);color:var(--accent);font-weight:600;flex-shrink:0; }
+  .ms-option-badge { font-size:9px;padding:2px 6px;border-radius:6px;background:rgba(29,78,216,0.2);color:var(--accent);font-weight:600;flex-shrink:0; }
   /* Mermaid diagram containers */
   .mermaid-container { margin:12px 0;overflow-x:auto;text-align:center;background:rgba(20,24,32,0.5);border-radius:8px;padding:12px; }
   .mermaid-container svg { max-width:100%;height:auto; }
@@ -1012,7 +1012,7 @@
   .pswp { --pswp-root-z-index:10000; }
   .file-preview-strip { display: none; gap: 8px; padding: 8px 0; overflow-x: auto; flex-wrap: wrap; }
   .file-preview-strip.active { display: flex; }
-  .file-chip { display: flex; align-items: center; gap: 6px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: 8px; padding: 6px 10px; font-size: 12px; color: var(--text); max-width: 200px; }
+  .file-chip { display: flex; align-items: center; gap: 6px; background: rgba(29,78,216,0.1); border: 1px solid rgba(29,78,216,0.2); border-radius: 8px; padding: 6px 10px; font-size: 12px; color: var(--text); max-width: 200px; }
   .file-chip .chip-remove { background: transparent; border: none; color: var(--red); cursor: pointer; font-size: 14px; padding: 0 0 0 4px; opacity: 0.6; }
   .file-chip img.chip-thumb { width: 32px; height: 32px; border-radius: 4px; object-fit: cover; }
   .input-row { display: flex; gap: 12px; align-items: flex-end; }
@@ -1084,10 +1084,10 @@
   .usp-custom-input::placeholder { color: var(--text-dim); }
   .usp-custom-btn {
     padding: 8px 16px; border-radius: 10px; border: 1px solid var(--accent);
-    background: rgba(59,130,246,0.1); color: var(--accent); font-size: 13px;
+    background: rgba(29,78,216,0.1); color: var(--accent); font-size: 13px;
     cursor: pointer; transition: all 0.2s; font-family: inherit; white-space: nowrap;
   }
-  .usp-custom-btn:hover { background: rgba(59,130,246,0.2); }
+  .usp-custom-btn:hover { background: rgba(29,78,216,0.2); }
   @media (max-width: 520px) {
     .user-status-panel { max-height: 60vh; left: -8px; right: -8px; border-radius: 16px 16px 0 0; }
     .usp-item { font-size: 11px; padding: 5px 10px; }
@@ -1119,7 +1119,7 @@
     background: transparent; border: none;
   }
   .emoji-tab:hover { background: rgba(255,255,255,0.08); }
-  .emoji-tab.active { background: rgba(59,130,246,0.2); }
+  .emoji-tab.active { background: rgba(29,78,216,0.2); }
   .emoji-picker-grid {
     display: grid; grid-template-columns: repeat(8, 1fr);
     gap: 2px; padding: 8px; overflow-y: auto; flex: 1;
@@ -1159,8 +1159,8 @@
   .settings-section:first-of-type { border-top: none; padding-top: 0; margin-top: 12px; }
   .settings-section-title { font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 10px; }
   /* 热更新 UI */
-  .hot-update-bar { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:10px; background:rgba(59,130,246,0.06); border:1px solid var(--border); margin-top:8px; transition:all 0.3s; }
-  .hot-update-bar.has-update { border-color:var(--accent); background:rgba(59,130,246,0.12); }
+  .hot-update-bar { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:10px; background:rgba(29,78,216,0.06); border:1px solid var(--border); margin-top:8px; transition:all 0.3s; }
+  .hot-update-bar.has-update { border-color:var(--accent); background:rgba(29,78,216,0.12); }
   .hot-update-bar.checking { border-color:var(--accent-dim); }
   .hot-update-bar.downloading { border-color:#e6a756; background:rgba(230,167,86,0.08); }
   .hot-update-bar.done { border-color:#6bc77f; background:rgba(107,199,127,0.08); }
@@ -1179,7 +1179,7 @@
   .hot-update-bar.checking .hot-update-icon { animation:hu-spin 1s linear infinite; }
   .style-options { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
   .style-option { display: flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-size: 12px; color: var(--text-dim); transition: all 0.15s; }
-  .style-option:has(input:checked) { border-color: var(--accent); color: var(--accent); background: rgba(59,130,246,0.1); }
+  .style-option:has(input:checked) { border-color: var(--accent); color: var(--accent); background: rgba(29,78,216,0.1); }
   .style-option input { display: none; }
   .style-option:hover { border-color: var(--accent-dim); }
   .slider-row { display: flex; align-items: center; gap: 10px; }
@@ -1246,7 +1246,7 @@
     transition: all 0.2s; font-family: inherit;
   }
   .bgm-toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .bgm-toggle-btn.on { background: rgba(59,130,246,0.15); border-color: var(--accent); color: var(--accent); }
+  .bgm-toggle-btn.on { background: rgba(29,78,216,0.15); border-color: var(--accent); color: var(--accent); }
 
   .welcome { text-align: center; margin: auto; color: var(--text-dim); max-width: 400px; }
   .welcome h2 { font-size: 20px; color: var(--text); margin-bottom: 8px; }
@@ -1363,7 +1363,7 @@
   .msg-bubble p { margin: 0 0 8px 0; }
   .msg-bubble p:last-child { margin-bottom: 0; }
   .msg-bubble code {
-    background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.2);
+    background: rgba(29,78,216,0.15); border: 1px solid rgba(29,78,216,0.2);
     border-radius: 4px; padding: 1px 5px; font-size: 13px;
     font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
     color: var(--accent);
@@ -1394,7 +1394,7 @@
   .msg-bubble hr { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
   .msg-bubble table { border-collapse: collapse; margin: 8px 0; width: 100%; }
   .msg-bubble th, .msg-bubble td { border: 1px solid var(--border); padding: 6px 10px; font-size: 13px; }
-  .msg-bubble th { background: rgba(59,130,246,0.1); font-weight: 600; }
+  .msg-bubble th { background: rgba(29,78,216,0.1); font-weight: 600; }
   .msg-bubble h1, .msg-bubble h2, .msg-bubble h3 { margin: 10px 0 6px; color: var(--accent); }
   .msg-bubble h1 { font-size: 16px; } .msg-bubble h2 { font-size: 15px; } .msg-bubble h3 { font-size: 14px; }
 
@@ -1469,7 +1469,7 @@ body:has(#loginScreen:not(.hidden)) .chat-bg-panel { display: none !important; }
 }
 .login-bg::after {
   content: ''; position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 30% 20%, rgba(59,130,246,0.08) 0%, transparent 60%),
+  background: radial-gradient(ellipse at 30% 20%, rgba(29,78,216,0.08) 0%, transparent 60%),
               radial-gradient(ellipse at 70% 80%, rgba(245,158,11,0.06) 0%, transparent 60%);
 }
 
@@ -1559,7 +1559,7 @@ body:has(#loginScreen:not(.hidden)) .chat-bg-panel { display: none !important; }
   font-family: inherit; cursor: pointer;
   transition: all 0.2s; letter-spacing: 1px;
 }
-.login-submit:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(59,130,246,0.3); }
+.login-submit:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(29,78,216,0.3); }
 .login-submit:active { transform: translateY(0); }
 
 .login-footer {
@@ -1578,8 +1578,8 @@ body:has(#loginScreen:not(.hidden)) .chat-bg-panel { display: none !important; }
 /* --- Word Cloud Card --- */
 .hp-card.wordcloud-card {
   grid-column: span 2;
-  background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(245,158,11,0.06));
-  border-color: rgba(59,130,246,0.15);
+  background: linear-gradient(135deg, rgba(29,78,216,0.08), rgba(245,158,11,0.06));
+  border-color: rgba(29,78,216,0.15);
   min-height: 200px;
   position: relative;
 }
@@ -1590,8 +1590,8 @@ body:has(#loginScreen:not(.hidden)) .chat-bg-panel { display: none !important; }
 }
 
 /* ── 新增卡片样式 ── */
-.hp-card.todo-card { background: rgba(46,204,113,0.08); border-color: rgba(46,204,113,0.15); }
-.hp-card.todo-card .hp-card-title { color: #2ecc71; }
+.hp-card.todo-card { background: rgba(29,78,216,0.06); border-color: rgba(29,78,216,0.12); }
+.hp-card.todo-card .hp-card-title { color: #3b82f6; }
 .todo-item { display:flex; align-items:center; gap:8px; padding:6px 0; font-size:13px; color:var(--text-dim); }
 .todo-item.done { text-decoration: line-through; opacity:0.4; }
 .todo-item input[type="checkbox"] { accent-color: #2ecc71; width:16px; height:16px; cursor:pointer; }
@@ -1599,8 +1599,8 @@ body:has(#loginScreen:not(.hidden)) .chat-bg-panel { display: none !important; }
 .todo-add input { flex:1; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:6px; padding:6px 10px; color:var(--text); font-size:12px; }
 .todo-add button { background:rgba(46,204,113,0.2); border:1px solid rgba(46,204,113,0.3); color:#2ecc71; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; }
 
-.hp-card.reading-card { background: rgba(155,89,182,0.08); border-color: rgba(155,89,182,0.15); }
-.hp-card.reading-card .hp-card-title { color: #9b59b6; }
+.hp-card.reading-card { background: rgba(29,78,216,0.06); border-color: rgba(29,78,216,0.12); }
+.hp-card.reading-card .hp-card-title { color: #3b82f6; }
 .reading-progress-bar { width:100%; height:6px; background:rgba(255,255,255,0.08); border-radius:3px; margin-top:8px; overflow:hidden; }
 .reading-progress-fill { height:100%; background:linear-gradient(90deg,#9b59b6,#e74c3c); border-radius:3px; transition:width 0.3s; }
 .reading-info { font-size:11px; color:var(--text-dim); margin-top:4px; }
@@ -1613,8 +1613,8 @@ body:has(#loginScreen:not(.hidden)) .chat-bg-panel { display: none !important; }
 .habit-check { width:22px; height:22px; border-radius:50%; border:2px solid rgba(52,152,219,0.3); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px; transition:all 0.2s; }
 .habit-check.checked { background:rgba(52,152,219,0.3); border-color:#3498db; }
 
-.hp-card.weight-card { background: rgba(230,126,34,0.08); border-color: rgba(230,126,34,0.15); }
-.hp-card.weight-card .hp-card-title { color: #e67e22; }
+.hp-card.weight-card { background: rgba(29,78,216,0.06); border-color: rgba(29,78,216,0.12); }
+.hp-card.weight-card .hp-card-title { color: #3b82f6; }
 .weight-input-row { display:flex; gap:8px; margin-top:6px; }
 .weight-input-row input { flex:1; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:6px; padding:6px 10px; color:var(--text); font-size:13px; text-align:center; }
 .weight-bmi { font-size:11px; color:var(--text-dim); margin-top:6px; }
@@ -1629,7 +1629,7 @@ body:has(#loginScreen:not(.hidden)) .chat-bg-panel { display: none !important; }
 .weather-hourly-item .wh-icon { font-size:18px; }
 .weather-hourly-item .wh-temp { font-size:13px; font-weight:600; color:#fff; }
 .weather-hourly-item .wh-wind { font-size:9px; color:var(--text-dim); }
-.weather-hourly-item.now { background:rgba(59,130,246,0.15); border-radius:8px; }
+.weather-hourly-item.now { background:rgba(29,78,216,0.15); border-radius:8px; }
 .weather-hourly-item.now .wh-time { color:var(--accent); font-weight:600; }
 .wordcloud-empty {
   display: flex; align-items: center; justify-content: center;
@@ -1652,10 +1652,10 @@ body:has(#loginScreen:not(.hidden)) .chat-bg-panel { display: none !important; }
 .kb-upload-area {
   border: 2px dashed var(--border); border-radius: 12px; padding: 20px;
   text-align: center; cursor: pointer; transition: all 0.2s;
-  background: rgba(59,130,246,0.04);
+  background: rgba(29,78,216,0.04);
 }
-.kb-upload-area:hover { border-color: var(--accent); background: rgba(59,130,246,0.08); }
-.kb-upload-area.dragover { border-color: var(--accent); background: rgba(59,130,246,0.12); }
+.kb-upload-area:hover { border-color: var(--accent); background: rgba(29,78,216,0.08); }
+.kb-upload-area.dragover { border-color: var(--accent); background: rgba(29,78,216,0.12); }
 .kb-upload-icon { font-size: 32px; margin-bottom: 8px; }
 .kb-upload-text { font-size: 12px; color: var(--text-dim); }
 .kb-file-list { margin-top: 10px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
@@ -1666,7 +1666,7 @@ body:has(#loginScreen:not(.hidden)) .chat-bg-panel { display: none !important; }
   background: var(--bg-card, rgba(255,255,255,0.03)); border: 1px solid var(--border);
   transition: all 0.2s; position: relative; cursor: default; font-size: 12px;
 }
-.kb-file-item:hover { border-color: var(--accent); background: rgba(59,130,246,0.06); }
+.kb-file-item:hover { border-color: var(--accent); background: rgba(29,78,216,0.06); }
 .kb-file-item .kb-file-icon { font-size: 28px; }
 .kb-file-item .kb-file-name { color: var(--text); font-size: 12px; font-weight: 500; text-align: center; word-break: break-all; line-height: 1.3; max-height: 2.6em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .kb-file-item .kb-file-size { color: var(--text-dim); font-size: 10px; }
@@ -1682,7 +1682,7 @@ body:has(#loginScreen:not(.hidden)) .chat-bg-panel { display: none !important; }
 .rag-status {
   display: inline-flex; align-items: center; gap: 4px;
   font-size: 10px; color: var(--text-dim); padding: 2px 8px;
-  border-radius: 6px; background: rgba(59,130,246,0.08);
+  border-radius: 6px; background: rgba(29,78,216,0.08);
 }
 .rag-status .rag-dot {
   width: 6px; height: 6px; border-radius: 50%;
@@ -1693,7 +1693,7 @@ body:has(#loginScreen:not(.hidden)) .chat-bg-panel { display: none !important; }
 
 /* --- Function Calling Indicator --- */
 .tool-call-indicator {
-  font-size: 11px; color: var(--accent); background: rgba(59,130,246,0.08);
+  font-size: 11px; color: var(--accent); background: rgba(29,78,216,0.08);
   padding: 4px 10px; border-radius: 8px; margin: 4px 0;
   display: inline-flex; align-items: center; gap: 4px;
 }
@@ -1776,14 +1776,14 @@ body.private-mode .header {
   -webkit-backdrop-filter: blur(8px);
 }
 .float-toolbar-btn:hover {
-  background: rgba(59,130,246,0.25);
+  background: rgba(29,78,216,0.25);
   border-color: var(--accent);
   color: var(--accent);
   transform: translateX(-2px);
-  box-shadow: -2px 0 10px rgba(59,130,246,0.15);
+  box-shadow: -2px 0 10px rgba(29,78,216,0.15);
 }
 .float-toolbar-btn:active {
-  background: rgba(59,130,246,0.35);
+  background: rgba(29,78,216,0.35);
   color: var(--text);
 }
 .float-toolbar-btn.active {
@@ -1934,7 +1934,7 @@ body.private-mode .header {
 .pomo-preset-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 .pomo-controls { display: flex; gap: 12px; justify-content: center; margin-bottom: 24px; }
 .pomo-start-btn { padding: 12px 40px; border-radius: 14px; border: none; background: linear-gradient(135deg, var(--accent), var(--pink)); color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.pomo-start-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(59,130,246,0.3); }
+.pomo-start-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(29,78,216,0.3); }
 .pomo-start-btn.running { background: linear-gradient(135deg, var(--orange), var(--red)); }
 .pomo-reset-btn { padding: 12px 20px; border-radius: 14px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); font-size: 14px; cursor: pointer; transition: all 0.2s; }
 .pomo-reset-btn:hover { border-color: var(--red); color: var(--red); }
@@ -2035,12 +2035,12 @@ body.private-mode .header {
 }
 .memo-add-btn {
   width: 100%; padding: 12px;
-  background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);
+  background: rgba(29,78,216,0.15); border: 1px solid rgba(29,78,216,0.3);
   border-radius: 12px; color: var(--accent); font-size: 14px; font-weight: 600;
   cursor: pointer; font-family: inherit; transition: all 0.2s;
   display: flex; align-items: center; justify-content: center; gap: 8px;
 }
-.memo-add-btn:hover { background: rgba(59,130,246,0.25); border-color: var(--accent); }
+.memo-add-btn:hover { background: rgba(29,78,216,0.25); border-color: var(--accent); }
 .memo-editor {
   display: none; flex-direction: column; gap: 12px;
 }
@@ -2245,8 +2245,8 @@ body.private-mode .header {
   animation: gomoku-win-pulse 0.6s ease-in-out infinite alternate;
 }
 @keyframes gomoku-win-pulse {
-  from { box-shadow: 1px 1px 3px rgba(0,0,0,0.4), 0 0 0 0 rgba(59,130,246,0); }
-  to { box-shadow: 1px 1px 3px rgba(0,0,0,0.4), 0 0 0 4px rgba(59,130,246,0.5); }
+  from { box-shadow: 1px 1px 3px rgba(0,0,0,0.4), 0 0 0 0 rgba(29,78,216,0); }
+  to { box-shadow: 1px 1px 3px rgba(0,0,0,0.4), 0 0 0 4px rgba(29,78,216,0.5); }
 }
 .gomoku-controls {
   display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
@@ -2467,7 +2467,7 @@ body.private-mode .header {
 .teach-arrow {
   position: absolute; z-index: 10; pointer-events: none;
   color: var(--accent); font-size: 20px; font-weight: bold;
-  text-shadow: 0 0 8px rgba(59,130,246,0.6);
+  text-shadow: 0 0 8px rgba(29,78,216,0.6);
   animation: teachBounce 1s ease-in-out infinite;
 }
 @keyframes teachBounce {
@@ -2665,7 +2665,7 @@ body.private-mode .header {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
-  color: #a78bfa;
+  color: #60a5fa;
   opacity: 0.9;
 }
 .reasoning-accordion-title {
@@ -2733,7 +2733,7 @@ body.private-mode .header {
 }
 .reasoning-accordion-header .reasoning-status {
   font-size: 11px;
-  color: #a78bfa;
+  color: #60a5fa;
   margin-left: 4px;
   opacity: 0.7;
 }
@@ -2755,7 +2755,7 @@ body.private-mode .header {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #a78bfa;
+  background: #60a5fa;
   animation: reasoningDotBounce 1.2s infinite;
 }
 .reasoning-loading-dots span:nth-child(2) { animation-delay: 0.15s; }
@@ -2868,7 +2868,7 @@ body.private-mode .header {
   transition: all 0.2s;
 }
 .stats-tab:hover { border-color: var(--accent); color: var(--accent); }
-.stats-tab.active { background: rgba(59,130,246,0.2); border-color: var(--accent); color: var(--accent); }
+.stats-tab.active { background: rgba(29,78,216,0.2); border-color: var(--accent); color: var(--accent); }
 .stats-section { display: none; }
 .stats-section.active { display: block; }
 .stats-grid {
@@ -3095,7 +3095,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       <div class="hp-card-label" id="hpMemoCount">暂无备忘录</div>
     </div>
     <!-- Calendar Card -->
-    <div class="hp-card" onclick="openCalModal()" style="cursor:pointer;background:rgba(59,130,246,0.08);padding:12px;">
+    <div class="hp-card" onclick="openCalModal()" style="cursor:pointer;background:rgba(29,78,216,0.08);padding:12px;">
       <div class="hp-mini-cal-wrap">
         <div class="hp-mini-cal-header">
           <span class="cal-month" id="hpCalMonth">5月</span>
@@ -3113,7 +3113,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       <div class="hp-card-label">点击查看详情</div>
     </div>
         <!-- Holiday Countdown -->
-    <div class="hp-card holiday-countdown-card" style="grid-column:span 2;background:rgba(40,35,50,0.85);border-color:rgba(255,255,255,0.08);">
+    <div class="hp-card holiday-countdown-card" style="grid-column:span 2;background:rgba(12,20,40,0.85);border-color:rgba(29,78,216,0.1);">
       <div class="hp-card-title" style="font-size:14px;color:var(--text);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
         <span>🎉 假期倒计时</span>
         <button class="holiday-toggle" onclick="toggleHolidayExpand()" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:2px 8px;border-radius:6px;font-size:10px;cursor:pointer;">展开</button>
@@ -3171,11 +3171,6 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
 
   <!-- Bottom Bar -->
   <div class="hp-bottom-bar">
-    <div class="hp-bottom-btn" onclick="document.getElementById('bgUploadInput').click()">
-      <div class="btn-icon">🖼️</div>
-      <div class="btn-label">背景</div>
-      <input type="file" id="bgUploadInput" accept="image/*" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;" onchange="uploadBackground(event)" />
-    </div>
     <input type="file" id="avatarUploadInputJessica" accept="image/*" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;" onchange="handleAvatarUploadDirect(event,'jessica')" />
     <input type="file" id="avatarUploadInputUser" accept="image/*" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;" onchange="handleAvatarUploadDirect(event,'user')" />
     <label class="hp-bottom-btn" for="avatarUploadInputJessica" style="cursor:pointer;">
@@ -3190,10 +3185,6 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       <div class="btn-icon">🔄</div>
       <div class="btn-label">重置头像</div>
     </div>
-    <div class="hp-bottom-btn" onclick="resetBackground()" title="重置壁纸为默认">
-      <div class="btn-icon">🎨</div>
-      <div class="btn-label">重置壁纸</div>
-    </div>
     <div class="hp-bottom-btn" onclick="openSettings()">
       <div class="btn-icon">⚙</div>
       <div class="btn-label">设置</div>
@@ -3202,7 +3193,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       <div class="btn-icon">🗑️</div>
       <div class="btn-label">重置</div>
     </div>
-    <div class="hp-bottom-btn" onclick="openStats()" style="border-color:rgba(59,130,246,0.3);">
+    <div class="hp-bottom-btn" onclick="openStats()" style="border-color:rgba(29,78,216,0.3);">
       <div class="btn-icon">📊</div>
       <div class="btn-label">统计</div>
     </div>
@@ -3248,7 +3239,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       </div>
       <div class="info-bar">
         <div class="info-item"><span class="icon">🕐</span><span id="liveClock">--:--:--</span></div>
-        <div class="info-item" id="weatherDisplay" onclick="openSettings()" title="点击设置城市"><span class="icon">🌤</span><span id="weatherText">未设置城市</span></div>
+        <div class="info-item" id="weatherDisplay" onclick="promptWeatherCity()" title="点击设置城市"><span class="icon">🌤</span><span id="weatherText">未设置城市</span></div>
       </div>
       <div class="header-actions">
         <button id="nsfwToggle" onclick="toggleNSFW()" title="NSFW 开关">🔓 NSFW</button>
@@ -3336,17 +3327,12 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
         <label>API 密钥</label>
         <input type="password" id="apiKey" placeholder="sk-..." />
       </div>
-      <div id="apiSettingsHint" style="font-size:11px;color:var(--text-dim);margin-bottom:12px;padding:8px 12px;background:rgba(59,130,246,0.06);border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="openSettingsApi()">
+      <div id="apiSettingsHint" style="font-size:11px;color:var(--text-dim);margin-bottom:12px;padding:8px 12px;background:rgba(29,78,216,0.06);border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="openSettingsApi()">
         <span>🤖</span>
         <span>API 由聊天界面的模型切换器管理 · <span style="color:var(--accent);">点击手动配置</span></span>
       </div>
       <label>用户名</label>
       <input type="text" id="userName" placeholder="你的名字" />
-      <label>天气城市</label>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <input type="text" id="weatherCity" placeholder="例:北京" style="flex:1" />
-        <button onclick="fetchWeather(true)" class="settings-action-btn">刷新</button>
-      </div>
     </div>
 
     <!-- 写作风格 -->
@@ -3359,7 +3345,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
           <span id="wsSelectedText" style="flex:1;font-size:13px;color:var(--text);">默认 - 使用杰西卡原始人设中的语言风格</span>
           <span style="font-size:10px;color:var(--text-dim);">▼</span>
         </div>
-        <div id="writingStyleOptions" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:4px;background:#0c1220;border:1px solid var(--border);border-radius:10px;overflow:hidden;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+        <div id="writingStyleOptions" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:4px;background:#080e1a;border:1px solid var(--border);border-radius:10px;overflow:hidden;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
           <div class="ws-option-item" data-value="default" onclick="selectWritingStyle('default','⚡','默认 - 使用杰西卡原始人设中的语言风格')">
             <span class="ws-icon">⚡</span><span class="ws-text">默认 - 使用杰西卡原始人设中的语言风格</span>
           </div>
@@ -3398,7 +3384,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
           <span id="hendersonStyleLabel">默认 - 不设定用户形象</span>
           <span style="font-size:10px;color:var(--text-dim);">▼</span>
         </div>
-        <div id="hendersonStyleOptions" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:4px;background:#0c1220;border:1px solid var(--border);border-radius:10px;overflow:hidden;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+        <div id="hendersonStyleOptions" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:4px;background:#080e1a;border:1px solid var(--border);border-radius:10px;overflow:hidden;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
           <div class="ws-option-item" data-value="default" onclick="selectHendersonStyle('default')">
             <span class="ws-icon">👤</span><span class="ws-text">默认 - 不设定用户形象</span>
           </div>
@@ -7696,7 +7682,7 @@ function initMermaid() {
       primaryColor: '#2a3040',
       primaryTextColor: '#e0e0e6',
       primaryBorderColor: '#4a5a7a',
-      lineColor: '#7b93c7',
+      lineColor: '#1d4ed8',
       secondaryColor: '#1a2a1e',
       tertiaryColor: '#161920',
       fontFamily: 'inherit'
@@ -8149,12 +8135,15 @@ function uploadBackground(e) {
 function applyBackground() {
   const bg = localStorage.getItem('jessica_bg');
   const el = document.getElementById('homepageBg');
+  const chatView = document.getElementById('chatView');
   if (bg) {
     el.style.backgroundImage = `url(${bg})`;
     el.classList.add('has-custom-bg');
+    if (chatView) chatView.style.backgroundImage = `url(${bg})`;
   } else {
     el.style.backgroundImage = '';
     el.classList.remove('has-custom-bg');
+    if (chatView) chatView.style.backgroundImage = '';
     applyDynamicBackground();
   }
 }
@@ -10656,12 +10645,12 @@ const EMOTION_WHEEL = {
   disgust:    { base:'厌恶', mild:'不屑',    intense:'憎恶',    emoji:'🤢', color:'#8bc77b', opposite:'trust',     weight:3 },
   // 喜悦 ←→ 悲伤
   joy:        { base:'喜悦', mild:'愉悦',    intense:'狂喜',    emoji:'😊', color:'#e8a838', opposite:'sadness',   weight:12 },
-  sadness:    { base:'悲伤', mild:'低落',    intense:'悲痛',    emoji:'😢', color:'#7b93c7', opposite:'joy',       weight:5 },
+  sadness:    { base:'悲伤', mild:'低落',    intense:'悲痛',    emoji:'😢', color:'#1d4ed8', opposite:'joy',       weight:5 },
   // 恐惧 ←→ 愤怒
   fear:       { base:'恐惧', mild:'不安',    intense:'恐慌',    emoji:'😨', color:'#9b7bc7', opposite:'anger',     weight:4 },
   anger:      { base:'愤怒', mild:'烦躁',    intense:'暴怒',    emoji:'💢', color:'#c77b7b', opposite:'fear',      weight:4 },
   // 惊讶 ←→ 期待
-  surprise:   { base:'惊讶', mild:'意外',    intense:'震惊',    emoji:'😲', color:'#c79b7b', opposite:'anticipation', weight:3 },
+  surprise:   { base:'惊讶', mild:'意外',    intense:'震惊',    emoji:'😲', color:'#f59e0b', opposite:'anticipation', weight:3 },
   anticipation:{ base:'期待', mild:'好奇',   intense:'警觉',    emoji:'🧐', color:'#7bc7c7', opposite:'surprise',  weight:6 },
 };
 
@@ -12277,6 +12266,16 @@ async function resumePendingReply() {
 // ============================================================
 // WEATHER & TIME
 // ============================================================
+function promptWeatherCity() {
+  const current = localStorage.getItem('jessica_weatherCity') || '';
+  const city = prompt('设置天气城市（如：北京、南京、上海）', current);
+  if (city !== null && city.trim()) {
+    localStorage.setItem('jessica_weatherCity', city.trim());
+    fetchWeather(true);
+    showToast(`🌤 城市已设置为 ${city.trim()}`);
+  }
+}
+
 async function fetchWeather(force=false){
   const city=localStorage.getItem('jessica_weatherCity')||'';
   if(!city){document.getElementById('weatherText').textContent='未设置城市';return;}
@@ -12304,7 +12303,10 @@ let _wdRawData = null; // cache raw wttr.in response
 
 function openWeatherDetail() {
   const city = localStorage.getItem('jessica_weatherCity') || '';
-  if (!city) { showToast('请先在设置中配置天气城市'); openSettings(); return; }
+  if (!city) {
+    promptWeatherCity();
+    return;
+  }
   document.getElementById('weatherDetail').classList.add('active');
   document.getElementById('wdCity').textContent = '加载中...';
   document.getElementById('wdTempMain').textContent = '--°';
@@ -13117,7 +13119,7 @@ function scrollToMessage(idx){
     const renderedStart2 = total - _renderedCount;
     const domIdx = idx - renderedStart2;
     const msgs=document.querySelectorAll('.message');
-    if(msgs[domIdx]){msgs[domIdx].scrollIntoView({behavior:'smooth',block:'center'});const b=msgs[domIdx].querySelector('.msg-bubble');if(b){const o=b.style.background;b.style.background='rgba(59,130,246,0.2)';setTimeout(()=>{b.style.background=o;},1500);}}
+    if(msgs[domIdx]){msgs[domIdx].scrollIntoView({behavior:'smooth',block:'center'});const b=msgs[domIdx].querySelector('.msg-bubble');if(b){const o=b.style.background;b.style.background='rgba(29,78,216,0.2)';setTimeout(()=>{b.style.background=o;},1500);}}
   });
 }
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('hidden');const mask=document.getElementById('sidebarMask');if(mask)mask.classList.toggle('active');}
@@ -14772,7 +14774,7 @@ function renderJpPreview() {
     const cfg = loadConfig();
     const hasApi = cfg.apiBase && cfg.apiKey;
     card.innerHTML = `<div class="jp-empty">${hasApi ? escapeHtml(STR.diaryDrafting) : '杰西卡还没有写下日记...'}</div>
-      ${hasApi ? '<div style="text-align:center;margin-top:8px;"><button onclick="retryDiaryGeneration()" style="background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.3);color:var(--accent);padding:4px 12px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;">🔄 重新生成</button></div>' : ''}`;
+      ${hasApi ? '<div style="text-align:center;margin-top:8px;"><button onclick="retryDiaryGeneration()" style="background:rgba(29,78,216,0.2);border:1px solid rgba(29,78,216,0.3);color:var(--accent);padding:4px 12px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;">🔄 重新生成</button></div>' : ''}`;
     // Clear calendar and list
     const calGrid = document.getElementById('jpCalGrid');
     if (calGrid) calGrid.innerHTML = `<div class="jp-empty" style="grid-column:span 7;padding:12px;">${escapeHtml(STR.diaryEmpty)}</div>`;
@@ -15078,7 +15080,7 @@ function renderJpView() {
       <div class="jp-view-content">${escapeHtml(entry.content)}</div>
       ${reactionsHtml}
       <div style="margin-top:16px;text-align:center;">
-        <button id="jpRegenBtn" style="background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);color:var(--accent);padding:6px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.15s;">🔄 重新生成这篇日记</button>
+        <button id="jpRegenBtn" style="background:rgba(29,78,216,0.15);border:1px solid rgba(29,78,216,0.3);color:var(--accent);padding:6px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.15s;">🔄 重新生成这篇日记</button>
       </div>
     </div>`;
   // 绑定重新生成按钮事件
@@ -18943,7 +18945,7 @@ window.initApp = async function(){
 
   // ===== 虚拟用户(Demo 用,正式上线替换为真实用户系统)=====
   const CHAT_USERS = {
-    jessica: { id:'jessica', name:'杰西卡', emoji:'💜', color:'#7b93c7' },
+    jessica: { id:'jessica', name:'杰西卡', emoji:'💜', color:'#1d4ed8' },
   };
 
   // 当前用户(从登录系统获取,Demo 模式下默认 alice)
@@ -18973,7 +18975,7 @@ window.initApp = async function(){
       id: currentUserId,
       name: currentUserName,
       emoji: '👤',
-      color: '#c79b7b'
+      color: '#f59e0b'
     };
 
     // 从 localStorage 加载会话
@@ -20217,7 +20219,7 @@ const V2WordCloud = {
     const maxScore = keywords[0].score || 1;
     const list = keywords.map(k => [k.word, Math.max(10, Math.floor((k.score / maxScore) * options.maxFontSize || 60))]);
 
-    const colors = ['#7b93c7','#c79b7b','#e88ba7','#7bc77b','#c77b7b','#e8a838','#8ba7e8','#a7e88b','#e8b78b','#8be8e8','#d4a0ff','#ffb3ba','#bae1ff','#baffc9','#ffffba'];
+    const colors = ['#1d4ed8','#3b82f6','#60a5fa','#93c5fd','#1e3a8a','#1e40af','#2563eb','#dbeafe','#bfdbfe','#0f172a','#1e293b','#334155','#475569','#64748b','#94a3b8'];
 
     WordCloud(canvas, {
       list: list,
@@ -24826,7 +24828,7 @@ const StatsManager = {
           labels: ['积极 😊', '消极 😔', '中性 😐'],
           datasets: [{
             data: [positive, negative, neutral],
-            backgroundColor: ['rgba(123,199,123,0.8)', 'rgba(199,123,123,0.8)', 'rgba(59,130,246,0.6)'],
+            backgroundColor: ['rgba(123,199,123,0.8)', 'rgba(199,123,123,0.8)', 'rgba(29,78,216,0.6)'],
             borderColor: ['#0f1114', '#0f1114', '#0f1114'],
             borderWidth: 2,
           }]
@@ -24863,7 +24865,7 @@ const StatsManager = {
       });
       const labels = Object.keys(byDate);
       const scores = labels.map(k => +(byDate[k].sum / byDate[k].count).toFixed(2));
-      const colors = scores.map(s => s > 0 ? 'rgba(123,199,123,0.9)' : s < 0 ? 'rgba(199,123,123,0.9)' : 'rgba(59,130,246,0.7)');
+      const colors = scores.map(s => s > 0 ? 'rgba(123,199,123,0.9)' : s < 0 ? 'rgba(199,123,123,0.9)' : 'rgba(29,78,216,0.7)');
 
       const trend = new Chart(trendCtx.getContext('2d'), {
         type: 'line',
@@ -24872,8 +24874,8 @@ const StatsManager = {
           datasets: [{
             label: '情绪得分',
             data: scores,
-            borderColor: 'rgba(59,130,246,0.8)',
-            backgroundColor: 'rgba(59,130,246,0.15)',
+            borderColor: 'rgba(29,78,216,0.8)',
+            backgroundColor: 'rgba(29,78,216,0.15)',
             fill: true,
             tension: 0.4,
             pointBackgroundColor: colors,
@@ -24937,7 +24939,7 @@ const StatsManager = {
         const val = grid[d][h];
         const intensity = maxVal > 0 ? val / maxVal : 0;
         const alpha = Math.max(0.05, intensity * 0.85);
-        const bg = `rgba(59,130,246,${alpha})`;
+        const bg = `rgba(29,78,216,${alpha})`;
         html += `<div class="heatmap-cell" style="background:${bg};${val === 0 ? 'opacity:0.3;' : ''}">
           <span class="heatmap-tip">周${dayNames[d]} ${h}:00 - ${val} 条消息</span>
           ${val > 0 ? val : ''}
@@ -25024,7 +25026,7 @@ const StatsManager = {
           fontFamily: '"PingFang SC","Microsoft YaHei",sans-serif',
           color: () => {
             const colors = [
-              'rgba(59,130,246,0.9)', 'rgba(245,158,11,0.9)', 'rgba(123,199,123,0.8)',
+              'rgba(29,78,216,0.9)', 'rgba(245,158,11,0.9)', 'rgba(123,199,123,0.8)',
               'rgba(199,123,123,0.8)', 'rgba(155,123,199,0.8)', 'rgba(123,199,199,0.8)',
             ];
             return colors[Math.floor(Math.random() * colors.length)];
@@ -25050,9 +25052,9 @@ const StatsManager = {
             data: top20.map(([, c]) => c),
             backgroundColor: top20.map((_, i) => {
               const alpha = 0.5 + (1 - i / 20) * 0.5;
-              return `rgba(59,130,246,${alpha})`;
+              return `rgba(29,78,216,${alpha})`;
             }),
-            borderColor: 'rgba(59,130,246,0.9)',
+            borderColor: 'rgba(29,78,216,0.9)',
             borderWidth: 1,
             borderRadius: 4,
           }]
@@ -25187,7 +25189,7 @@ async function openMemoryHighlight() {
         contentEl.innerHTML = `
           <div style="margin-bottom:16px;">
             <div style="font-size:12px;color:var(--accent2);margin-bottom:8px;">📍 ${time} · ${role}说</div>
-            <div style="font-size:14px;line-height:1.8;color:var(--text);background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.1);border-radius:12px;padding:14px;white-space:pre-wrap;word-break:break-word;">${escapeHtml(highlight.content)}</div>
+            <div style="font-size:14px;line-height:1.8;color:var(--text);background:rgba(29,78,216,0.06);border:1px solid rgba(29,78,216,0.1);border-radius:12px;padding:14px;white-space:pre-wrap;word-break:break-word;">${escapeHtml(highlight.content)}</div>
           </div>
           ${jessicaReply ? `<div>
             <div style="font-size:12px;color:var(--accent);margin-bottom:8px;">💬 杰西卡回复</div>
