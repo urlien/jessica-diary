@@ -836,7 +836,7 @@
   @media (max-width: 768px) { .hp-quote { padding: 0 16px; } }
 
   /* ========== CHAT VIEW ========== */
-  #chatView { display: flex; flex-direction: row; height: 100%; z-index: 201; position: relative; opacity: 0; transform: translateX(20px); pointer-events: none; transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); background: linear-gradient(135deg, var(--dyn-bg1), var(--dyn-bg2), var(--dyn-bg3)); background-size: cover; }
+  #chatView { display: flex; flex-direction: row; height: 100%; z-index: 201; position: relative; opacity: 0; transform: translateX(20px); pointer-events: none; transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
   #chatView.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
 
   .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
@@ -3028,9 +3028,10 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
 <div id="loginScreen"></div>
 
 <!-- ========== HOMEPAGE ========== -->
+<div id="homepageBg"></div>
+<canvas id="pixelCityCanvas" style="position:fixed;inset:0;z-index:0;pointer-events:none;"></canvas>
+
 <div id="homepage">
-  <div id="homepageBg"></div>
-  <canvas id="pixelCityCanvas" style="position:fixed;inset:0;z-index:0;pointer-events:none;"></canvas>
   <div class="hp-header">
     <div class="hp-time" id="hpTime">00:00:00</div>
     <div class="hp-date" id="hpDate"></div>
