@@ -24956,7 +24956,7 @@ const StatsManager = {
       .replace(/[#*_~`>]/g, '')
       .replace(/<[^>]+>/g, '');
     // Split by punctuation and whitespace
-    const tokens = clean.split(/[\s,。!?、;:""''()【】《》...-\-\n\r\t,.!?;:'"()\[\]{}<>@#$%^&*+=|\\/]+/);
+    const tokens = clean.split(/[\s,。!?、;:""''()【】《》.\-\n\r\t,.!?;:'"()\[\]{}<>@#$%^&*+=|\\/]+/);
     const words = [];
     tokens.forEach(tok => {
       if (!tok || tok.length < 2) return;
