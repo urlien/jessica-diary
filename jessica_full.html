@@ -861,6 +861,8 @@
   .calendar-grid .day-cell.today { background: var(--calendar-today); color: #fff; font-weight: 700; border-radius: 50%; }
   .calendar-grid .day-cell.has-entry { background: rgba(123,147,199,0.18); color: var(--accent); font-weight: 500; }
   .calendar-grid .day-cell.has-entry.today { background: var(--calendar-today); color: #fff; }
+  .calendar-grid .day-cell.has-jp { box-shadow: inset 0 -3px 0 var(--accent2); }
+  .calendar-grid .day-cell.has-jp.today { box-shadow: inset 0 -3px 0 rgba(255,255,255,0.5); }
   .calendar-grid .day-cell.birthday { color: var(--pink); font-weight: 700; }
   .calendar-grid .day-cell.birthday::after { content: '🎂'; position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); font-size: 8px; }
   .calendar-grid .day-cell.other-month { opacity: 0.25; }
@@ -874,6 +876,7 @@
   .diary-entry:hover { background: var(--calendar-hover); color: var(--text); }
   .diary-entry .entry-role { font-size: 10px; color: var(--accent); display: block; margin-bottom: 2px; }
   .diary-entry .entry-time { font-size: 10px; color: var(--text-dim); opacity: 0.5; float: right; }
+  .diary-entry.jp-entry { border-left: 3px solid var(--accent2); background: rgba(199,155,123,0.06); }
   .sidebar-footer { padding: 12px; border-top: 1px solid var(--border); }
   .sidebar-footer button { width: 100%; padding: 8px; border-radius: 8px; background: transparent; border: 1px solid var(--border); color: var(--text-dim); font-size: 12px; cursor: pointer; transition: all 0.2s; font-family: inherit; }
   .sidebar-footer button:hover { border-color: var(--accent); color: var(--accent); }
@@ -3150,20 +3153,6 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
         <input type="number" id="bookPagesInput" placeholder="总页数" style="max-width:70px;">
         <button onclick="addBook()" style="background:rgba(155,89,182,0.2);border:1px solid rgba(155,89,182,0.3);color:#9b59b6;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;">+</button>
       </div>
-    </div>
-
-  </div>
-
-  <!-- Jessica's Personal Diary (V2: calendar + expandable list) -->
-  <div class="jp-section">
-    <div class="jp-header">
-      <div class="jp-header-title"><span>📔</span> 杰西卡的日记</div>
-      <div class="jp-header-actions">
-        <button onclick="openJpModal('view')">📖 查看全部</button>
-      </div>
-    </div>
-    <div id="jpPreviewCard" class="jp-entry-card" onclick="openJpModal('view')">
-      <div class="jp-empty">杰西卡还没有写下日记...</div>
     </div>
 
   </div>
@@ -12892,10 +12881,13 @@ function loadConfig(){
   if(!jp)jp=DEFAULT_JESSICA_PROMPT;
   if(hsStyle==='default')hp='';  // 默认模式不注入用户人设
   if(!hp&&hsStyle==='custom')hp=DEFAULT_HENDERSON_PROFILE;  // 自定义模式但为空时用默认
+  // 优先级：用户手动填写 > 模型切换器(provider) > 默认值
+  const provider=getActiveProvider();
+  const apiBase=localStorage.getItem('jessica_user_apiBase')||localStorage.getItem('jessica_apiBase')||provider.apiBase||'';
+  const apiKey=localStorage.getItem('jessica_user_apiKey')||localStorage.getItem('jessica_apiKey')||provider.apiKey||'';
+  const model=localStorage.getItem('jessica_user_model')||localStorage.getItem('jessica_model')||provider.model||'deepseek-chat';
   return{
-    apiBase:localStorage.getItem('jessica_apiBase')||'',
-    apiKey:localStorage.getItem('jessica_apiKey')||'',
-    model:localStorage.getItem('jessica_model')||'deepseek-chat',
+    apiBase,apiKey,model,
     temperature:parseFloat(localStorage.getItem('jessica_temperature'))||0.8,
     maxTokens:parseInt(localStorage.getItem('jessica_maxTokens'))||2048,
     jessicaPrompt:jp,
@@ -12977,6 +12969,7 @@ function buildFileContentForAPI(){
 function initCalendar(){const n=new Date();calYear=n.getFullYear();calMonth=n.getMonth();renderCalendar();}
 function calNav(d){calMonth+=d;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
 function getEntryDates(){const s=new Set();messages.forEach(m=>{const d=new Date(m.timestamp);s.add(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`);});if(window._jpEntryDatesCache)window._jpEntryDatesCache.forEach(k=>s.add(k));if(window._memoryDatesCache)window._memoryDatesCache.forEach(k=>s.add(k));return s;}
+function getJpEntryDates(){const s=new Set();if(window._jpEntryDatesCache)window._jpEntryDatesCache.forEach(k=>s.add(k));return s;}
 async function loadEntryDatesCache(){try{if(typeof dbGetAllJpEntries==='function'){const jp=await dbGetAllJpEntries();window._jpEntryDatesCache=new Set(jp.map(e=>{const d=new Date(e.timestamp||e.date);return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;}));}if(typeof dbGetAllMemories==='function'){const mem=await dbGetAllMemories();window._memoryDatesCache=new Set(mem.map(m=>{const d=new Date(m.timestamp);return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;}));}}catch(e){}}
 function renderCalendar(){
   document.getElementById('calTitle').innerHTML=`${calYear}年${calMonth+1}月 <span class="season-tag">${getSeason()}</span>`;
@@ -12990,6 +12983,8 @@ function renderCalendar(){
     const key=`${calYear}-${calMonth}-${d}`;
     if(key===todayStr)el.classList.add('today');
     if(entryDates.has(key))el.classList.add('has-entry');
+    const jpDates=getJpEntryDates();
+    if(jpDates.has(key))el.classList.add('has-jp');
     {const _bd=getSavedBirthday();if(calMonth===_bd.month-1&&d===_bd.day)el.classList.add('birthday');}
     if(currentFilter&&currentFilter.year===calYear&&currentFilter.month===calMonth&&currentFilter.day===d)el.classList.add('selected');
     el.onclick=()=>filterByDate(calYear,calMonth,d);grid.appendChild(el);
@@ -13000,6 +12995,57 @@ function renderCalendar(){
 }
 function renderDiaryList(){
   const list=document.getElementById('diaryList');list.innerHTML='';
+  // If a date is selected, show JP diary entries for that date
+  if(currentFilter && currentFilter.year !== undefined && !currentFilter.type) {
+    const selDate = new Date(currentFilter.year, currentFilter.month, currentFilter.day);
+    const dateStr = selDate.toISOString().slice(0,10);
+    const dayEntries = jpEntries.filter(e => {
+      const d = new Date(e.timestamp || e.date);
+      return d.getFullYear()===currentFilter.year && d.getMonth()===currentFilter.month && d.getDate()===currentFilter.day;
+    });
+    // Chat messages for this date
+    const dayMsgs = messages.filter(m => {
+      const d = new Date(m.timestamp);
+      return d.getFullYear()===currentFilter.year && d.getMonth()===currentFilter.month && d.getDate()===currentFilter.day;
+    });
+    if(!dayEntries.length && !dayMsgs.length){
+      list.innerHTML=`<div style="text-align:center;color:var(--text-dim);font-size:12px;padding:20px;">这天没有记录</div>`;
+      return;
+    }
+    // JP Diary entries
+    if(dayEntries.length) {
+      const jpGroup = document.createElement('div');jpGroup.className='diary-date-group';
+      const jpLabel = document.createElement('div');jpLabel.className='diary-date-label';
+      jpLabel.innerHTML = `📔 杰西卡的日记 (${dayEntries.length}篇)`;
+      jpGroup.appendChild(jpLabel);
+      dayEntries.forEach(e => {
+        const el = document.createElement('div');el.className='diary-entry jp-entry';
+        const time = new Date(e.timestamp||e.date).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+        const mood = e.mood || '😌';
+        el.innerHTML = `<span class="entry-role">${mood} 杰西卡 <span class="entry-time">${time}</span></span>${escapeHtml(e.content).slice(0,120)}${(e.content||'').length>120?'...':''}`;
+        el.onclick = () => openJpModal('view');
+        jpGroup.appendChild(el);
+      });
+      list.appendChild(jpGroup);
+    }
+    // Chat messages
+    if(dayMsgs.length) {
+      const chatGroup = document.createElement('div');chatGroup.className='diary-date-group';
+      const chatLabel = document.createElement('div');chatLabel.className='diary-date-label';
+      chatLabel.innerHTML = `💬 聊天记录 (${dayMsgs.length}条)`;
+      chatGroup.appendChild(chatLabel);
+      dayMsgs.slice(-10).forEach(m => {
+        const el = document.createElement('div');el.className='diary-entry';
+        const time = new Date(m.timestamp).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+        el.innerHTML = `<span class="entry-role">${m.role==='assistant'?(m.proactive?'杰西卡 💬':'杰西卡'):getUserName()} <span class="entry-time">${time}</span></span>${escapeHtml(m.content).slice(0,80)}${m.content.length>80?'...':''}`;
+        el.onclick = () => { const idx = messages.indexOf(m); if(idx>=0) scrollToMessage(idx); };
+        chatGroup.appendChild(el);
+      });
+      list.appendChild(chatGroup);
+    }
+    return;
+  }
+  // Default: show all messages grouped by date (existing behavior)
   const groups={};messages.forEach((m,idx)=>{const d=new Date(m.timestamp);const key=d.toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric'});if(!groups[key])groups[key]=[];groups[key].push({...m,idx});});
   const keys=Object.keys(groups).reverse();
   if(!keys.length){list.innerHTML=`<div style="text-align:center;color:var(--text-dim);font-size:12px;padding:20px;">${escapeHtml(STR.noDiary)}</div>`;return;}
@@ -13918,9 +13964,10 @@ function openSettings(){
     if (apiHint) apiHint.style.display = 'flex';
   }
   const cfg=loadConfig();
-  document.getElementById('apiBase').value=cfg.apiBase||'';
-  document.getElementById('apiKey').value=cfg.apiKey||'';
-  document.getElementById('modelName').value=cfg.model||'';
+  // Show user-entered values if they exist, otherwise show empty (built-in handles the rest)
+  document.getElementById('apiBase').value=localStorage.getItem('jessica_user_apiBase')||'';
+  document.getElementById('apiKey').value=localStorage.getItem('jessica_user_apiKey')||'';
+  document.getElementById('modelName').value=localStorage.getItem('jessica_user_model')||'';
   const tempEl=document.getElementById('temperature');
   if(tempEl){tempEl.value=cfg.temperature||0.8;tempEl.oninput=function(){document.getElementById('temperatureValue').textContent=this.value;};}
   const tempValEl=document.getElementById('temperatureValue');
@@ -14132,10 +14179,17 @@ function saveSettings(){
   // Writing style from dropdown (find selected item)
   const wsSelected=document.querySelector('.ws-option-item.selected');
   const ws=wsSelected?wsSelected.dataset.value:'default';
+  // API fields: save to jessica_user_* (highest priority)
+  const userApiBase=document.getElementById('apiBase').value.trim();
+  const userApiKey=document.getElementById('apiKey').value.trim();
+  const userModel=document.getElementById('modelName').value.trim();
+  if(userApiBase)localStorage.setItem('jessica_user_apiBase',userApiBase);else localStorage.removeItem('jessica_user_apiBase');
+  if(userApiKey)localStorage.setItem('jessica_user_apiKey',userApiKey);else localStorage.removeItem('jessica_user_apiKey');
+  if(userModel)localStorage.setItem('jessica_user_model',userModel);else localStorage.removeItem('jessica_user_model');
   saveConfig({
-    apiBase:document.getElementById('apiBase').value.trim(),
-    apiKey:document.getElementById('apiKey').value.trim(),
-    model:document.getElementById('modelName').value.trim()||'deepseek-chat',
+    apiBase:userApiBase,
+    apiKey:userApiKey,
+    model:userModel||'deepseek-chat',
     temperature:parseFloat(document.getElementById('temperature').value)||0.8,
     maxTokens:parseInt(document.getElementById('maxTokens').value)||2048,
     jessicaPrompt:document.getElementById('jessicaPrompt').value||DEFAULT_JESSICA_PROMPT,
