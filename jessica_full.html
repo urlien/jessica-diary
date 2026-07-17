@@ -836,7 +836,7 @@
   @media (max-width: 768px) { .hp-quote { padding: 0 16px; } }
 
   /* ========== CHAT VIEW ========== */
-  #chatView { display: flex; flex-direction: row; height: 100%; z-index: 201; position: relative; opacity: 0; transform: translateX(20px); pointer-events: none; transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); background-size: cover; background-position: center; }
+  #chatView { display: flex; flex-direction: row; height: 100%; z-index: 201; position: relative; opacity: 0; transform: translateX(20px); pointer-events: none; transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); background: linear-gradient(135deg, var(--dyn-bg1), var(--dyn-bg2), var(--dyn-bg3)); background-size: cover; }
   #chatView.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
 
   .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
@@ -2974,6 +2974,19 @@ body.private-mode .header {
   background: rgba(15,17,20,0.5);
   border-radius: 8px;
 }
+
+  /* City Input Modal */
+  .city-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99999; align-items:center; justify-content:center; }
+  .city-modal-overlay.active { display:flex; }
+  .city-modal { background:#0c1220; border:1px solid rgba(29,78,216,0.15); border-radius:16px; padding:24px; width:320px; max-width:90vw; }
+  .city-modal h3 { font-size:16px; color:#fff; margin-bottom:16px; text-align:center; }
+  .city-modal input { width:100%; padding:12px 14px; background:rgba(255,255,255,0.05); border:1px solid rgba(29,78,216,0.15); border-radius:10px; color:#fff; font-size:14px; font-family:inherit; outline:none; margin-bottom:16px; }
+  .city-modal input:focus { border-color:rgba(29,78,216,0.4); }
+  .city-modal input::placeholder { color:#5a6d8a; }
+  .city-modal-btns { display:flex; gap:8px; }
+  .city-modal-btns button { flex:1; padding:10px; border-radius:10px; border:none; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+  .city-modal-btns .city-cancel { background:rgba(255,255,255,0.05); color:#5a6d8a; border:1px solid rgba(255,255,255,0.08); }
+  .city-modal-btns .city-confirm { background:linear-gradient(135deg,#1d4ed8,#3b82f6); color:#fff; }
 
 </style>
 <script>
@@ -8123,32 +8136,13 @@ function hpSearch() {
 }
 
 // Background
-function uploadBackground(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    localStorage.setItem('jessica_bg', reader.result);
-    applyBackground();
-  };
-  reader.readAsDataURL(file);
-  e.target.value = '';
-}
+// uploadBackground removed - custom background disabled
 
 function applyBackground() {
-  const bg = localStorage.getItem('jessica_bg');
+  // Custom background removed - always use dynamic gradient
   const el = document.getElementById('homepageBg');
-  const chatView = document.getElementById('chatView');
-  if (bg) {
-    el.style.backgroundImage = `url(${bg})`;
-    el.classList.add('has-custom-bg');
-    if (chatView) chatView.style.backgroundImage = `url(${bg})`;
-  } else {
-    el.style.backgroundImage = '';
-    el.classList.remove('has-custom-bg');
-    if (chatView) chatView.style.backgroundImage = '';
-    applyDynamicBackground();
-  }
+  el.classList.remove('has-custom-bg');
+  applyDynamicBackground();
 }
 
 // ============================================================
@@ -8925,13 +8919,8 @@ function applyDynamicBackground() {
   renderPixelCity();
   // Update homepage bg brightness based on weather
   const hpBg = document.getElementById('homepageBg');
-  if (hpBg && !hpBg.classList.contains('has-custom-bg')) {
+  if (hpBg) {
     hpBg.style.filter = `brightness(${0.35 * grad.brightness}) blur(2px)`;
-  }
-  // Apply dynamic gradient to chat view too
-  const chatView = document.getElementById('chatView');
-  if (chatView && !chatView.style.backgroundImage) {
-    chatView.style.background = `linear-gradient(135deg, ${grad.bg1}, ${grad.bg2}, ${grad.bg3})`;
   }
   // Apply subtle tint to chat background
   const chatBg = lerpColor(grad.bg2, '#161920', 0.7);
@@ -8994,11 +8983,7 @@ function resetAvatar(target) {
   }
 }
 
-function resetBackground() {
-  localStorage.removeItem('jessica_bg');
-  applyBackground();
-  showToast('壁纸已重置');
-}
+// resetBackground removed - custom background disabled
 
 function applyAvatars() {
   const jAvatar = localStorage.getItem('jessica_avatar') || DEFAULT_JESSICA_AVATAR;
@@ -12276,11 +12261,26 @@ async function resumePendingReply() {
 // ============================================================
 function promptWeatherCity() {
   const current = localStorage.getItem('jessica_weatherCity') || '';
-  const city = prompt('设置天气城市（如：北京、南京、上海）', current);
-  if (city !== null && city.trim()) {
-    localStorage.setItem('jessica_weatherCity', city.trim());
+  const input = document.getElementById('cityModalInput');
+  input.value = current;
+  document.getElementById('cityModalOverlay').classList.add('active');
+  setTimeout(() => input.focus(), 100);
+}
+function closeCityModal() {
+  document.getElementById('cityModalOverlay').classList.remove('active');
+}
+function confirmCityModal() {
+  const input = document.getElementById('cityModalInput');
+  const city = input.value.trim();
+  if (city) {
+    localStorage.setItem('jessica_weatherCity', city);
+    closeCityModal();
     fetchWeather(true);
-    showToast(`🌤 城市已设置为 ${city.trim()}`);
+    showToast(`🌤 城市已设置为 ${city}`);
+    // Refresh weather detail if open
+    if (document.getElementById('weatherDetail').classList.contains('active')) {
+      openWeatherDetail();
+    }
   }
 }
 
@@ -12344,7 +12344,9 @@ function renderWeatherDetail(data) {
   if (!cur || !today) { document.getElementById('wdCity').textContent = '数据异常'; return; }
 
   const city = localStorage.getItem('jessica_weatherCity') || area?.areaName?.[0]?.value || '--';
-  const desc = cur.lang_zh?.[0]?.value || cur.weatherDesc?.[0]?.value || '';
+  const descRaw = cur.lang_zh?.[0]?.value || cur.weatherDesc?.[0]?.value || '';
+  const _weatherCN = {'Sunny':'晴天','Clear':'晴朗','Partly cloudy':'多云间晴','Partly Cloudy':'多云间晴','Cloudy':'多云','Overcast':'阴天','Mist':'薄雾','Fog':'雾','Light rain':'小雨','Moderate rain':'中雨','Heavy rain':'大雨','Light drizzle':'毛毛雨','Patchy rain possible':'可能有小雨','Patchy rain nearby':'附近有小雨','Light snow':'小雪','Moderate snow':'中雪','Heavy snow':'大雪','Thunderstorm':'雷暴','Light rain shower':'小阵雨','Moderate or heavy rain shower':'中到大阵雨','Torrential rain shower':'暴雨','Light sleet':'雨夹雪','Moderate or heavy sleet':'大雨夹雪','Blowing snow':'风吹雪','Blizzard':'暴风雪','Fog':'雾','Freezing fog':'冻雾','Ice pellets':'冰粒','Light showers of ice pellets':'小冰粒阵雨','Patchy light rain':'零星小雨','Patchy moderate rain':'零星中雨','Patchy light drizzle':'零星毛毛雨','Patchy light snow':'零星小雪','Patchy moderate snow':'零星中雪','Patchy heavy snow':'零星大雪','Patchy snow possible':'可能有零星雪'};
+  const desc = _weatherCN[descRaw] || _weatherCN[descRaw.charAt(0).toUpperCase() + descRaw.slice(1)] || descRaw;
   const temp = cur.temp_C;
   const feelsLike = cur.FeelsLikeC;
   const humidity = cur.humidity;
@@ -25349,6 +25351,18 @@ function switchStatsTab(tab) { StatsManager.switchTab(tab); }
         <h3>📊 高频词 Top 20</h3>
         <canvas id="topWordsBarChart" height="300"></canvas>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- City Input Modal -->
+<div class="city-modal-overlay" id="cityModalOverlay" onclick="if(event.target===this)closeCityModal()">
+  <div class="city-modal">
+    <h3>🏙 设置天气城市</h3>
+    <input type="text" id="cityModalInput" placeholder="输入城市名，如：北京、南京、上海" onkeydown="if(event.key==='Enter')confirmCityModal()" />
+    <div class="city-modal-btns">
+      <button class="city-cancel" onclick="closeCityModal()">取消</button>
+      <button class="city-confirm" onclick="confirmCityModal()">确定</button>
     </div>
   </div>
 </div>
