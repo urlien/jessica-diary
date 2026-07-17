@@ -2,7 +2,7 @@
 
 ## 设计定位
 
-**个人日记 × 现代科技感** — 保留杰西卡的温暖私密感，注入视频参考中的渐变紫+毛玻璃+大卡片语言。
+**个人日记 × 现代科技感** — 保留杰西卡的温暖私密感，注入视频参考中的蓝色渐变+毛玻璃+大卡片语言。
 
 **一句话场景：** 深夜，一个人躺在床上，手机屏幕微光，和一个温柔的 AI 聊天，写下今天的日记。
 
@@ -27,12 +27,12 @@
 --text:         #e8e8f0        主文字（更亮）
 --text-dim:     #6b6d7a        次要文字（更暗）
 
---accent:       #8b5cf6        主强调色（渐变紫）
---accent-light: #a78bfa        浅紫
+--accent:       #3b82f6        主强调色（蓝色渐变）
+--accent-light: #60a5fa        浅紫
 --accent2:      #f59e0b        辅助强调色（琥珀金）
 --accent2-light:#fbbf24        浅金
 
---gradient-primary: linear-gradient(135deg, #8b5cf6, #6366f1)    主渐变
+--gradient-primary: linear-gradient(135deg, #3b82f6, #6366f1)    主渐变
 --gradient-warm:    linear-gradient(135deg, #f59e0b, #ef4444)    暖渐变
 --gradient-glow:    linear-gradient(135deg, rgba(139,92,246,0.2), rgba(99,102,241,0.1))  光晕渐变
 
