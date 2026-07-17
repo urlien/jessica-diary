@@ -3335,12 +3335,18 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
     <!-- 基础设置 -->
     <div class="settings-section">
       <div class="settings-section-title">基础设置</div>
-      <label>API 地址</label>
-      <input type="text" id="apiBase" placeholder="https://api.deepseek.com/v1" />
-      <label>模型名称</label>
-      <input type="text" id="modelName" placeholder="deepseek-chat" />
-      <label>API 密钥</label>
-      <input type="password" id="apiKey" placeholder="sk-..." />
+      <div id="apiSettingsWrap" style="display:none;margin-bottom:12px;">
+        <label>API 地址</label>
+        <input type="text" id="apiBase" placeholder="https://api.deepseek.com/v1" />
+        <label>模型名称</label>
+        <input type="text" id="modelName" placeholder="deepseek-chat" />
+        <label>API 密钥</label>
+        <input type="password" id="apiKey" placeholder="sk-..." />
+      </div>
+      <div id="apiSettingsHint" style="font-size:11px;color:var(--text-dim);margin-bottom:12px;padding:8px 12px;background:rgba(123,147,199,0.06);border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="openSettingsApi()">
+        <span>🤖</span>
+        <span>API 由聊天界面的模型切换器管理 · <span style="color:var(--accent);">点击手动配置</span></span>
+      </div>
       <label>用户名</label>
       <input type="text" id="userName" placeholder="你的名字" />
       <label>天气城市</label>
@@ -12734,6 +12740,15 @@ const MODEL_PROVIDERS = [
     badge: '默认'
   },
   {
+    id: 'mimo-lite',
+    name: 'MiMo Lite',
+    icon: '💡',
+    apiBase: 'https://api.xiaomimimo.com/v1',
+    apiKey: 'sk-cf9…zw8i',
+    model: 'mimo-v2.5',
+    badge: '轻量'
+  },
+  {
     id: 'deepseek',
     name: 'DeepSeek',
     icon: '🐋',
@@ -12852,7 +12867,14 @@ function selectProvider(id) {
   document.getElementById('modelSwitcherDropdown').classList.remove('show');
   document.getElementById('modelSwitcherBtn').classList.remove('open');
   document.removeEventListener('click', _closeModelSwitcher);
-  if (id === 'custom') openSettings();
+  if (id === 'custom') openSettingsApi();
+}
+
+function openSettingsApi() {
+  const wrap = document.getElementById('apiSettingsWrap');
+  const hint = document.getElementById('apiSettingsHint');
+  if (wrap) wrap.style.display = 'block';
+  if (hint) hint.style.display = 'none';
 }
 
 // Init model switcher on load
@@ -13884,6 +13906,17 @@ document.addEventListener('click', (e) => {
 
 function openSettings(){
   try {
+  // Show/hide API settings based on active provider
+  const activeProvider = getActiveProvider();
+  const apiWrap = document.getElementById('apiSettingsWrap');
+  const apiHint = document.getElementById('apiSettingsHint');
+  if (activeProvider.id === 'custom') {
+    if (apiWrap) apiWrap.style.display = 'block';
+    if (apiHint) apiHint.style.display = 'none';
+  } else {
+    if (apiWrap) apiWrap.style.display = 'none';
+    if (apiHint) apiHint.style.display = 'flex';
+  }
   const cfg=loadConfig();
   document.getElementById('apiBase').value=cfg.apiBase||'';
   document.getElementById('apiKey').value=cfg.apiKey||'';
