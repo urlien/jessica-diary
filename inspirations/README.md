@@ -30,6 +30,7 @@ inspirations/
 |------|------|
 | [music-player.md](music-player.md) | 恶魔电台音乐播放器 — 纯前端 BGM 面板 |
 | [pixel-city-detail.md](pixel-city-detail.md) | 像素城市背景细化 — 建筑/街道/天气/动效 |
+| [suzu-lives-memory.md](suzu-lives-memory.md) | Agent记忆系统设计 — 定向压缩/第一人格回忆/事件卡片 |
 
 ## 🎯 长期目标
 
