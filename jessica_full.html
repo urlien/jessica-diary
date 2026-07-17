@@ -18226,6 +18226,63 @@ function formatHomepageActionsForJessica() {
     }
   } catch(e) {}
 
+  // 7. 今日待办
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const todoData = JSON.parse(localStorage.getItem('jessica_todos') || '{}');
+    if (todoData.date === today && todoData.items && todoData.items.length) {
+      const done = todoData.items.filter(i => i.done).length;
+      const total = todoData.items.length;
+      const pending = todoData.items.filter(i => !i.done).map(i => i.text);
+      result += `今日待办：${done}/${total}已完成`;
+      if (pending.length) result += `，未完成：${pending.slice(0, 5).join('、')}`;
+      result += '\n';
+    } else {
+      result += `今日待办：暂无\n`;
+    }
+  } catch(e) {}
+
+  // 8. 体重记录
+  try {
+    const weightData = JSON.parse(localStorage.getItem('jessica_weight') || '{"records":[]}');
+    if (weightData.records && weightData.records.length) {
+      const latest = weightData.records[weightData.records.length - 1];
+      result += `体重：${latest.weight}kg`;
+      if (latest.bmi) result += `（BMI ${latest.bmi}）`;
+      if (weightData.records.length > 1) {
+        const prev = weightData.records[weightData.records.length - 2];
+        const diff = (latest.weight - prev.weight).toFixed(1);
+        if (diff > 0) result += `，比上次+${diff}kg`;
+        else if (diff < 0) result += `，比上次${diff}kg`;
+        else result += '，和上次持平';
+      }
+      result += `，共记录${weightData.records.length}次\n`;
+    }
+  } catch(e) {}
+
+  // 9. 阅读进度
+  try {
+    const books = JSON.parse(localStorage.getItem('jessica_books') || '[]');
+    if (books.length) {
+      const lines = books.map(b => {
+        const pct = b.total > 0 ? Math.min(100, Math.round(b.current / b.total * 100)) : 0;
+        return `${b.name}（${b.current}/${b.total}页，${pct}%）`;
+      });
+      result += `在读：${lines.join('；')}\n`;
+    }
+  } catch(e) {}
+
+  // 10. 日记统计
+  try {
+    if (typeof jpEntries !== 'undefined' && jpEntries.length) {
+      const todayKey = new Date().toISOString().slice(0, 10);
+      const todayEntries = jpEntries.filter(e => jpDateKey(e.timestamp) === todayKey);
+      result += `杰西卡日记：共${jpEntries.length}篇`;
+      if (todayEntries.length) result += `，今天写了${todayEntries.length}篇`;
+      result += '\n';
+    }
+  } catch(e) {}
+
   // 6. 用户操作记录
   if (actions.length) {
     const lines = actions.map(a => {
