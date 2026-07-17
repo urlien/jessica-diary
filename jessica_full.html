@@ -15510,6 +15510,37 @@ const ContextBuilder = {
     if (personalityInfo) ctx += ` + ${personalityInfo.label}（${personalityInfo.emoji}）`;
     // 时间 + 天气 + 位置
     ctx += `\n\n[系统注入]\n时间：${timeCtx}`;
+    // 消息时间感知：计算与上一条消息的间隔
+    try {
+      if (typeof messages !== 'undefined' && messages.length > 0) {
+        const lastMsg = messages[messages.length - 1];
+        if (lastMsg && lastMsg.timestamp) {
+          const gapMs = Date.now() - lastMsg.timestamp;
+          const gapMin = Math.floor(gapMs / 60000);
+          const gapHours = Math.floor(gapMin / 60);
+          const gapDays = Math.floor(gapHours / 24);
+          let gapDesc = '';
+          if (gapMin < 1) gapDesc = '刚刚（不到1分钟前）';
+          else if (gapMin < 5) gapDesc = `${gapMin}分钟前`;
+          else if (gapMin < 60) gapDesc = `${gapMin}分钟前`;
+          else if (gapHours < 24) gapDesc = `${gapHours}小时${gapMin % 60 > 0 ? gapMin % 60 + '分钟' : ''}前`;
+          else gapDesc = `${gapDays}天${gapHours % 24 > 0 ? gapHours % 24 + '小时' : ''}前`;
+          const lastRole = lastMsg.role === 'user' ? getUserName() : '你（杰西卡）';
+          ctx += `\n距离上次消息已过去：${gapDesc}（上一条是${lastRole}发的）`;
+          // 跨天感知
+          const lastDate = new Date(lastMsg.timestamp);
+          const nowDate = new Date();
+          if (lastDate.toDateString() !== nowDate.toDateString()) {
+            const dayNames = ['周日','周一','周二','周三','周四','周五','周六'];
+            ctx += `\n注意：上次聊天是${lastDate.getMonth()+1}月${lastDate.getDate()}日（${dayNames[lastDate.getDay()]}），今天是${nowDate.getMonth()+1}月${nowDate.getDate()}日（${dayNames[nowDate.getDay()]}），已经跨天了。不要把今天的对话和昨天的混为一谈。`;
+          }
+          // 长时间未聊的提示
+          if (gapHours >= 4) {
+            ctx += `\n用户很久没来找你了，你可能会想念他，或者好奇他去做了什么。自然地表现出来，但不要每次都刻意提起时间间隔。`;
+          }
+        }
+      }
+    } catch(e) { console.warn('[TimeGap]', e); }
     if (ws) ctx += `\n${ws}`;
     // 杰西卡的位置（跟随用户城市）
     const userCity = localStorage.getItem('jessica_weatherCity') || '';
