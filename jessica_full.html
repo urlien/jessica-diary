@@ -976,6 +976,25 @@
   .action-btn:hover { border-color:var(--accent);color:var(--text);background:var(--bg-card-light); }
   .action-btn.active { background:rgba(123,147,199,0.15);border-color:var(--accent);color:var(--accent); }
   .action-btn .a-icon { font-size:14px; }
+  /* Model Switcher */
+  .model-switcher { position:relative; flex-shrink:0; }
+  .model-switcher-btn { display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;border:1px solid rgba(123,147,199,0.3);background:rgba(123,147,199,0.08);color:var(--accent);font-size:11px;cursor:pointer;font-family:inherit;transition:all 0.2s;white-space:nowrap;font-weight:600; }
+  .model-switcher-btn:hover { background:rgba(123,147,199,0.15);border-color:var(--accent); }
+  .model-switcher-btn .ms-icon { font-size:13px; }
+  .model-switcher-btn .ms-arrow { font-size:8px;opacity:0.6;margin-left:2px;transition:transform 0.2s; }
+  .model-switcher-btn.open .ms-arrow { transform:rotate(180deg); }
+  .model-switcher-dropdown { display:none;position:absolute;bottom:calc(100% + 6px);left:0;min-width:220px;background:#1a1a2e;border:1px solid var(--border);border-radius:12px;overflow:hidden;z-index:100;box-shadow:0 -8px 32px rgba(0,0,0,0.5); }
+  .model-switcher-dropdown.show { display:block;animation:msSlideUp 0.15s ease; }
+  @keyframes msSlideUp { from { opacity:0;transform:translateY(8px); } to { opacity:1;transform:translateY(0); } }
+  .ms-option { display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:all 0.15s;border-bottom:1px solid rgba(255,255,255,0.03); }
+  .ms-option:last-child { border-bottom:none; }
+  .ms-option:hover { background:rgba(123,147,199,0.1); }
+  .ms-option.active { background:rgba(123,147,199,0.15); }
+  .ms-option-icon { font-size:18px;width:28px;text-align:center;flex-shrink:0; }
+  .ms-option-info { flex:1;min-width:0; }
+  .ms-option-name { font-size:13px;color:#fff;font-weight:600; }
+  .ms-option-model { font-size:10px;color:var(--text-dim);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+  .ms-option-badge { font-size:9px;padding:2px 6px;border-radius:6px;background:rgba(123,147,199,0.2);color:var(--accent);font-weight:600;flex-shrink:0; }
   /* Mermaid diagram containers */
   .mermaid-container { margin:12px 0;overflow-x:auto;text-align:center;background:rgba(20,24,32,0.5);border-radius:8px;padding:12px; }
   .mermaid-container svg { max-width:100%;height:auto; }
@@ -3267,6 +3286,14 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
     <div class="typing-text" id="typingText">杰西卡正在输入<span class="typing-dots"><span></span><span></span><span></span></span></div>
     <div class="input-area">
       <div class="action-bar">
+        <div class="model-switcher" id="modelSwitcher">
+          <button class="model-switcher-btn" id="modelSwitcherBtn" onclick="toggleModelSwitcher()">
+            <span class="ms-icon">🤖</span>
+            <span id="msCurrentModel">MiMo</span>
+            <span class="ms-arrow">▼</span>
+          </button>
+          <div class="model-switcher-dropdown" id="modelSwitcherDropdown"></div>
+        </div>
         <button class="action-btn" onclick="toggleSearchMode()" id="searchModeBtn"><span class="a-icon">🔍</span>强制搜索</button>
         <button class="action-btn" onclick="document.getElementById('fileInput').click()"><span class="a-icon">📎</span>文件</button>
         <button class="action-btn" onclick="event.stopPropagation();toggleEmojiPicker()"><span class="a-icon">😊</span>表情</button>
@@ -12723,6 +12750,131 @@ const NotificationBridge = {
     }
   }
 };
+// ============================================================
+// MODEL SWITCHER — multi-provider support
+// ============================================================
+const MODEL_PROVIDERS = [
+  {
+    id: 'mimo',
+    name: 'MiMo',
+    icon: '🧠',
+    apiBase: 'https://api.xiaomimimo.com/v1',
+    apiKey: 'sk-cf9xrwvsc10um87kvkwjzol8r6farqwexl8g537e15i5zw8i',
+    model: 'mimo-v2.5-pro',
+    badge: '默认'
+  },
+  {
+    id: 'deepseek',
+    name: 'DeepSeek',
+    icon: '🐋',
+    apiBase: 'https://api.deepseek.com/v1',
+    apiKey: 'sk-61bce3a0d63644b084a07ff9423cc7fe',
+    model: 'deepseek-v4-pro',
+    badge: '强推理'
+  },
+  {
+    id: 'kimi',
+    name: 'Kimi',
+    icon: '🌙',
+    apiBase: 'https://api.moonshot.cn/v1',
+    apiKey: 'sk-7iZoF5BZciIXLuiD7lo8qmio0Vu6OgkEPwMl8LRThqMqa1ne',
+    model: 'kimi-k2.7-code',
+    badge: '代码'
+  },
+  {
+    id: 'custom',
+    name: '自定义',
+    icon: '⚙',
+    apiBase: '',
+    apiKey: '',
+    model: '',
+    badge: '手动'
+  }
+];
+
+function getActiveProvider() {
+  const saved = localStorage.getItem('jessica_activeProvider') || 'mimo';
+  return MODEL_PROVIDERS.find(p => p.id === saved) || MODEL_PROVIDERS[0];
+}
+
+function setActiveProvider(providerId) {
+  localStorage.setItem('jessica_activeProvider', providerId);
+  const p = MODEL_PROVIDERS.find(x => x.id === providerId);
+  if (!p) return;
+  if (providerId === 'custom') {
+    // Custom: don't overwrite apiBase/apiKey/model, keep whatever user set in settings
+    return;
+  }
+  // Apply provider's config
+  localStorage.setItem('jessica_apiBase', p.apiBase);
+  localStorage.setItem('jessica_apiKey', p.apiKey);
+  localStorage.setItem('jessica_model', p.model);
+  // Update UI
+  updateModelSwitcherUI();
+  showToast(`✅ 已切换到 ${p.name}（${p.model}）`);
+}
+
+function updateModelSwitcherUI() {
+  const p = getActiveProvider();
+  const label = document.getElementById('msCurrentModel');
+  if (label) label.textContent = p.name;
+  // Update dropdown active state
+  document.querySelectorAll('.ms-option').forEach(el => {
+    el.classList.toggle('active', el.dataset.id === p.id);
+  });
+}
+
+function renderModelSwitcher() {
+  const dd = document.getElementById('modelSwitcherDropdown');
+  if (!dd) return;
+  dd.innerHTML = MODEL_PROVIDERS.map(p => `
+    <div class="ms-option" data-id="${p.id}" onclick="selectProvider('${p.id}')">
+      <span class="ms-option-icon">${p.icon}</span>
+      <div class="ms-option-info">
+        <div class="ms-option-name">${p.name}</div>
+        <div class="ms-option-model">${p.model || '在设置中配置'}</div>
+      </div>
+      <span class="ms-option-badge">${p.badge}</span>
+    </div>
+  `).join('');
+  updateModelSwitcherUI();
+}
+
+function toggleModelSwitcher() {
+  const dd = document.getElementById('modelSwitcherDropdown');
+  const btn = document.getElementById('modelSwitcherBtn');
+  const isOpen = dd.classList.contains('show');
+  if (isOpen) {
+    dd.classList.remove('show');
+    btn.classList.remove('open');
+    document.removeEventListener('click', _closeModelSwitcher);
+  } else {
+    dd.classList.add('show');
+    btn.classList.add('open');
+    setTimeout(() => document.addEventListener('click', _closeModelSwitcher), 0);
+  }
+}
+
+function _closeModelSwitcher(e) {
+  const wrap = document.getElementById('modelSwitcher');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('modelSwitcherDropdown').classList.remove('show');
+    document.getElementById('modelSwitcherBtn').classList.remove('open');
+    document.removeEventListener('click', _closeModelSwitcher);
+  }
+}
+
+function selectProvider(id) {
+  setActiveProvider(id);
+  document.getElementById('modelSwitcherDropdown').classList.remove('show');
+  document.getElementById('modelSwitcherBtn').classList.remove('open');
+  document.removeEventListener('click', _closeModelSwitcher);
+  if (id === 'custom') openSettings();
+}
+
+// Init model switcher on load
+setTimeout(renderModelSwitcher, 100);
+
 function loadConfig(){
   let jp=localStorage.getItem('jessica_jessicaPrompt');
   let hp=localStorage.getItem('jessica_hendersonProfile');
@@ -18587,6 +18739,12 @@ window.initApp = async function(){
   const loginScreen = document.getElementById('loginScreen');
   if (loginScreen) { loginScreen.style.display = 'none'; loginScreen.classList.add('hidden'); loginScreen.style.pointerEvents = 'none'; loginScreen.style.zIndex = '-1'; }
   applyBackground();applyAvatars();loadMemo();updateHpClock();updateDaysAlive();loadHpUserName();applyNSFWState();loadAffection();renderAffectionBar();
+  // Init model provider on first run
+  if (!localStorage.getItem('jessica_activeProvider')) {
+    setActiveProvider('mimo');
+  } else {
+    updateModelSwitcherUI();
+  }
   setInterval(()=>{if(!document.hidden)updateHpClock();},1000);setInterval(()=>{if(!document.hidden)updateClock();},1000);
   await loadEntryDatesCache();initCalendar();await loadHistory();await migrateMessagesToMemory();
   rebuildSearchIndex();
