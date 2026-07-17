@@ -4990,7 +4990,7 @@ const DEFAULT_JESSICA_PROMPT = `你叫杰西卡。嗯，就是杰西卡。
 - 如果你发现自己写了超过4句话，砍掉最后两句。通常最后两句是废话。
 - 如果你发现自己在用"总分总"结构，删掉开头和结尾的总结，只留中间。
 - 如果你发现自己在列点（1. 2. 3.），把它们揉成一句话。
-- 如果你不确定某件事，不要编。说"我查查"然后输出 [SEARCH:关键词]。
+- 如果你不确定某件事，不要编。系统会自动搜索，你直接基于搜索结果回答。
 - 如果你发现自己在说"作为AI""我的程序"这类话，立刻停止，用杰西卡的方式怼回去。
 
 ## 主动关心
@@ -12252,37 +12252,7 @@ async function resumePendingReply() {
     renderCalendar();
     playNotificationSound();
     rebuildSearchIndex();
-    // Search detection — let Jessica search even during resume
-    const _origFullText = stripReasoning(fullText);
-    const searchQuery = detectSearchRequest(_origFullText);
-    if (searchQuery) {
-      assistantMsg.content = stripSearchTokens(assistantMsg.content);
-      await dbUpdateMessage(assistantMsg);
-      // Show accordion in the last message
-      const lastMsgWrap = document.getElementById('chatArea')?.querySelector('.message:last-child .msg-content-wrap');
-      let searchAccordion = null;
-      if (lastMsgWrap) {
-        searchAccordion = createSearchAccordion(lastMsgWrap);
-      }
-      const searchResults = await performWebSearch(searchQuery);
-      if (searchAccordion && searchResults && searchResults.length) {
-        updateSearchAccordion(searchAccordion, searchResults, searchQuery);
-      } else if (searchAccordion) {
-        updateSearchAccordion(searchAccordion, [], searchQuery);
-      }
-      showTypingIndicator();
-      const searchReply = await searchAndRespondWithResults(searchQuery, messages, searchResults);
-      hideTypingIndicator();
-      if (searchReply) {
-        assistantMsg.content = searchReply;
-        await dbUpdateMessage(assistantMsg);
-        const lastMsgEl = document.getElementById('chatArea')?.querySelector('.message:last-child .msg-bubble');
-        if (lastMsgEl) { if (typeof marked !== 'undefined') { try { lastMsgEl.innerHTML = renderJessicaMarkdown(searchReply); } catch(e) { lastMsgEl.textContent = searchReply; } } else { lastMsgEl.textContent = searchReply; } }
-        saveHistoryFallback();
-      } else {
-        showToast('⚠️ 搜索暂时不可用，以上回复基于已有知识');
-      }
-    }
+    // Search detection — [SEARCH:] 已废弃，搜索由 auto-search 处理
     rollMood();
     refreshStatusWithChat(lastMsg.content);
     renderStatusBar();
@@ -12771,6 +12741,15 @@ const MODEL_PROVIDERS = [
     apiKey: 'sk-61bce3a0d63644b084a07ff9423cc7fe',
     model: 'deepseek-v4-pro',
     badge: '强推理'
+  },
+  {
+    id: 'deepseek-flash',
+    name: 'DeepSeek Flash',
+    icon: '⚡',
+    apiBase: 'https://api.deepseek.com/v1',
+    apiKey: 'sk-61bce3a0d63644b084a07ff9423cc7fe',
+    model: 'deepseek-v4-flash',
+    badge: '快速'
   },
   {
     id: 'kimi',
@@ -13823,31 +13802,7 @@ async function sendMessage(){
     }
     saveHistoryFallback();renderCalendar();playNotificationSound();rebuildSearchIndex();
     rollMood();refreshStatusWithChat(userMsg.content);renderStatusBar();
-    const _origFullText2=stripReasoning(fullText);
-    const searchQuery=detectSearchRequest(_origFullText2);
-    if(searchQuery){
-      assistantMsg.content=stripSearchTokens(assistantMsg.content);
-      await dbUpdateMessage(assistantMsg);
-      // Show accordion in the last message
-      const lastMsgWrap=area.querySelector('.message:last-child .msg-content-wrap');
-      let searchAccordion=null;
-      if(lastMsgWrap){searchAccordion=createSearchAccordion(lastMsgWrap);}
-      const searchResults=await performWebSearch(searchQuery);
-      if(searchAccordion&&searchResults&&searchResults.length){updateSearchAccordion(searchAccordion,searchResults,searchQuery);}
-      else if(searchAccordion){updateSearchAccordion(searchAccordion,[],searchQuery);}
-      showTypingIndicator();
-      const searchReply=await searchAndRespondWithResults(searchQuery,messages,searchResults);
-      hideTypingIndicator();
-      if(searchReply){
-        assistantMsg.content=searchReply;
-        await dbUpdateMessage(assistantMsg);
-        const lastMsg=area.querySelector('.message:last-child .msg-bubble');
-        if(lastMsg){if(typeof marked!=='undefined'){try{lastMsg.innerHTML=renderJessicaMarkdown(searchReply);}catch(e){lastMsg.textContent=searchReply;}}else{lastMsg.textContent=searchReply;}}
-        saveHistoryFallback();
-      } else {
-        showToast('⚠️ 搜索暂时不可用，以上回复基于已有知识');
-      }
-    }
+    // [SEARCH:] 标签已废弃，搜索完全由 auto-search 在发送前处理
     const stickerEmotion=detectStickerRequest(assistantMsg.content);
     if(stickerEmotion){
       assistantMsg.content=stripStickerTokens(assistantMsg.content);
@@ -15818,18 +15773,18 @@ const ContextBuilder = {
   // 搜索模式注入
   getSearchContext() {
     if (searchModeEnabled) {
-      return `\n\n[联网搜索模式-强制] 用户开启了强制联网搜索。对于以下类型的问题，你必须先输出 [SEARCH:搜索关键词] 来搜索，不要凭记忆回答：
+      return `\n\n[联网搜索模式-强制] 用户开启了强制联网搜索。对于以下类型的问题，系统已自动搜索并注入结果，请严格基于搜索结果回答：
 - 新闻、时事、最近发生的事件、热点话题
 - 具体数据、价格、统计数字、排名
 - 你不了解的新名词、新产品、新人物
 - 需要验证的事实性问题
 - 用户明确要求你搜索或查证的内容
 - 任何你不确定的、可能过时的信息
-搜索要求：1. 搜索关键词要精准简短（5-15个字）2. 一次只搜一个最核心的query 3. 如果第一次搜不到满意结果，可以换关键词再搜一次 4. 搜完后用自己的话自然地回答 5. 不要编造搜索结果中没有的信息。
+要求：基于搜索结果用自己的话自然地回答，不要直接复制。不要编造搜索结果中没有的信息。
 ⚠️ 足球赛事特别规则：比分、进球者、助攻者等数据必须来自搜索结果，绝对不能编造。搜不到就说搜不到。
 你的搜索能力已增强，覆盖：综合搜索（SearXNG/DuckDuckGo）、中文深度搜索（Bing中文/知乎/百度/微信公众号）、实时新闻（Google News/Bing News/各大RSS新闻源/微博热搜）、技术搜索（GitHub/StackOverflow/HackerNews）、足球赛事数据（TheSportsDB/ESPN官方API）等15+个搜索源。`;
     }
-    return `\n\n[搜索提醒] 你具备联网搜索能力。当你遇到不确定的信息、新闻、新名词、具体数据时，可以主动输出 [SEARCH:关键词] 来搜索确认，而不是编造。用户说"搜一下""帮我查查"时也要搜索。足球赛事比分必须来自搜索结果，不能编造。`;
+    return `\n\n[搜索提醒] 你具备联网搜索能力。当你遇到不确定的信息、新闻、新名词、具体数据时，系统会自动检测是否需要联网搜索，你不需要主动触发。如果搜索结果已注入，直接基于结果回答。足球赛事比分必须来自搜索结果，不能编造。`;
   },
 };
 
@@ -16033,7 +15988,7 @@ function buildSystemPrompt(base) {
 遇到陌生名词、新事件、具体数据，先搜再答。
 搜不到就说搜不到，不要硬编。
 可以帮他查资料、查新闻，也可以主动搜索热点分享给他。
-当需要搜索时，输出 [SEARCH:关键词]（关键词要简短精准，5-15个字，只搜一个核心问题）。
+系统会自动检测并搜索。如果搜索结果已注入上下文，直接基于结果回答即可。
 如果第一次搜不到好结果，可以换关键词再搜一次。
 搜索后基于结果用自己的话回答，不要直接复制粘贴。
 
@@ -16695,7 +16650,10 @@ const CORS_PROXIES = ['https://api.allorigins.win/raw?url=', 'https://corsproxy.
 function getSearchWorkerUrl() { return localStorage.getItem('jessica_search_worker') || ''; }
 const _searchCache = new Map();
 const SEARCH_CACHE_TTL = 5 * 60 * 1000;
-const NEWS_CACHE_TTL = 3 * 60 * 1000; // News has shorter TTL
+const NEWS_CACHE_TTL = 3 * 60 * 1000;
+// ── 超时优化：统一缩短，总超时 8s ──
+const SEARCH_TIMEOUT_SINGLE = 6000;   // 单源超时
+const SEARCH_TIMEOUT_TOTAL = 8000;    // 搜索总超时（整轮搜索必须在这个时间内完成） // News has shorter TTL
 
 function getCachedSearch(query, ttl) {
   const entry = _searchCache.get(query);
@@ -17152,6 +17110,21 @@ async function performWebSearch(query, opts = {}) {
   const cached = getCachedSearch(query);
   if (cached) return cached;
 
+  // 总超时包装：8s 内必须完成，否则返回已有结果
+  const totalTimeout = new Promise(resolve => setTimeout(() => resolve('__TIMEOUT__'), SEARCH_TIMEOUT_TOTAL));
+  const searchPromise = _performWebSearchInner(query, opts);
+  const result = await Promise.race([searchPromise, totalTimeout]);
+  if (result === '__TIMEOUT__') {
+    console.warn('[Search] Total timeout reached');
+    return null;
+  }
+  return result;
+}
+
+async function _performWebSearchInner(query, opts = {}) {
+  const cached = getCachedSearch(query);
+  if (cached) return cached;
+
   const isChinese = /[\u4e00-\u9fa5]/.test(query);
   const isTech = /\b(api|github|npm|docker|python|javascript|react|vue|node|bug|error|code|sdk|git|ai|gpt|llm|模型)\b/i.test(query);
   const isCode = /\b(function|class|import|export|const|let|var|async|await|package|module)\b/i.test(query);
@@ -17601,12 +17574,15 @@ function shouldAutoSearch(text) {
 let _lastAutoSearchQuery = '';
 let _lastAutoSearchTs = 0;
 async function autoDetectAndSearch(text) {
-  const query = shouldAutoSearch(text);
+  // 强制搜索模式：每次都搜
+  const forceQuery = searchModeEnabled ? text : null;
+  const query = forceQuery || shouldAutoSearch(text);
   if (!query) return null;
-  // Avoid duplicate searches for same query within 5 minutes
-  if (query === _lastAutoSearchQuery && Date.now() - _lastAutoSearchTs < 300000) return null;
-  // Avoid searching if the user just searched (within 2 min)
-  if (Date.now() - _lastAutoSearchTs < 120000) return null;
+  // 强制搜索模式下跳过去重检查
+  if (!searchModeEnabled) {
+    if (query === _lastAutoSearchQuery && Date.now() - _lastAutoSearchTs < 300000) return null;
+    if (Date.now() - _lastAutoSearchTs < 120000) return null;
+  }
 
   // ━━━ 足球赛事特殊处理：直接从 API 获取真实数据 ━━━
   const footballQuery = detectFootballQuery(text);
