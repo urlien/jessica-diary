@@ -8222,14 +8222,14 @@ function getDynamicGradient() {
 
   // Time-based color palettes (3 anchor points per time slot)
   const timeColors = {
-    dawn:    { bg1: '#1a1028', bg2: '#2d1a3a', bg3: '#1a1530' }, // 5-7: deep purple-pink
-    morning: { bg1: '#1a2030', bg2: '#2a3548', bg3: '#1e2838' }, // 7-10: cool blue-gray
-    midday:  { bg1: '#1e2838', bg2: '#2a3848', bg3: '#1a2530' }, // 10-14: bright blue
-    afternoon:{ bg1: '#2a2520', bg2: '#3a3028', bg3: '#201e1a' }, // 14-17: warm amber
-    sunset:  { bg1: '#2a1a1a', bg2: '#3a2020', bg3: '#1a1218' }, // 17-19: deep red-orange
-    evening: { bg1: '#1a1828', bg2: '#241e30', bg3: '#14121e' }, // 19-22: dark purple
-    night:   { bg1: '#0a0c14', bg2: '#12141e', bg3: '#080a10' }, // 22-1: deep dark
-    latenight:{ bg1: '#080a10', bg2: '#0e1018', bg3: '#060810' }, // 1-5: darkest
+    dawn:    { bg1: '#0c1628', bg2: '#162040', bg3: '#0a1220' }, // 5-7: deep blue
+    morning: { bg1: '#0e1a30', bg2: '#1a2a48', bg3: '#0c1838' }, // 7-10: cool blue
+    midday:  { bg1: '#102040', bg2: '#1a3050', bg3: '#0c1a30' }, // 10-14: bright blue
+    afternoon:{ bg1: '#101e38', bg2: '#182a48', bg3: '#0c1628' }, // 14-17: blue
+    sunset:  { bg1: '#0e1628', bg2: '#162040', bg3: '#0a1220' }, // 17-19: deep blue
+    evening: { bg1: '#0a1020', bg2: '#101830', bg3: '#080e1a' }, // 19-22: dark blue
+    night:   { bg1: '#080c18', bg2: '#0c1220', bg3: '#060a14' }, // 22-1: deep dark blue
+    latenight:{ bg1: '#060a14', bg2: '#0a0e1a', bg3: '#040810' }, // 1-5: darkest blue
   };
 
   // Weather modifiers (expanded classification)
@@ -12290,7 +12290,7 @@ async function fetchWeather(force=false){
   if(!force&&weatherCache.city===city&&(Date.now()-weatherCache.ts<1800000)){renderWeather(weatherCache.data);return;}
   document.getElementById('weatherText').textContent='加载中...';
   try{
-    const res=await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`);if(!res.ok)throw new Error();
+    const res=await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1&lang=zh`);if(!res.ok)throw new Error();
     const data=await res.json();const cur=data.current_condition?.[0];if(!cur)throw new Error();
     weatherData={temp:cur.temp_C,feelsLike:cur.FeelsLikeC,desc:cur.lang_zh?.[0]?.value||cur.weatherDesc?.[0]?.value||'',humidity:cur.humidity,windSpeed:cur.windspeedKmph,city:city};
     weatherCache={city,data:weatherData,ts:Date.now()};renderWeather(weatherData);updateHpWeather();applyDynamicBackground();if(force)showToast('天气已更新: '+city);
@@ -12324,7 +12324,7 @@ function openWeatherDetail() {
   document.getElementById('wdDaily').innerHTML = '';
   document.getElementById('wdDetailGrid').innerHTML = '';
   // Fetch detailed weather
-  fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`)
+  fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1&lang=zh`)
     .then(r => { if (!r.ok) throw new Error(); return r.json(); })
     .then(data => { _wdRawData = data; renderWeatherDetail(data); })
     .catch(() => {
