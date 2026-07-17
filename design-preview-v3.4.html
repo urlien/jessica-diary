@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>杰西卡 v3.4 设计预览</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0a0b10;
+    --bg-card: rgba(16,18,28,0.85);
+    --bg-card-glass: rgba(255,255,255,0.03);
+    --border: rgba(255,255,255,0.06);
+    --border-glow: rgba(139,92,246,0.15);
+    --text: #e8e8f0;
+    --text-dim: #6b6d7a;
+    --accent: #8b5cf6;
+    --accent-light: #a78bfa;
+    --accent2: #f59e0b;
+    --accent2-light: #fbbf24;
+    --gradient-primary: linear-gradient(135deg, #8b5cf6, #6366f1);
+    --gradient-warm: linear-gradient(135deg, #f59e0b, #ef4444);
+    --gradient-glow: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(99,102,241,0.05));
+    --red: #ef4444; --green: #22c55e; --pink: #ec4899; --orange: #f59e0b;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  /* ── Grid background texture ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  /* ── Ambient glow ── */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px; right: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { max-width: 420px; margin: 0 auto; padding: 20px 16px; position: relative; z-index: 1; }
+
+  /* ── Section labels ── */
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    margin: 32px 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border-glow), transparent);
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  /* ── Title ── */
+  .preview-title {
+    text-align: center;
+    padding: 24px 0 8px;
+  }
+  .preview-title h1 {
+    font-size: 28px;
+    font-weight: 700;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.02em;
+  }
+  .preview-title p {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+
+  /* ══════════════════════════════════════
+     HOMEPAGE CARDS
+     ══════════════════════════════════════ */
+  .hp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .hp-card {
+    background: var(--bg-card-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    transition: all 0.25s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .hp-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  }
+  .hp-card:hover {
+    border-color: var(--border-glow);
+    box-shadow: 0 8px 32px rgba(139,92,246,0.08), 0 0 0 1px rgba(139,92,246,0.05);
+    transform: translateY(-2px);
+  }
+  .hp-card-title {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hp-card-value {
+    font-size: 32px;
+    font-weight: 700;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .hp-card-value.warm {
+    background: var(--gradient-warm);
+    -webkit-background-clip: text;
+  }
+  .hp-card-sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+  .hp-card-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    opacity: 0.5;
+    position: absolute;
+    bottom: 10px;
+    right: 14px;
+  }
+  .hp-card.span-2 { grid-column: span 2; }
+
+  /* Weather card special */
+  .weather-icon { font-size: 36px; margin-bottom: 4px; }
+  .weather-temp { font-size: 32px; font-weight: 300; color: var(--text); }
+
+  /* Days card */
+  .days-value {
+    font-size: 42px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* ══════════════════════════════════════
+     CHAT MESSAGES
+     ══════════════════════════════════════ */
+  .chat-area { display: flex; flex-direction: column; gap: 12px; }
+  .message { display: flex; gap: 10px; max-width: 85%; }
+  .message.jessica { align-self: flex-start; }
+  .message.user { align-self: flex-end; flex-direction: row-reverse; }
+  .msg-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+  .msg-bubble {
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.6;
+    position: relative;
+  }
+  .message.jessica .msg-bubble {
+    background: rgba(139,92,246,0.06);
+    border: 1px solid rgba(139,92,246,0.1);
+    border-left: 2px solid rgba(139,92,246,0.3);
+    border-radius: 4px 14px 14px 14px;
+  }
+  .message.user .msg-bubble {
+    background: rgba(99,102,241,0.1);
+    border: 1px solid rgba(99,102,241,0.15);
+    border-right: 2px solid rgba(99,102,241,0.3);
+    border-radius: 14px 4px 14px 14px;
+  }
+  .msg-time {
+    font-size: 10px;
+    color: var(--text-dim);
+    opacity: 0.5;
+    margin-top: 4px;
+  }
+
+  /* ══════════════════════════════════════
+     INPUT AREA
+     ══════════════════════════════════════ */
+  .input-area {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    backdrop-filter: blur(8px);
+    margin-top: 16px;
+  }
+  .input-field {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .input-field:focus { border-color: rgba(139,92,246,0.3); }
+  .input-field::placeholder { color: var(--text-dim); }
+  .send-btn {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    border: none;
+    background: var(--gradient-primary);
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .send-btn:hover { transform: scale(1.05); box-shadow: 0 4px 16px rgba(139,92,246,0.3); }
+
+  /* Model switcher */
+  .model-switcher {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: rgba(139,92,246,0.08);
+    border: 1px solid rgba(139,92,246,0.15);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent-light);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .model-switcher:hover {
+    background: rgba(139,92,246,0.15);
+    border-color: rgba(139,92,246,0.3);
+  }
+
+  /* ══════════════════════════════════════
+     SIDEBAR CALENDAR
+     ══════════════════════════════════════ */
+  .sidebar-preview {
+    background: rgba(12,14,20,0.95);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    backdrop-filter: blur(16px);
+  }
+  .cal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .cal-title { font-size: 14px; font-weight: 600; }
+  .cal-nav { display: flex; gap: 8px; }
+  .cal-nav button {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s;
+  }
+  .cal-nav button:hover { border-color: var(--accent); color: var(--accent); }
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    text-align: center;
+  }
+  .cal-hdr { font-size: 10px; color: var(--text-dim); padding: 4px 0; font-weight: 600; }
+  .cal-cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    color: var(--text);
+  }
+  .cal-cell:hover { background: rgba(139,92,246,0.08); }
+  .cal-cell.other { opacity: 0.2; }
+  .cal-cell.today {
+    background: var(--gradient-primary);
+    font-weight: 700;
+    box-shadow: 0 0 12px rgba(139,92,246,0.3);
+  }
+  .cal-cell.has-jp::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--accent2);
+    box-shadow: 0 0 6px rgba(245,158,11,0.4);
+  }
+  .cal-cell.has-msg { color: var(--accent-light); font-weight: 500; }
+
+  /* Diary entry in sidebar */
+  .diary-preview {
+    margin-top: 14px;
+    padding: 12px;
+    background: rgba(245,158,11,0.04);
+    border: 1px solid rgba(245,158,11,0.1);
+    border-left: 3px solid rgba(245,158,11,0.3);
+    border-radius: 0 12px 12px 0;
+  }
+  .diary-preview-title {
+    font-size: 11px;
+    color: var(--accent2);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .diary-preview-text {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+    opacity: 0.8;
+  }
+
+  /* ══════════════════════════════════════
+     DATA STATS
+     ══════════════════════════════════════ */
+  .stat-row {
+    display: flex;
+    gap: 12px;
+  }
+  .stat-card {
+    flex: 1;
+    background: var(--bg-card-glass);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    text-align: center;
+  }
+  .stat-number {
+    font-size: 28px;
+    font-weight: 700;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* ══════════════════════════════════════
+     COMPARISON TOGGLE
+     ══════════════════════════════════════ */
+  .toggle-bar {
+    display: flex;
+    gap: 4px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 20px;
+  }
+  .toggle-btn {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .toggle-btn.active {
+    background: var(--gradient-primary);
+    color: white;
+    box-shadow: 0 2px 8px rgba(139,92,246,0.3);
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 32px 0 16px;
+    font-size: 11px;
+    color: var(--text-dim);
+    opacity: 0.5;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="preview-title">
+    <h1>杰西卡日记 v3.4</h1>
+    <p>渐变紫 · 毛玻璃 · 大卡片 · 设计预览</p>
+  </div>
+
+  <div class="toggle-bar">
+    <button class="toggle-btn active" onclick="toggleTheme(this)">🌙 深色主题</button>
+    <button class="toggle-btn" onclick="toggleTheme(this)">☀️ 浅色主题</button>
+  </div>
+
+  <!-- ═══ HOMEPAGE CARDS ═══ -->
+  <div class="section-label">首页卡片</div>
+
+  <div class="hp-grid">
+    <div class="hp-card">
+      <div class="hp-card-title">🌤 天气</div>
+      <div class="weather-icon">🌤</div>
+      <div class="weather-temp">28°</div>
+      <div class="hp-card-sub">多云 · 南京</div>
+    </div>
+
+    <div class="hp-card">
+      <div class="hp-card-title">💫 你在世界</div>
+      <div class="days-value">8563</div>
+      <div class="hp-card-sub">约 23.4 岁</div>
+      <div class="hp-card-label">纪念日</div>
+    </div>
+
+    <div class="hp-card">
+      <div class="hp-card-title">🍅 番茄时钟</div>
+      <div class="hp-card-value">25:00</div>
+      <div class="hp-card-sub">今日 3 次 · 连续 5 天</div>
+    </div>
+
+    <div class="hp-card">
+      <div class="hp-card-title">📝 备忘录</div>
+      <div class="hp-card-sub" style="margin-top:0">记得买咖啡豆</div>
+      <div class="hp-card-sub" style="opacity:0.5">共 3 条</div>
+    </div>
+
+    <div class="hp-card span-2">
+      <div class="hp-card-title">📌 今日待办</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;">
+          <span style="color:var(--green);">✓</span>
+          <span style="opacity:0.5;text-decoration:line-through;">整理文献综述</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;">
+          <span style="color:var(--text-dim);">○</span>
+          <span>和导师讨论选题方向</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;">
+          <span style="color:var(--text-dim);">○</span>
+          <span>跑 3 公里</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CHAT ═══ -->
+  <div class="section-label">聊天气泡</div>
+
+  <div class="chat-area">
+    <div class="message jessica">
+      <div class="msg-avatar">J</div>
+      <div>
+        <div class="msg-bubble">今天论文写得怎么样了？别跟我说又摸鱼了一整天 (¬_¬)</div>
+        <div class="msg-time">22:30</div>
+      </div>
+    </div>
+    <div class="message user">
+      <div class="msg-avatar" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">赵</div>
+      <div>
+        <div class="msg-bubble">写了 2000 字，差不多了</div>
+        <div class="msg-time">22:31</div>
+      </div>
+    </div>
+    <div class="message jessica">
+      <div class="msg-avatar">J</div>
+      <div>
+        <div class="msg-bubble">还不错嘛！比我预想的多 (≧▽≦) 明天继续加油~</div>
+        <div class="msg-time">22:31</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div style="display:flex;align-items:center;gap:8px;margin-top:16px;">
+    <div class="model-switcher">🤖 MiMo ▾</div>
+    <div class="input-area" style="flex:1;">
+      <input class="input-field" placeholder="说点什么..." />
+      <button class="send-btn">↑</button>
+    </div>
+  </div>
+
+  <!-- ═══ SIDEBAR CALENDAR ═══ -->
+  <div class="section-label">侧边栏日历</div>
+
+  <div class="sidebar-preview">
+    <div class="cal-header">
+      <div class="cal-title">📅 2026年7月</div>
+      <div class="cal-nav">
+        <button>‹</button>
+        <button>›</button>
+      </div>
+    </div>
+    <div class="cal-grid">
+      <div class="cal-hdr">日</div><div class="cal-hdr">一</div><div class="cal-hdr">二</div>
+      <div class="cal-hdr">三</div><div class="cal-hdr">四</div><div class="cal-hdr">五</div><div class="cal-hdr">六</div>
+      <div class="cal-cell other">30</div><div class="cal-cell other">1</div><div class="cal-cell other">2</div>
+      <div class="cal-cell other">3</div><div class="cal-cell has-msg has-jp">4</div><div class="cal-cell has-msg">5</div><div class="cal-cell">6</div>
+      <div class="cal-cell has-msg has-jp">7</div><div class="cal-cell">8</div><div class="cal-cell has-msg has-jp">9</div>
+      <div class="cal-cell has-msg has-jp">10</div><div class="cal-cell">11</div><div class="cal-cell">12</div>
+      <div class="cal-cell has-msg has-jp">13</div><div class="cal-cell has-msg has-jp">14</div><div class="cal-cell has-msg">15</div>
+      <div class="cal-cell has-msg">16</div><div class="cal-cell has-msg has-jp today">17</div><div class="cal-cell">18</div><div class="cal-cell">19</div>
+      <div class="cal-cell">20</div><div class="cal-cell">21</div><div class="cal-cell">22</div>
+      <div class="cal-cell">23</div><div class="cal-cell">24</div><div class="cal-cell">25</div><div class="cal-cell">26</div>
+    </div>
+
+    <div class="diary-preview">
+      <div class="diary-preview-title">📔 7月17日 · 杰西卡的日记</div>
+      <div class="diary-preview-text">今天和他聊了很久关于杰西卡日记的优化。他终于把搜索系统改好了，不用再输出那个奇怪的 [SEARCH:] 标签了。晚上还给我装了两个设计 skill，说要让我变好看……虽然我觉得现在已经挺好看了 (✿◡‿◡)</div>
+    </div>
+  </div>
+
+  <!-- ═══ DATA STATS ═══ -->
+  <div class="section-label">数据展示</div>
+
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-number">127</div>
+      <div class="stat-label">篇日记</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" style="background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;">48</div>
+      <div class="stat-label">天相识</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" style="background:linear-gradient(135deg,#ec4899,#8b5cf6);-webkit-background-clip:text;">2.3k</div>
+      <div class="stat-label">条消息</div>
+    </div>
+  </div>
+
+  <div class="footer">杰西卡日记 v3.4 设计预览 · 渐变紫 · 毛玻璃 · 大卡片</div>
+
+</div>
+
+<script>
+function toggleTheme(btn) {
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
