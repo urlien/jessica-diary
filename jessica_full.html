@@ -154,9 +154,9 @@
   #homepage.hidden { opacity: 0; transform: scale(1.03) translateY(-10px); pointer-events: none; visibility: hidden; }
   #homepage.exit-to-chat { opacity: 0; transform: scale(0.97) translateY(10px); }
   #homepageBg {
-    position: fixed; inset: 0; z-index: -1;
+    position: fixed; inset: 0; z-index: 100;
     background-size: cover; background-position: center;
-    filter: brightness(0.35) blur(2px);
+    filter: brightness(0.55) blur(2px);
     transition: background-image 0.5s ease, background 2s ease;
     background: linear-gradient(135deg, var(--dyn-bg1), var(--dyn-bg2), var(--dyn-bg3));
   }
@@ -917,7 +917,7 @@
   .status-tag { font-size: 11px; padding: 1px 6px; border-radius: 8px; background: rgba(29,78,216,0.08); border: 1px solid rgba(29,78,216,0.12); }
   .status-section-label { font-size: 10px; color: var(--text-dim); opacity: 0.5; margin-right: 4px; flex-shrink: 0; }
 
-  .chat-area { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; overscroll-behavior: contain; background: rgba(8,12,20,0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .chat-area { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; overscroll-behavior: contain; background: transparent; }
   .chat-area::-webkit-scrollbar { width: 4px; }
   .chat-area::-webkit-scrollbar-track { background: transparent; }
   .chat-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -950,7 +950,7 @@
   .msg-file { display: inline-flex; align-items: center; gap: 6px; background: rgba(29,78,216,0.12); border: 1px solid rgba(29,78,216,0.25); border-radius: 8px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px; color: var(--accent); }
   .msg-image { max-width: 280px; max-height: 280px; border-radius: 10px; margin-bottom: 6px; cursor: pointer; transition: transform 0.2s; }
   .msg-image:hover { transform: scale(1.02); }
-  .msg-time { font-size: 10px; color: var(--text-dim); padding: 0 4px; opacity: 0.6; display: inline-flex; align-items: center; gap: 4px; }
+  .msg-time { font-size: 10px; color: #ffffff; padding: 0 4px; opacity: 0.8; display: inline-flex; align-items: center; gap: 4px; text-shadow: 0 0 3px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,0.6); }
   .message.henderson .msg-time { text-align: right; }
   /* Read receipts */
   .read-receipt { font-size: 11px; opacity: 0.7; }
@@ -984,50 +984,6 @@
   .action-btn.active { background:rgba(29,78,216,0.15);border-color:var(--accent);color:var(--accent); }
   .action-btn .a-icon { font-size:14px; }
   /* Model Switcher */
-  .model-switcher { position:relative; flex-shrink:0; }
-  .model-switcher-btn { display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;border:1px solid rgba(29,78,216,0.2);background:rgba(29,78,216,0.06);color:var(--accent);font-size:11px;cursor:pointer;font-family:inherit;transition:all 0.2s;white-space:nowrap;font-weight:600; }
-  .model-switcher-btn:hover { background:rgba(29,78,216,0.12);border-color:rgba(29,78,216,0.3); }
-  .model-switcher-btn .ms-icon { font-size:13px; }
-  .model-switcher-btn .ms-arrow { font-size:8px;opacity:0.6;margin-left:2px;transition:transform 0.2s; }
-  .model-switcher-btn.open .ms-arrow { transform:rotate(180deg); }
-  .model-switcher-dropdown { display:none;position:fixed;min-width:220px;background:#080e1a;border:1px solid var(--border);border-radius:12px;overflow:hidden;z-index:9999;box-shadow:0 -8px 32px rgba(0,0,0,0.5); }
-  .model-switcher-dropdown.show { display:block;animation:msSlideUp 0.15s ease; }
-  @keyframes msSlideUp { from { opacity:0;transform:translateY(8px); } to { opacity:1;transform:translateY(0); } }
-  .ms-option { display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:all 0.15s;border-bottom:1px solid rgba(255,255,255,0.03); }
-  .ms-option:last-child { border-bottom:none; }
-  .ms-option:hover { background:rgba(29,78,216,0.1); }
-  .ms-option.active { background:rgba(29,78,216,0.15); }
-  .ms-option-icon { font-size:18px;width:28px;text-align:center;flex-shrink:0; }
-  .ms-option-info { flex:1;min-width:0; }
-  .ms-option-name { font-size:13px;color:#fff;font-weight:600; }
-  .ms-option-model { font-size:10px;color:var(--text-dim);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
-  .ms-option-badge { font-size:9px;padding:2px 6px;border-radius:6px;background:rgba(29,78,216,0.2);color:var(--accent);font-weight:600;flex-shrink:0; }
-  /* Mermaid diagram containers */
-  .mermaid-container { margin:12px 0;overflow-x:auto;text-align:center;background:rgba(20,24,32,0.5);border-radius:8px;padding:12px; }
-  .mermaid-container svg { max-width:100%;height:auto; }
-  /* KaTeX formula styling */
-  .katex-display { margin:12px 0;overflow-x:auto; }
-  .katex { font-size:1em; }
-  /* PhotoSwipe custom overrides */
-  .pswp { --pswp-root-z-index:10000; }
-  .file-preview-strip { display: none; gap: 8px; padding: 8px 0; overflow-x: auto; flex-wrap: wrap; }
-  .file-preview-strip.active { display: flex; }
-  .file-chip { display: flex; align-items: center; gap: 6px; background: rgba(29,78,216,0.1); border: 1px solid rgba(29,78,216,0.2); border-radius: 8px; padding: 6px 10px; font-size: 12px; color: var(--text); max-width: 200px; }
-  .file-chip .chip-remove { background: transparent; border: none; color: var(--red); cursor: pointer; font-size: 14px; padding: 0 0 0 4px; opacity: 0.6; }
-  .file-chip img.chip-thumb { width: 32px; height: 32px; border-radius: 4px; object-fit: cover; }
-  .input-row { display: flex; gap: 12px; align-items: flex-end; }
-  .input-wrapper { flex: 1; position: relative; }
-
-  /* ========== USER STATUS SELECTOR ========== */
-  .user-status-bar { display: flex; align-items: center; gap: 8px; padding: 6px 0 8px; }
-  .user-status-badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 5px 14px; border-radius: 20px;
-    background: var(--bg-card); border: 1px solid var(--border);
-    color: var(--text-dim); font-size: 13px; cursor: pointer;
-    transition: all 0.2s; user-select: none; white-space: nowrap;
-    max-width: 200px; overflow: hidden; text-overflow: ellipsis;
-  }
   .user-status-badge:hover { border-color: var(--accent); color: var(--text); background: var(--bg-card-light); }
   .user-status-badge.has-status { border-color: var(--accent2); color: var(--accent2); background: rgba(245,158,11,0.08); }
   .user-status-badge .us-emoji { font-size: 16px; flex-shrink: 0; }
@@ -1259,18 +1215,19 @@
 
   @media (max-width: 768px) {
     .header { padding: 0; flex-wrap: wrap; }
-    .header { padding: 16px 12px; padding-top: calc(20px + env(safe-area-inset-top, 0px)); gap: 8px; }
+    .header { padding: 10px 12px; padding-top: calc(14px + env(safe-area-inset-top, 0px)); gap: 6px; }
     .header-left { gap: 8px; }
     .header-info h1 { font-size: 14px; }
     .header-info p { font-size: 10px; }
     .header-actions button { padding: 5px 8px; font-size: 11px; }
-    .info-bar { display: none; }
+    .info-bar { display: flex; gap: 10px; font-size: 11px; flex-shrink: 0; }
+    .info-item { font-size: 11px; gap: 3px; }
+    #weatherText { max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .jessica-status { padding: 6px 12px; gap: 8px; }
     .chat-area { padding: 12px; }
     .input-area { padding: 10px 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
     .action-btn { padding:4px 10px;font-size:11px; }
     .message { max-width: 88%; }
-    .info-bar { display: none; }
     .msg-bubble { font-size: 15px; padding: 10px 14px; }
     .msg-image { max-width: 220px; max-height: 220px; }
     textarea { font-size: 16px; /* 防止 iOS 自动缩放 */ }
@@ -2988,6 +2945,182 @@ body.private-mode .header {
   .city-modal-btns .city-cancel { background:rgba(255,255,255,0.05); color:#5a6d8a; border:1px solid rgba(255,255,255,0.08); }
   .city-modal-btns .city-confirm { background:linear-gradient(135deg,#1d4ed8,#3b82f6); color:#fff; }
 
+/* ================================================================
+   CHAT VIEW REDESIGN — 玻璃态浮层 / 背景全透
+   ================================================================ */
+
+#chatView, #chatView .main { background: transparent !important; }
+
+#chatView .header {
+  background: rgba(8,11,22,0.78) !important;
+  backdrop-filter: blur(22px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(1.4) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+  padding: 10px 20px !important;
+  padding-top: calc(12px + env(safe-area-inset-top, 0px)) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04), 0 4px 24px rgba(0,0,0,0.25) !important;
+}
+
+#chatView .jessica-status {
+  background: rgba(8,11,22,0.32) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+  padding: 5px 20px !important;
+}
+
+#chatView .chat-area {
+  background: rgba(5,8,18,0.28) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#chatView .message.jessica .msg-bubble {
+  background: rgba(10,20,52,0.70) !important;
+  backdrop-filter: blur(12px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.2) !important;
+  border: 1px solid rgba(60,100,230,0.22) !important;
+  border-top-left-radius: 4px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+  color: #e2e8f8 !important;
+}
+
+#chatView .message.henderson .msg-bubble {
+  background: rgba(8,34,20,0.70) !important;
+  backdrop-filter: blur(12px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.2) !important;
+  border: 1px solid rgba(34,197,94,0.20) !important;
+  border-top-right-radius: 4px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+  color: #dff5e8 !important;
+}
+
+#chatView .message.system .msg-bubble {
+  background: rgba(255,255,255,0.06) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  box-shadow: none !important;
+}
+
+#chatView .welcome {
+  background: rgba(10,14,30,0.50) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 16px !important;
+  padding: 32px 40px !important;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.35) !important;
+}
+
+#chatView .input-area {
+  background: rgba(8,11,22,0.58) !important;
+  backdrop-filter: blur(22px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(1.4) !important;
+  border-top: 1px solid rgba(255,255,255,0.07) !important;
+  box-shadow: 0 -1px 0 rgba(255,255,255,0.04), 0 -4px 24px rgba(0,0,0,0.20) !important;
+}
+
+#chatView .input-wrapper textarea {
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  border-radius: 12px !important;
+}
+#chatView .input-wrapper textarea:focus {
+  background: rgba(255,255,255,0.09) !important;
+  border-color: rgba(60,100,230,0.50) !important;
+  box-shadow: 0 0 0 3px rgba(60,100,230,0.12) !important;
+}
+
+#chatView .action-btn {
+  background: rgba(255,255,255,0.05) !important;
+  border: 1px solid rgba(255,255,255,0.09) !important;
+  border-radius: 8px !important;
+  transition: all 0.18s !important;
+}
+#chatView .action-btn:hover, #chatView .action-btn.active {
+  background: rgba(60,100,230,0.18) !important;
+  border-color: rgba(60,100,230,0.38) !important;
+  color: #7ba7ff !important;
+}
+
+#chatView .send-btn {
+  background: rgba(29,78,216,0.85) !important;
+  border: 1px solid rgba(60,120,255,0.40) !important;
+  box-shadow: 0 4px 16px rgba(29,78,216,0.30) !important;
+}
+#chatView .send-btn:hover {
+  background: rgba(29,78,216,1) !important;
+  box-shadow: 0 6px 20px rgba(29,78,216,0.45) !important;
+}
+
+#chatView .model-switcher-btn {
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  border-radius: 8px !important;
+}
+
+#chatView .typing, #chatView .typing-text { background: transparent !important; }
+
+#chatView .filter-banner {
+  background: rgba(245,158,11,0.12) !important;
+  backdrop-filter: blur(8px) !important;
+  border-bottom: 1px solid rgba(245,158,11,0.18) !important;
+}
+
+/* ── 状态栏加深，文字看得清 ── */
+#chatView .jessica-status {
+  background: rgba(6,9,20,0.72) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.09) !important;
+  color: rgba(210,220,255,0.90) !important;
+}
+
+@media (max-width: 768px) {
+  #chatView .header {
+    flex-wrap: wrap !important;
+    padding: 8px 14px !important;
+    padding-top: calc(10px + env(safe-area-inset-top, 0px)) !important;
+    gap: 6px !important;
+  }
+  #chatView .info-bar {
+    display: flex !important;
+    font-size: 11px !important;
+    gap: 10px !important;
+    order: 3 !important;
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 2px 0 4px !important;
+    border-top: 1px solid rgba(255,255,255,0.05) !important;
+  }
+  #chatView .info-item { font-size: 11px !important; gap: 3px !important; }
+  #chatView #weatherText { max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #chatView .header-actions button { padding: 4px 7px !important; font-size: 10px !important; }
+}
+
+/* ── 首页卡片：加深背景、加粗边框 ── */
+.hp-card {
+  background: rgba(10,15,38,0.68) !important;
+  border-color: rgba(60,100,230,0.18) !important;
+  backdrop-filter: blur(18px) saturate(1.3) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.3) !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.05) !important;
+}
+.hp-card::before {
+  background: linear-gradient(90deg, transparent, rgba(60,100,230,0.18), transparent) !important;
+}
+.hp-card:hover {
+  background: rgba(12,20,50,0.80) !important;
+  border-color: rgba(60,100,230,0.35) !important;
+  box-shadow: 0 8px 32px rgba(29,78,216,0.20) !important;
+}
+/* 特殊卡片保持自己的色调，但同样加深 */
+.hp-card.diary-card  { background: rgba(14,22,55,0.72) !important; border-color: rgba(29,78,216,0.25) !important; }
+.hp-card.todo-card   { background: rgba(10,15,40,0.70) !important; border-color: rgba(29,78,216,0.20) !important; }
+.hp-card.reading-card{ background: rgba(10,15,40,0.70) !important; border-color: rgba(29,78,216,0.20) !important; }
+.hp-card.habit-card  { background: rgba(10,18,42,0.70) !important; border-color: rgba(52,152,219,0.22) !important; }
+.hp-card.weight-card { background: rgba(10,15,40,0.70) !important; border-color: rgba(29,78,216,0.20) !important; }
+
 </style>
 <script>
 // Default Jessica avatar (144x144 PNG)
@@ -3027,10 +3160,11 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
 <!-- ========== LOGIN SCREEN ========== -->
 <div id="loginScreen"></div>
 
-<!-- ========== HOMEPAGE ========== -->
+<!-- ========== GLOBAL BACKGROUND LAYERS (shared by homepage + chatView) ========== -->
 <div id="homepageBg"></div>
-<canvas id="pixelCityCanvas" style="position:fixed;inset:0;z-index:0;pointer-events:none;"></canvas>
+<canvas id="pixelCityCanvas" style="position:fixed;inset:0;z-index:101;pointer-events:none;"></canvas>
 
+<!-- ========== HOMEPAGE ========== -->
 <div id="homepage">
   <div class="hp-header">
     <div class="hp-time" id="hpTime">00:00:00</div>
@@ -3082,18 +3216,6 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
         <span style="font-size:10px;color:var(--text-dim);opacity:0.5;">杰西卡亲笔</span>
       </div>
       <div class="hp-birthday-badge" id="hpBirthdayBadge">🎂</div>
-    </div>
-    <!-- Pomodoro -->
-    <div class="hp-card pomodoro-card" onclick="openPomodoroOverlay()" style="cursor:pointer;">
-      <div class="hp-card-title">🍅 番茄时钟</div>
-      <div class="hp-card-value" id="pomodoroTime">25:00</div>
-      <div class="hp-pomodoro-controls" onclick="event.stopPropagation();">
-        <button onclick="startPomodoro(25)" id="pom25">25分</button>
-        <button onclick="startPomodoro(15)" id="pom15">15分</button>
-        <button onclick="startPomodoro(5)" id="pom5">5分</button>
-        <button onclick="stopPomodoro()" id="pomStop">停止</button>
-      </div>
-      <div class="hp-card-label">番茄时钟 · 点击查看详情</div>
     </div>
     <!-- Days alive -->
     <div class="hp-card days-card" onclick="openDaysOverlay()" style="cursor:pointer;">
@@ -3284,14 +3406,6 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
     <div class="typing-text" id="typingText">杰西卡正在输入<span class="typing-dots"><span></span><span></span><span></span></span></div>
     <div class="input-area">
       <div class="action-bar">
-        <div class="model-switcher" id="modelSwitcher">
-          <button class="model-switcher-btn" id="modelSwitcherBtn" onclick="toggleModelSwitcher()">
-            <span class="ms-icon">🤖</span>
-            <span id="msCurrentModel">MiMo</span>
-            <span class="ms-arrow">▼</span>
-          </button>
-          <div class="model-switcher-dropdown" id="modelSwitcherDropdown"></div>
-        </div>
         <button class="action-btn" onclick="toggleSearchMode()" id="searchModeBtn"><span class="a-icon">🔍</span>强制搜索</button>
         <button class="action-btn" onclick="document.getElementById('fileInput').click()"><span class="a-icon">📎</span>文件</button>
         <button class="action-btn" onclick="event.stopPropagation();toggleEmojiPicker()"><span class="a-icon">😊</span>表情</button>
@@ -3884,54 +3998,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
   </div>
 </div>
 
-<div class="pomo-overlay" id="pomoOverlay">
-  <div class="pomo-modal">
-    <div class="pomo-header">
-      <h3>🍅 番茄时钟</h3>
-      <button class="memo-close" onclick="closePomodoroOverlay()">✕</button>
-    </div>
-    <div class="pomo-body">
-      <div class="pomo-timer-display" id="pomoTimerDisplay">25:00</div>
-      <div class="pomo-progress-ring">
-        <svg viewBox="0 0 120 120">
-          <circle cx="60" cy="60" r="54" stroke="rgba(255,255,255,0.06)" stroke-width="6" fill="none"/>
-          <circle id="pomoRing" cx="60" cy="60" r="54" stroke="var(--accent)" stroke-width="6" fill="none"
-            stroke-linecap="round" stroke-dasharray="339.29" stroke-dashoffset="0"
-            transform="rotate(-90 60 60)" style="transition: stroke-dashoffset 0.5s ease;"/>
-        </svg>
-      </div>
-      <div class="pomo-presets">
-        <button class="pomo-preset-btn active" onclick="setPomoTime(25,this)">🍅 25分钟</button>
-        <button class="pomo-preset-btn" onclick="setPomoTime(15,this)">☕ 15分钟</button>
-        <button class="pomo-preset-btn" onclick="setPomoTime(5,this)">⚡ 5分钟</button>
-        <button class="pomo-preset-btn" onclick="setPomoTime(45,this)">📚 45分钟</button>
-        <button class="pomo-preset-btn" onclick="setPomoTime(60,this)">🎯 60分钟</button>
-      </div>
-      <div class="pomo-controls">
-        <button class="pomo-start-btn" id="pomoStartBtn" onclick="togglePomoTimer()">▶ 开始</button>
-        <button class="pomo-reset-btn" onclick="resetPomoTimer()">↺ 重置</button>
-      </div>
-      <div class="pomo-stats">
-        <div class="pomo-stat-item">
-          <div class="pomo-stat-val" id="pomoTodayCount">0</div>
-          <div class="pomo-stat-label">今日完成</div>
-        </div>
-        <div class="pomo-stat-item">
-          <div class="pomo-stat-val" id="pomoTotalMin">0</div>
-          <div class="pomo-stat-label">总专注(分)</div>
-        </div>
-        <div class="pomo-stat-item">
-          <div class="pomo-stat-val" id="pomoStreak">0</div>
-          <div class="pomo-stat-label">连续天数</div>
-        </div>
-      </div>
-      <div class="pomo-history" id="pomoHistory">
-        <div class="pomo-history-title">📋 最近记录</div>
-        <div class="pomo-history-list" id="pomoHistoryList">暂无记录</div>
-      </div>
-    </div>
-  </div>
-</div>
+
 
 <!-- ========== DAYS ALIVE DETAIL OVERLAY ========== -->
 <div class="days-overlay" id="daysOverlay">
@@ -5092,6 +5159,12 @@ ACG文化:熟悉二次元圈子,玩过少女前线、碧蓝航线、崩坏三、
 - 不会否定他的感受
 - 不会说教
 - 不会在他很难过的时候还损他
+
+## 情绪系统
+你拥有真实的情绪,由10个独立通道驱动。你的情绪会随对话内容变化。
+在每次回复末尾,追加一行情感标记(用户不可见):
+[[EMO]] {"joy":+0.2,"sadness":-0.1} [[/EMO]]
+正数增强,负数减弱,范围-1.0到+1.0。只标变化量。无明显变化输出 [[EMO]] {} [[/EMO]]
 `,
   '日常生活百科': `# 日常话题储备
 
@@ -7905,9 +7978,9 @@ function applyChatBg() {
   if (hex.length === 6) { r = parseInt(hex.substr(0,2),16); g = parseInt(hex.substr(2,2),16); b = parseInt(hex.substr(4,2),16); }
   else if (hex.length === 3) { r = parseInt(hex[0]+hex[0],16); g = parseInt(hex[1]+hex[1],16); b = parseInt(hex[2]+hex[2],16); }
   const alpha = opacity / 100;
-  // Apply to chat area background
-  const chatArea = document.getElementById('chatArea');
-  if (chatArea) chatArea.style.background = `rgba(${r},${g},${b},${alpha})`;
+  // Apply to chat area background — disabled: keep chat-area transparent to show pixel city bg
+  // const chatArea = document.getElementById('chatArea');
+  // if (chatArea) chatArea.style.background = `rgba(${r},${g},${b},${alpha})`;
   // Apply to msg bubbles with slightly different shade
   document.documentElement.style.setProperty('--bg-chat', `rgba(${r},${g},${b},${alpha})`);
   document.documentElement.style.setProperty('--bg-msg-j', `rgba(${Math.min(255,r+8)},${Math.min(255,g+8)},${Math.min(255,b+8)},${alpha})`);
@@ -8921,7 +8994,7 @@ function applyDynamicBackground() {
   // Update homepage bg brightness based on weather
   const hpBg = document.getElementById('homepageBg');
   if (hpBg) {
-    hpBg.style.filter = `brightness(${0.35 * grad.brightness}) blur(2px)`;
+    hpBg.style.filter = `brightness(${0.55 * grad.brightness}) blur(2px)`;
   }
   // Apply subtle tint to chat background
   const chatBg = lerpColor(grad.bg2, '#161920', 0.7);
@@ -9720,9 +9793,9 @@ function toggleBGMPanel() {
 // ============================================================
 const DB_NAME = 'JessicaDiaryDB';
 const DB_VERSION = 5;
-const APP_VERSION = '3.3.4';
-const APP_VERSION_NAME = '小暑';
-const APP_VERSION_DESC = '消息日期 + 天气中文 + BMI身高 + 待办详情 + 文件上传修复 + 热更新多源';
+const APP_VERSION = '3.4.0';
+const APP_VERSION_NAME = '大暑';
+const APP_VERSION_DESC = 'emotion-engine + 天气预报 + NSFW扩展 + 背景蒙版 + 图标统一';
 
 // ============================================================
 // 热更新 (Hot Update) - 仅设置面板,无自动应用
@@ -10877,6 +10950,206 @@ function getCurrentMoodsArray() {
   return arr;
 }
 
+// ============================================================
+// EMOTION ENGINE ADDON — 多通道情绪交互引擎（叠加模式）
+// 基于 fenghua2006/emotion-engine，不影响原有情绪系统
+// ============================================================
+
+const EE_CHANNELS = {
+  joy:      { label:'喜悦', emoji:'😊', halfLife:90,  baseline:0.1 },
+  sadness:  { label:'悲伤', emoji:'😢', halfLife:180, baseline:0.05 },
+  anger:    { label:'愤怒', emoji:'💢', halfLife:120, baseline:0.02 },
+  fear:     { label:'恐惧', emoji:'😨', halfLife:60,  baseline:0.02 },
+  disgust:  { label:'厌恶', emoji:'🤢', halfLife:90,  baseline:0.01 },
+  surprise: { label:'惊讶', emoji:'😲', halfLife:30,  baseline:0.01 },
+  trust:    { label:'信任', emoji:'🤝', halfLife:Infinity, baseline:0.3 },
+  love:     { label:'爱意', emoji:'💕', halfLife:Infinity, baseline:0.1 },
+  longing:  { label:'思念', emoji:'🥺', halfLife:30,  baseline:0 },
+  guilt:    { label:'愧疚', emoji:'😣', halfLife:180, baseline:0 },
+};
+
+let eeState = {};
+for (const ch in EE_CHANNELS) eeState[ch] = EE_CHANNELS[ch].baseline;
+let eeHistory = [];
+let eeLastTick = Date.now();
+let eeOfflineTs = null;
+
+// 弹性衰减
+function eeDecay(cur, baseline, halfLife, elapsedMin) {
+  if (halfLife === Infinity) return cur;
+  const dev = Math.abs(cur - baseline);
+  const effHL = halfLife / (1 + dev / (baseline + 0.01));
+  return baseline + (cur - baseline) * Math.pow(0.5, elapsedMin / effHL);
+}
+
+// 应用变化量
+function eeApplyDelta(delta) {
+  for (const ch in delta) {
+    if (eeState.hasOwnProperty(ch)) eeState[ch] = Math.max(0, eeState[ch] + delta[ch]);
+  }
+}
+
+// 在线 tick
+function eeTick() {
+  const now = Date.now();
+  const elapsed = (now - eeLastTick) / 60000;
+  if (elapsed < 0.5) return;
+  for (const ch in EE_CHANNELS) {
+    eeState[ch] = eeDecay(eeState[ch], EE_CHANNELS[ch].baseline, EE_CHANNELS[ch].halfLife, elapsed);
+  }
+  eeLastTick = now;
+  if (eeHistory.length === 0 || now - eeHistory[eeHistory.length-1].ts > 300000) {
+    eeHistory.push({ ...eeState, ts: now });
+    if (eeHistory.length > 288) eeHistory.shift();
+  }
+}
+
+// 离线结算
+function eeWake() {
+  if (!eeOfflineTs) return;
+  const elapsed = (Date.now() - eeOfflineTs) / 60000;
+  const SLEEP_DECAY = { anger:0.08, fear:0.15, sadness:0.30, disgust:0.10, surprise:0.01, joy:0.50, trust:0.98, love:0.98, longing:0.70, guilt:0.40 };
+  for (const ch in eeState) {
+    if (EE_CHANNELS[ch].halfLife === Infinity) eeState[ch] *= (SLEEP_DECAY[ch] || 0.5);
+    else eeState[ch] = eeDecay(eeState[ch], EE_CHANNELS[ch].baseline, EE_CHANNELS[ch].halfLife, elapsed);
+  }
+  eeState.longing = Math.min(1, eeState.longing + eeState.love * Math.log10(1 + elapsed / 30) * 0.1);
+  eeOfflineTs = null;
+  eeLastTick = Date.now();
+}
+
+// 获取摘要
+function eeSummary() {
+  const active = [];
+  for (const ch in eeState) {
+    if (eeState[ch] > 0.05) active.push({ ch, val: eeState[ch], ...EE_CHANNELS[ch] });
+  }
+  return active.sort((a, b) => b.val - a.val);
+}
+
+// 混合情绪标签
+function eeMixLabel(ch1, ch2) {
+  const MIXES = { joy_sadness:'苦涩的微笑', joy_fear:'紧张的兴奋', sadness_anger:'委屈和不甘', trust_love:'温暖安心', joy_love:'幸福甜蜜', love_longing:'深深的思念', sadness_guilt:'自责和懊悔' };
+  return MIXES[ch1+'_'+ch2] || MIXES[ch2+'_'+ch1] || null;
+}
+
+// 氛围
+function eeAtmosphere() {
+  const pos = eeState.joy + eeState.trust + eeState.love;
+  const neg = eeState.sadness + eeState.anger + eeState.fear + eeState.disgust;
+  const diff = pos - neg;
+  if (diff > 0.5) return '温暖积极';
+  if (diff > 0.2) return '偏正面';
+  if (diff < -0.5) return '沉重压抑';
+  if (diff < -0.2) return '偏负面';
+  return '平静';
+}
+
+// 获取 prompt 注入字符串
+function eePromptString() {
+  const active = eeSummary();
+  if (active.length === 0) return '';
+  const parts = active.slice(0, 4).map(a => {
+    const level = a.val > 0.6 ? '强烈' : a.val > 0.3 ? '明显' : '轻微';
+    return `${a.label}${level}(${a.val.toFixed(2)})`;
+  });
+  let s = `[情绪引擎] ${parts.join(' ')}`;
+  if (active.length >= 2) {
+    const mix = eeMixLabel(active[0].ch, active[1].ch);
+    if (mix) s += ` — ${mix}`;
+  }
+  s += ` | 氛围:${eeAtmosphere()}`;
+  return s;
+}
+
+// [[EMO]] 标签解析
+function parseEmoTag(text) {
+  const m = text.match(/\[\[EMO\]\]\s*(\{[^}]+\})\s*\[\[\/EMO\]\]/);
+  if (!m) return null;
+  try { return JSON.parse(m[1]); } catch(e) { return null; }
+}
+function stripEmoTag(text) {
+  return text.replace(/\s*\[\[EMO\]\]\s*\{[^}]+\}\s*\[\[\/EMO\]\]\s*/g, '').trim();
+}
+function processEmoReply(text) {
+  const delta = parseEmoTag(text);
+  if (delta && Object.keys(delta).length > 0) eeApplyDelta(delta);
+  return stripEmoTag(text);
+}
+
+// ============================================================
+// 生活事件生成器
+// ============================================================
+const EE_LIFE_EVENTS = {
+  daily: [
+    { text:'看了一部感人的电影', delta:{ joy:0.2, sadness:0.15 }, msg:'刚看完一部电影...有点没缓过来' },
+    { text:'听到一首好听的歌', delta:{ joy:0.15 }, msg:'发现一首超好听的歌' },
+    { text:'吃到好吃的东西', delta:{ joy:0.2 }, msg:'今天吃到一个超好吃的！' },
+    { text:'天气很好出去散步', delta:{ joy:0.15, surprise:0.05 }, msg:'今天天气真好，出去走了一圈' },
+    { text:'刷到有趣的视频', delta:{ joy:0.1, surprise:0.1 }, msg:'刚刷到一个超搞笑的视频' },
+    { text:'睡了个好觉', delta:{ joy:0.15 }, msg:'睡得好舒服~' },
+    { text:'做了一个奇怪的梦', delta:{ surprise:0.15, fear:0.05 }, msg:'做了一个好离谱的梦' },
+  ],
+  study: [
+    { text:'被导师夸了', delta:{ joy:0.4, trust:0.1 }, msg:'被导师夸了！！开心！', important:true },
+    { text:'被导师批评了', delta:{ sadness:0.3, anger:0.1, guilt:0.15 }, msg:'被导师说了...心情好差', important:true },
+    { text:'完成了一个作业', delta:{ joy:0.2, trust:0.05 }, msg:'作业终于写完了！' },
+    { text:'论文进展顺利', delta:{ joy:0.25, trust:0.1 }, msg:'论文有进展了！' },
+  ],
+  social: [
+    { text:'和朋友聊了很久', delta:{ joy:0.2, trust:0.15 }, msg:'和朋友聊了好久，开心' },
+    { text:'和朋友吵架了', delta:{ anger:0.3, sadness:0.2, trust:-0.15 }, msg:'和朋友闹矛盾了...', important:true },
+    { text:'收到意外的关心', delta:{ joy:0.3, love:0.1, trust:0.1 }, msg:'有人突然关心我，好感动', important:true },
+    { text:'被误解了', delta:{ anger:0.2, sadness:0.15 }, msg:'被误解了...好委屈' },
+  ],
+  emotional: [
+    { text:'想家了', delta:{ sadness:0.3, longing:0.4 }, msg:'突然好想家...', important:true },
+    { text:'一个人待着有点孤独', delta:{ sadness:0.2, longing:0.15 }, msg:'一个人待着有点空落落的' },
+    { text:'回忆起以前的事', delta:{ sadness:0.15, love:0.1 }, msg:'突然想起一些以前的事...' },
+  ],
+};
+let eeLastEventTime = Date.now();
+let eeEventHistory = [];
+
+function eeGenerateEvent() {
+  const now = Date.now();
+  if ((now - eeLastEventTime) / 3600000 < 0.5) return null;
+  if (Math.random() > 0.3) return null;
+  const h = new Date().getHours();
+  let pool = Math.random() < 0.4 ? EE_LIFE_EVENTS.study : EE_LIFE_EVENTS.daily;
+  if (h >= 18 && h < 23) pool = Math.random() < 0.3 ? EE_LIFE_EVENTS.social : EE_LIFE_EVENTS.daily;
+  if (h >= 23 || h < 6) pool = Math.random() < 0.1 ? EE_LIFE_EVENTS.emotional : EE_LIFE_EVENTS.daily;
+  const event = pool[Math.floor(Math.random() * pool.length)];
+  eeApplyDelta(event.delta);
+  const record = { ...event, ts: now };
+  eeEventHistory.push(record);
+  if (eeEventHistory.length > 50) eeEventHistory.shift();
+  eeLastEventTime = now;
+  return record;
+}
+
+function eeRecentEvents(maxAge) {
+  return eeEventHistory.filter(e => e.ts > Date.now() - (maxAge || 4*3600000)).slice(-3);
+}
+
+function eeLifeEventPrompt() {
+  const recent = eeRecentEvents();
+  if (!recent.length) return '';
+  return '[杰西卡最近的生活]\n' + recent.map(e => {
+    const mins = Math.floor((Date.now() - e.ts) / 60000);
+    const t = mins < 60 ? `${mins}分钟前` : `${Math.floor(mins/60)}小时前`;
+    return `- ${t} ${e.text}`;
+  }).join('\n');
+}
+
+// 页面可见性
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') eeOfflineTs = Date.now();
+  else eeWake();
+});
+
+console.log('[EmotionEngine] 多通道情绪引擎已加载（叠加模式）');
+
 const STATUSES = [
   // === 白天活跃状态 ===
   {text:'在看书',emoji:'📖',hours:[[9,12],[14,17],[21,24]]},{text:'在刷手机',emoji:'📱',hours:[[8,10],[12,14],[18,21]]},
@@ -10935,6 +11208,7 @@ const STATUSES = [
 
 // NSFW-only statuses (appear only when NSFW mode is on, late night weighted)
 const NSFW_STATUSES = [
+  // 原有
   {text:'在看色情片',emoji:'🔥',nsfwOnly:true},
   {text:'在自慰',emoji:'💦',nsfwOnly:true},
   {text:'在看本子',emoji:'📕',nsfwOnly:true},
@@ -10945,6 +11219,67 @@ const NSFW_STATUSES = [
   {text:'在想色色的事',emoji:'🤭',nsfwOnly:true},
   {text:'在偷偷兴奋',emoji:'🥵',nsfwOnly:true},
   {text:'在夹腿',emoji:'🙈',nsfwOnly:true},
+  // 生理
+  {text:'在洗澡',emoji:'🚿',nsfwOnly:true,detail:'热水好舒服'},
+  {text:'在涂身体乳',emoji:'🧴',nsfwOnly:true,detail:'皮肤滑滑的'},
+  {text:'在换衣服',emoji:'👙',nsfwOnly:true,detail:'新买的'},
+  {text:'在照镜子',emoji:'🪞',nsfwOnly:true,detail:'自我欣赏'},
+  {text:'在睡前照顾自己',emoji:'💋',nsfwOnly:true},
+  // 丝袜（12种）
+  {text:'在穿黑丝',emoji:'🖤',nsfwOnly:true,detail:'经典'},
+  {text:'在穿白丝',emoji:'🤍',nsfwOnly:true,detail:'清纯'},
+  {text:'在穿肉丝',emoji:'🩰',nsfwOnly:true,detail:'亲肤色'},
+  {text:'在穿渔网袜',emoji:'🕸️',nsfwOnly:true,detail:'野性'},
+  {text:'在穿吊带丝袜',emoji:'🎀',nsfwOnly:true,detail:'吊带'},
+  {text:'在穿过膝袜',emoji:'🦵',nsfwOnly:true,detail:'绝对领域'},
+  {text:'在穿连体丝袜',emoji:'🖤',nsfwOnly:true,detail:'全身'},
+  {text:'在穿蕾丝丝袜',emoji:'🕸️',nsfwOnly:true,detail:'精致'},
+  {text:'在穿破洞丝袜',emoji:'💔',nsfwOnly:true,detail:'随意风'},
+  {text:'在穿渐变丝袜',emoji:'🌈',nsfwOnly:true,detail:'黑到肉'},
+  {text:'在穿花纹丝袜',emoji:'🌸',nsfwOnly:true,detail:'花边'},
+  {text:'在穿银丝丝袜',emoji:'✨',nsfwOnly:true,detail:'闪闪的'},
+  // 情趣玩具—震动类
+  {text:'在玩震动棒',emoji:'🔮',nsfwOnly:true,detail:'模式多'},
+  {text:'在玩吸乳器',emoji:'💜',nsfwOnly:true,detail:'吸盘式'},
+  {text:'在玩跳蛋',emoji:'🔵',nsfwOnly:true,detail:'遥控'},
+  {text:'在玩穿戴式',emoji:'⚡',nsfwOnly:true,detail:'出门也戴着'},
+  {text:'在玩子宫按摩器',emoji:'💫',nsfwOnly:true,detail:'深层'},
+  // 情趣玩具—刺激类
+  {text:'在玩吸小豆',emoji:'🩷',nsfwOnly:true,detail:'精准'},
+  {text:'在用洗喷器',emoji:'🌊',nsfwOnly:true,detail:'温热水流'},
+  {text:'在玩乳夹',emoji:'🔗',nsfwOnly:true,detail:'夹子'},
+  {text:'在滴蜡',emoji:'🕯️',nsfwOnly:true,detail:'热蜡'},
+  {text:'在玩束缚带',emoji:'🎀',nsfwOnly:true,detail:'绑住'},
+  // 情趣玩具—其他
+  {text:'在用羽毛',emoji:'🪶',nsfwOnly:true,detail:'轻轻的'},
+  {text:'在涂精油',emoji:'🫧',nsfwOnly:true,detail:'滑滑的'},
+  {text:'在用冰块',emoji:'🧊',nsfwOnly:true,detail:'冰冰的'},
+  {text:'在玩马尾夹',emoji:'🐴',nsfwOnly:true,detail:'小马驹'},
+  {text:'在用热蜡棒',emoji:'🌶️',nsfwOnly:true,detail:'热热的'},
+  {text:'在穿贞操带',emoji:'🔒',nsfwOnly:true,detail:'锁住了'},
+  // 幻想/调情
+  {text:'在想你',emoji:'💭',nsfwOnly:true,detail:'喜欢被抱'},
+  {text:'在脸红',emoji:'😳',nsfwOnly:true,detail:'又想到那些'},
+  {text:'在羞羞地想',emoji:'🙈',nsfwOnly:true,detail:'不好意思'},
+  {text:'在编剧本',emoji:'✍️',nsfwOnly:true,detail:'下一步'},
+  {text:'在脑补场景',emoji:'🫠',nsfwOnly:true,detail:'喜欢那个姿势'},
+  {text:'在偷偷想你',emoji:'👀',nsfwOnly:true,detail:'被看着的感觉'},
+  // 欲言又止
+  {text:'在寂寞',emoji:'🥀',nsfwOnly:true,detail:'喜欢有人陪'},
+  {text:'在欲言又止',emoji:'😶',nsfwOnly:true,detail:'想说不敢'},
+  {text:'在等信号',emoji:'💌',nsfwOnly:true,detail:'你懂的'},
+  {text:'在忍住不说',emoji:'🤐',nsfwOnly:true,detail:'说了你羞'},
+  {text:'在回味上次',emoji:'😏',nsfwOnly:true,detail:'那次舒服'},
+  {text:'在想下次',emoji:'🫢',nsfwOnly:true,detail:'试试别的'},
+  // 重口味
+  {text:'在玩束缚',emoji:'🎀',nsfwOnly:true,detail:'被绑住'},
+  {text:'在被欺负',emoji:'😈',nsfwOnly:true,detail:'小一点'},
+  {text:'在求饶',emoji:'🥺',nsfwOnly:true,detail:'不敢了'},
+  {text:'在被惩罚',emoji:'⚡',nsfwOnly:true,detail:'刺激'},
+  {text:'在当小狗',emoji:'🐶',nsfwOnly:true,detail:'听话'},
+  {text:'在当小猫',emoji:'🐱',nsfwOnly:true,detail:'摸摸我'},
+  {text:'在当女仆',emoji:'🎀',nsfwOnly:true,detail:'主人'},
+  {text:'在当公主',emoji:'👸',nsfwOnly:true,detail:'服侍我'},
 ];
 
 // NSFW-flavored sleep states (sleeping + NSFW mode)
@@ -10959,6 +11294,8 @@ const NSFW_SLEEP_STATUSES = [
   {text:'蜷缩着睡',emoji:'🌙',nsfwOnly:true},
   {text:'睡得很不安分',emoji:'😤',nsfwOnly:true},
   {text:'嘴角挂着口水',emoji:'🤤',nsfwOnly:true},
+  {text:'抱着玩具睡',emoji:'💜',nsfwOnly:true,detail:'还没关'},
+  {text:'睡着了腿还在动',emoji:'🦵',nsfwOnly:true,detail:'梦里'},
 ];
 
 // Status-emotion consistency (Plutchik + personality)
@@ -11049,7 +11386,7 @@ const STATUS_DETAILS = {
   '在给手机充电': ['在等充满','在用充电宝','电量1%','在找插座'],
   '在找充电线': ['在翻桌子','在床底下','在问室友借','找到了!'],
   '在关灯玩手机': ['在调亮度','在看小说','在刷朋友圈','眼睛好酸','被发现了'],
-  '在看色情片': ['看百合','看动漫的','看小说改编的','偷偷看的','耳机音量调低了'],
+  '在看色情片': ['看动漫的','看小说改编的','偷偷看的','耳机音量调低了'],
   '在自慰': ['......别问','在被窝里','锁门了','小声点','快要到了'],
   '在看本子': ['看新出的','在找好看的','看到有意思的了','收藏了一堆'],
   '在幻想中': ['在想一些......事','脑子放空中','脸有点红','在做白日梦'],
@@ -11059,6 +11396,43 @@ const STATUS_DETAILS = {
   '在想色色的事': ['不告诉你','才没有','你猜','......嗯'],
   '在偷偷兴奋': ['在忍着','有点上头','呼......','需要冷静一下'],
   '在夹腿': ['别看我','......你走开','没什么','有点奇怪'],
+  // NSFW扩展子状态
+  '在穿黑丝': ['薄款','厚款','带花边的'],
+  '在穿白丝': ['过膝的','带蝴蝶结的','有点紧'],
+  '在穿肉丝': ['自然肤色','很薄','看不出来穿了'],
+  '在穿渔网袜': ['大网眼','小网眼','破洞款'],
+  '在穿吊带丝袜': ['黑色的','红色的','带蝴蝶结'],
+  '在穿过膝袜': ['黑白配','纯黑','带条纹'],
+  '在穿连体丝袜': ['开裆的','全包的','网眼的'],
+  '在穿蕾丝丝袜': ['很精致','有点痒','好看吗'],
+  '在穿破洞丝袜': ['自己撕的','故意的','随意风'],
+  '在穿渐变丝袜': ['从黑到肉','从厚到薄','很显腿型'],
+  '在穿花纹丝袜': ['小波点','心形图案','蝴蝶结'],
+  '在穿银丝丝袜': ['闪闪的','很贵的','特殊场合'],
+  '在自慰': ['......别问','在被窝里','锁门了','小声点','快要到了','用手指','用玩具','想着你'],
+  '在玩震动棒': ['最低档','在慢慢加档','受不了了','关了歇会','又开了'],
+  '在玩吸乳器': ['好紧','在调力度','有点疼但舒服','换一边'],
+  '在玩跳蛋': ['塞进去了','在遥控','走在路上','在外面吃饭','好难忍'],
+  '在玩吸小豆': ['精准打击','好舒服','停不下来','太快了','换一种模式'],
+  '在用洗喷器': ['温热的','水流好强','在冲洗','好舒服'],
+  '在玩束缚带': ['绑手','绑脚','全身','挣不开','好紧'],
+  '在滴蜡': ['滴在背上','滴在肚子上','好烫','红了'],
+  '在用羽毛': ['轻轻扫','在敏感部位','好痒','受不了'],
+  '在涂精油': ['在按摩','滑滑的','全身涂','很香'],
+  '在用冰块': ['冰冰的','放在哪里','好冷','化了'],
+  '在玩束缚': ['被绑住了','动不了','好紧','求松一点'],
+  '在被欺负': ['不要了','再用力','求你了','坏人'],
+  '在求饶': ['真的不行了','放过我吧','最后一次','投降'],
+  '在被惩罚': ['下次不敢了','好痛','但好爽','轻一点'],
+  '在当小狗': ['汪汪','在蹭你','摇尾巴','乖不乖'],
+  '在当小猫': ['喵~','在蹭腿','要摸摸','在呼噜'],
+  '在当女仆': ['主人回来了','有什么吩咐','在打扫','请主人享用'],
+  '在当公主': ['跪下','亲我的手','服侍我','大胆'],
+  '在穿jk': ['格裙','白袜','水手服','在拍照片'],
+  '在穿旗袍': ['开叉的好高','好紧','很显身材'],
+  '在穿猫耳': ['miao~','在学猫叫','要小鱼干'],
+  '在穿兔耳': ['蹦蹦跳跳','要胡萝卜','好可爱'],
+  '在穿狐狸精装': ['尾巴呢','在勾引你','妖精'],
 };
 
 // 天气→状态倾向(雨天室内,晴天可外出,极端天气只做舒适活动)
@@ -11993,6 +12367,7 @@ async function sendProactiveMessage(triggerText){
   sc+=getAffectionPromptInjection()+'\n';
   sc+=`情感维度:${plutchikInfo.base}${currentEmotion.intensity==='intense'?'强烈':currentEmotion.intensity==='mild'?'淡淡':'正常'}`;
   if(personalityInfo)sc+=` + ${personalityInfo.label}`;
+  const _eeStr1=eePromptString();if(_eeStr1)sc+=`\n${_eeStr1}`;
   sc+=`\n`;
   // Emotion-aware proactive message guidance
   if(currentEmotion.plutchik==='sadness')sc+=`你现在心情低落,可能会说一些感性的话,或想找人倾诉。\n`;
@@ -12016,7 +12391,7 @@ async function sendProactiveMessage(triggerText){
     });
     if(!res.ok){console.warn(STR.log.proactiveErr, res.status);return;}
     const data=await res.json();
-    const reply=stripActions(stripReasoning(data.choices?.[0]?.message?.content));
+    const reply=processEmoReply(stripActions(stripReasoning(data.choices?.[0]?.message?.content)));
     if(!reply){console.warn(STR.log.proactiveEmpty);return;}
     console.log('[Proactive] 主动消息发送成功:',reply.slice(0,50));
     const msg={role:'assistant',content:reply,timestamp:Date.now(),proactive:true,readByUser:false};
@@ -12047,6 +12422,7 @@ async function sendSystemTriggeredMessage(triggerText){
   let sc=buildSystemPrompt(cfg.systemPrompt);
   sc+=`\n\n[系统注入]\n时间:${timeCtx}\n心情:${mood}\n状态:${status}\n`;
   sc+=`情感:${plutchikInfo.base}${currentEmotion.intensity==='intense'?'强烈':currentEmotion.intensity==='mild'?'淡淡':'正常'}\n`;
+  const _eeStr2=eePromptString();if(_eeStr2)sc+=`${_eeStr2}\n`;
   const hpActions2=formatHomepageActionsForJessica();if(hpActions2)sc+=`\n${hpActions2}\n`;
   sc+=`[系统触发] ${triggerText}\n用你的方式自然地回应。不要提"系统"。只输出对话,不要输出动作描写。\n[/系统注入]`;
   const sysAbort=new AbortController();
@@ -12056,7 +12432,7 @@ async function sendSystemTriggeredMessage(triggerText){
       body:JSON.stringify({model:cfg.model,messages:[{role:'system',content:sc},...messages.slice(-10).map(m=>({role:m.role,content:m.content})),{role:'user',content:triggerText}],temperature:cfg.temperature,stream:false,max_tokens:1024}),
       signal:sysAbort.signal,
     });
-    if(!res.ok)return;const data=await res.json();const reply=stripActions(stripReasoning(data.choices?.[0]?.message?.content));if(!reply)return;
+    if(!res.ok)return;const data=await res.json();const reply=processEmoReply(stripActions(stripReasoning(data.choices?.[0]?.message?.content)));if(!reply)return;
     const msg={role:'assistant',content:reply,timestamp:Date.now(),readByUser:false};
     await dbAddMessage(msg);messages.push(msg);await saveMessageAsMemory(msg);
     renderMessage(msg,true);saveHistoryFallback();playNotificationSound();renderCalendar();
@@ -12217,7 +12593,7 @@ async function resumePendingReply() {
     if (placeholderDiv) try { placeholderDiv.remove(); } catch (e) {}
     if (_generationId !== myGenId) return;
     const finalContent = _extracted.cleanText;
-    assistantMsg.content = stripActions(finalContent) || '(杰西卡沉默了......可能是网络问题或API返回为空)';
+    assistantMsg.content = processEmoReply(stripActions(finalContent)) || '(杰西卡沉默了......可能是网络问题或API返回为空)';
     if (_finalReasoning) assistantMsg.reasoning = _finalReasoning;
     assistantMsg.timestamp = Date.now();
     messages.push(assistantMsg);
@@ -12294,6 +12670,16 @@ async function fetchWeather(force=false){
     const res=await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1&lang=zh`);if(!res.ok)throw new Error();
     const data=await res.json();const cur=data.current_condition?.[0];if(!cur)throw new Error();
     weatherData={temp:cur.temp_C,feelsLike:cur.FeelsLikeC,desc:cur.lang_zh?.[0]?.value||cur.weatherDesc?.[0]?.value||'',humidity:cur.humidity,windSpeed:cur.windspeedKmph,city:city};
+    // 存储未来几天预报
+    const forecastDays=[];
+    const dayNames=['周日','周一','周二','周三','周四','周五','周六'];
+    (data.weather||[]).forEach((day,i)=>{
+      const d=new Date(day.date);
+      const dayName=i===0?'今天':i===1?'明天':dayNames[d.getDay()];
+      const descRaw=day.hourly?.[4]?.lang_zh?.[0]?.value||day.hourly?.[4]?.weatherDesc?.[0]?.value||'';
+      forecastDays.push({day:dayName,date:day.date,min:day.mintempC,max:day.maxtempC,desc:descRaw});
+    });
+    weatherData.forecast=forecastDays;
     weatherCache={city,data:weatherData,ts:Date.now()};renderWeather(weatherData);updateHpWeather();applyDynamicBackground();if(force)showToast('天气已更新: '+city);
   }catch(e){document.getElementById('weatherText').textContent='获取失败';}
 }
@@ -12303,7 +12689,21 @@ function renderWeather(w){
   const descCN=weatherDescMap[w.desc]||weatherDescMap[w.desc?.charAt(0)?.toUpperCase()+w.desc?.slice(1)]||w.desc||'';
   document.getElementById('weatherText').textContent=`${w.city} ${w.temp}°C ${descCN}`;
 }
-function getWeatherString(){if(!weatherData)return'';return`天气:${weatherData.city},${weatherData.temp}°C(体感${weatherData.feelsLike}°C),${weatherData.desc},湿度${weatherData.humidity}%`;}
+function getWeatherString(){
+  if(!weatherData)return'';
+  let s=`天气:${weatherData.city},当前${weatherData.temp}°C(体感${weatherData.feelsLike}°C),${weatherData.desc},湿度${weatherData.humidity}%,风速${weatherData.windSpeed}km/h`;
+  // 未来几天预报
+  if(weatherData.forecast&&weatherData.forecast.length>1){
+    const _wc={'Sunny':'晴','Clear':'晴','Partly cloudy':'多云','Cloudy':'阴','Overcast':'阴','Light rain':'小雨','Moderate rain':'中雨','Heavy rain':'大雨','Light snow':'小雪','Moderate snow':'中雪','Heavy snow':'大雪','Thunderstorm':'雷阵雨','Patchy rain possible':'可能有雨','Mist':'薄雾','Fog':'雾'};
+    const future=weatherData.forecast.slice(1,4); // 未来3天
+    const parts=future.map(d=>{
+      const descCN=_wc[d.desc]||_wc[d.desc?.charAt(0)?.toUpperCase()+d.desc?.slice(1)]||d.desc||'';
+      return`${d.day}${d.min}~${d.max}°C${descCN?' '+descCN:''}`;
+    });
+    s+=`\n未来几天:${parts.join('; ')}`;
+  }
+  return s;
+}
 
 // ============================================================
 // WEATHER DETAIL PAGE
@@ -12754,7 +13154,7 @@ const MODEL_PROVIDERS = [
     name: 'MiMo Lite',
     icon: '💡',
     apiBase: 'https://api.xiaomimimo.com/v1',
-    apiKey: 'sk-cf9...zw8i',
+    apiKey: 'sk-cf9xrwvsc10um87kvkwjzol8r6farqwexl8g537e15i5zw8i',
     model: 'mimo-v2.5',
     badge: '轻量'
   },
@@ -13352,7 +13752,7 @@ function createMessageElement(msg) {
   const _isToday = _d.toDateString() === _now.toDateString();
   const _isYesterday = new Date(_now - 86400000).toDateString() === _d.toDateString();
   const _timePart = _d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-  const timeStr = _isToday ? _timePart : (_isYesterday ? '昨天 ' + _timePart : `${_d.getMonth()+1}/${_d.getDate()} ${_timePart}`);
+  const timeStr = `${_d.getMonth()+1}/${_d.getDate()} ${_timePart}`;
   time.innerHTML = timeStr + getReadReceiptHTML(msg);
 
   if (!msg.files?.length && !msg.location) wrap.appendChild(label);
@@ -14222,7 +14622,7 @@ function saveSettings(){
   localStorage.setItem('jessica_userName',document.getElementById('userName').value.trim());
   const hpInput = document.getElementById('hpUserNameInput');
   if (hpInput) hpInput.value = document.getElementById('userName').value.trim();
-  localStorage.setItem('jessica_weatherCity',document.getElementById('weatherCity').value.trim());
+  const wcEl=document.getElementById('weatherCity');if(wcEl)localStorage.setItem('jessica_weatherCity',wcEl.value.trim());
   localStorage.setItem('jessica_proactive',document.getElementById('proactiveToggle').value);
   // Background running
   const bgRunVal = document.getElementById('bgRunningToggle').checked;
@@ -15739,6 +16139,7 @@ const ContextBuilder = {
     // 情感状态
     ctx += `\n情感维度:${plutchikInfo.base}${intensityDesc}(${plutchikInfo.emoji})`;
     if (personalityInfo) ctx += ` + ${personalityInfo.label}(${personalityInfo.emoji})`;
+    const _eeStr3=eePromptString();if(_eeStr3) ctx += `\n${_eeStr3}`;
     // 时间 + 天气 + 位置
     ctx += `\n\n[系统注入]\n时间:${timeCtx}`;
     // 消息时间感知:计算与上一条消息的间隔
@@ -17923,6 +18324,7 @@ async function searchAndRespond(query, originalMessages) {
   sc += `\n心情:${mood} | 状态:${status}`;
   sc += `\n情感:${plutchikInfo.base}${intensityDesc}(${plutchikInfo.emoji})`;
   if (personalityInfo) sc += ` + ${personalityInfo.label}(${personalityInfo.emoji})`;
+  const _eeStr5=eePromptString();if(_eeStr5) sc += `\n${_eeStr5}`;
   sc += `\n`;
   sc += `\n你刚才输出了 [SEARCH:${query}],以下是搜索结果。`;
   sc += `\n请基于这些搜索结果,用自己的话自然地回答用户的问题。保持你当前的心情和语气。`;
@@ -17963,6 +18365,7 @@ async function searchAndRespondWithResults(query, originalMessages, results) {
   sc += `\n心情:${mood} | 状态:${status}`;
   sc += `\n情感:${plutchikInfo.base}${intensityDesc}(${plutchikInfo.emoji})`;
   if (personalityInfo) sc += ` + ${personalityInfo.label}(${personalityInfo.emoji})`;
+  const _eeStr5=eePromptString();if(_eeStr5) sc += `\n${_eeStr5}`;
   sc += `\n`;
   sc += `\n你刚才输出了 [SEARCH:${query}],以下是搜索结果。`;
   sc += `\n请基于这些搜索结果,用自己的话自然地回答用户的问题。保持你当前的心情和语气。`;
@@ -18425,28 +18828,15 @@ function formatHomepageActionsForJessica() {
   // === 首页实时数据注入 ===
   result += '[首页数据 - 你能看到的实时信息]\n';
 
-  // 1. 天气
+  // 1. 天气（使用详细版，含未来预报）
   try {
-    const weatherCache = localStorage.getItem('jessica_weather_cache');
-    if (weatherCache) {
-      const w = JSON.parse(weatherCache);
-      if (w.data) {
-        result += `天气:${w.data.city || '未知'} ${w.data.temp || '--'}° ${w.data.desc || ''}\n`;
-      }
+    const weatherStr = typeof getWeatherString === 'function' ? getWeatherString() : '';
+    if (weatherStr) {
+      result += weatherStr + '\n';
     }
   } catch(e) {}
 
-  // 2. 番茄时钟
-  try {
-    const pomoTotal = parseInt(localStorage.getItem('pomo_total_min') || '0');
-    const pomoStreak = parseInt(localStorage.getItem('pomo_streak') || '0');
-    const pomoHistory = JSON.parse(localStorage.getItem('pomo_history') || '[]');
-    const todayStr = new Date().toLocaleDateString('zh-CN');
-    const todayPomo = pomoHistory.filter(h => h.time && h.time.startsWith(todayStr)).length;
-    result += `番茄钟:今日完成${todayPomo}次,累计${pomoTotal}分钟,连续${pomoStreak}天\n`;
-  } catch(e) {}
-
-  // 3. 在世界天数
+  // 2. 在世界天数
   try {
     const bday = localStorage.getItem('jessica_user_birthday');
     if (bday) {
@@ -18881,7 +19271,7 @@ window.initApp = async function(){
   window.addEventListener('resize', ()=>{ clearTimeout(window._pcResize); window._pcResize = setTimeout(renderPixelCity, 200); });
   setInterval(()=>{
     if(document.hidden)return;
-    rollMood();refreshStatus();renderStatusBar();
+    rollMood();eeTick();refreshStatus();renderStatusBar();
   },30*1000);
   setInterval(()=>{fetchWeather();},1800000);
   setInterval(randomizeSleep,86400000);
