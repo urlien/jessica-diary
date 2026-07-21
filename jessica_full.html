@@ -13539,7 +13539,34 @@ function toggleSidebar(){document.getElementById('sidebar').classList.toggle('hi
 // CHAT HISTORY
 // ============================================================
 async function loadHistory(){
-  try{messages=await dbGetAllMessages();if(!messages.length){const s=localStorage.getItem('jessica_messages');if(s){messages=JSON.parse(s);for(const m of messages)await dbAddMessage(m);}}renderAllMessages();}catch(e){try{const s=localStorage.getItem('jessica_messages');if(s){messages=JSON.parse(s);renderAllMessages();}}catch(e2){}}
+  try{
+    messages=await dbGetAllMessages();
+    if(!messages.length){
+      const s=localStorage.getItem('jessica_messages');
+      if(s){
+        messages=JSON.parse(s);
+        for(const m of messages)await dbAddMessage(m);
+      }
+    }
+    // 如果 messages store 为空，尝试从 _idb_memories 恢复
+    if(!messages.length){
+      try{
+        const mems=await dbGetAllMemories();
+        if(mems&&mems.length){
+          messages=mems.map(m=>({role:m.role,content:m.content,timestamp:m.timestamp,proactive:m.proactive||false}));
+          messages.sort((a,b)=>(a.timestamp||0)-(b.timestamp||0));
+          for(const m of messages)await dbAddMessage(m);
+          console.log('[loadHistory] 从 _idb_memories 恢复了 '+messages.length+' 条消息');
+        }
+      }catch(e3){console.warn('[loadHistory] memories恢复失败:',e3);}
+    }
+    renderAllMessages();
+  }catch(e){
+    try{
+      const s=localStorage.getItem('jessica_messages');
+      if(s){messages=JSON.parse(s);renderAllMessages();}
+    }catch(e2){}
+  }
 }
 function saveHistoryFallback(){try{localStorage.setItem('jessica_messages',JSON.stringify(messages.slice(-500)));}catch(e){}}
 
@@ -21020,16 +21047,16 @@ function _fixChatDiarySwap() {
     }
     // 清空私聊 - 用户要求私聊目前为空
     V2CompressedStore.set('jessica_private_chat', []);
-    // 同时清空 IndexedDB 中的旧消息
-    if (typeof dbClearAll === 'function') dbClearAll().catch(() => {});
-    // 清空内存中的 messages 数组(延迟执行,等 init 完成后)
-    setTimeout(() => {
-      if (typeof messages !== 'undefined') {
-        messages.length = 0;
-        if (typeof renderAllMessages === 'function') renderAllMessages();
-        if (typeof saveHistoryFallback === 'function') saveHistoryFallback();
-      }
-    }, 500);
+    // 不再清空 IndexedDB — loadHistory() 会从 _idb_memories 恢复聊天记录
+    // if (typeof dbClearAll === 'function') dbClearAll().catch(() => {});
+    // 不再清空内存中的 messages 数组 — 避免丢失已恢复的数据
+    // setTimeout(() => {
+    //   if (typeof messages !== 'undefined') {
+    //     messages.length = 0;
+    //     if (typeof renderAllMessages === 'function') renderAllMessages();
+    //     if (typeof saveHistoryFallback === 'function') saveHistoryFallback();
+    //   }
+    // }, 500);
     console.log('[V2] Chat/diary data swap fix v2 applied');
   } catch(e) { console.warn(STR.log.swapFix, e); }
   localStorage.setItem(FLAG, '1');
