@@ -101,19 +101,19 @@
     --border: #2a2d35;
     --text: #e0e0e6;
     --text-dim: #8a8d96;
-    --accent: #7b93c7;
+    --accent: #1d4ed8;
     --accent2: #c79b7b;
 
   /* Fixed viewport - prevent zoom/jitter on mobile */
   html, body { position: fixed; width: 100%; height: 100%; overflow: hidden; touch-action: manipulation; overscroll-behavior: none; -webkit-overflow-scrolling: auto; }
   html { height: 100%; }
   body { height: 100%; min-height: 100%; }
-    --accent-dim: #4a5a7a;
+    --accent-dim: rgba(29,78,216,0.3);
     --red: #c77b7b;
     --green: #7bc77b;
     --pink: #e88ba7;
     --orange: #e8a838;
-    --calendar-today: #7b93c7;
+    --calendar-today: #1d4ed8;
     --calendar-hover: #2a3040;
     --dyn-bg1: #0a0c14;
     --dyn-bg2: #1a1d2e;
@@ -3113,11 +3113,6 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
 
   <!-- Bottom Bar -->
   <div class="hp-bottom-bar">
-    <div class="hp-bottom-btn" onclick="document.getElementById('bgUploadInput').click()">
-      <div class="btn-icon">🖼️</div>
-      <div class="btn-label">背景</div>
-      <input type="file" id="bgUploadInput" accept="image/*" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;" onchange="uploadBackground(event)" />
-    </div>
     <input type="file" id="avatarUploadInputJessica" accept="image/*" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;" onchange="handleAvatarUploadDirect(event,'jessica')" />
     <input type="file" id="avatarUploadInputUser" accept="image/*" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;" onchange="handleAvatarUploadDirect(event,'user')" />
     <label class="hp-bottom-btn" for="avatarUploadInputJessica" style="cursor:pointer;">
@@ -3190,7 +3185,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       </div>
       <div class="info-bar">
         <div class="info-item"><span class="icon">🕐</span><span id="liveClock">--:--:--</span></div>
-        <div class="info-item" id="weatherDisplay" onclick="openSettings()" title="点击设置城市"><span class="icon">🌤</span><span id="weatherText">未设置城市</span></div>
+        <div class="info-item" id="weatherDisplay" onclick="promptWeatherCity()" title="点击设置城市"><span class="icon">🌤</span><span id="weatherText">未设置城市</span></div>
       </div>
       <div class="header-actions">
         <button id="nsfwToggle" onclick="toggleNSFW()" title="NSFW 开关">🔓 NSFW</button>
@@ -8049,18 +8044,6 @@ function hpSearch() {
 }
 
 // Background
-function uploadBackground(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    localStorage.setItem('jessica_bg', reader.result);
-    applyBackground();
-  };
-  reader.readAsDataURL(file);
-  e.target.value = '';
-}
-
 function applyBackground() {
   const bg = localStorage.getItem('jessica_bg');
   const el = document.getElementById('homepageBg');
@@ -10686,16 +10669,97 @@ const STATUSES = [
 
 // NSFW-only statuses (appear only when NSFW mode is on, late night weighted)
 const NSFW_STATUSES = [
+  // === 原有 ===
   {text:'在看色情片',emoji:'🔥',nsfwOnly:true},
   {text:'在自慰',emoji:'💦',nsfwOnly:true},
   {text:'在看本子',emoji:'📕',nsfwOnly:true},
   {text:'在幻想中',emoji:'🫠',nsfwOnly:true},
   {text:'在看小黄文',emoji:'📝',nsfwOnly:true},
-  {text:'在脸红中',emoji:'😳',nsfwOnly:true},
-  {text:'在回味中',emoji:'😏',nsfwOnly:true},
-  {text:'在想色色的事',emoji:'🤭',nsfwOnly:true},
-  {text:'在偷偷兴奋',emoji:'🥵',nsfwOnly:true},
-  {text:'在夹腿',emoji:'🙈',nsfwOnly:true},
+  // === 生理类 ===
+  {text:'在洗澡',emoji:'🚿',nsfwOnly:true,detail:'热水很舒服'},
+  {text:'在涂身体乳',emoji:'🧴',nsfwOnly:true,detail:'皮肤好滑'},
+  {text:'在换衣服',emoji:'👙',nsfwOnly:true,detail:'新买的'},
+  {text:'照镜子',emoji:'🪞',nsfwOnly:true,detail:'自我欣赏'},
+  {text:'睡前照顾',emoji:'💋',nsfwOnly:true},
+  // === 丝袜细分 ===
+  {text:'穿黑色丝袜',emoji:'🖤',nsfwOnly:true,detail:'经典'},
+  {text:'穿白色丝袜',emoji:'🤍',nsfwOnly:true,detail:'清纯'},
+  {text:'穿肉色丝袜',emoji:'🩰',nsfwOnly:true,detail:'亲肤色'},
+  {text:'穿渔网袜',emoji:'🕸️',nsfwOnly:true,detail:'野性'},
+  {text:'穿吊带袜',emoji:'🎀',nsfwOnly:true,detail:'吊带'},
+  {text:'穿过膝袜',emoji:'🦵',nsfwOnly:true,detail:'雪白大腿'},
+  {text:'穿连体丝袜',emoji:'🖤',nsfwOnly:true,detail:'全身'},
+  {text:'穿蕾丝丝袜',emoji:'🕸️',nsfwOnly:true,detail:'精致'},
+  {text:'穿破洞丝袜',emoji:'💔',nsfwOnly:true,detail:'随意风'},
+  {text:'穿渐变丝袜',emoji:'🌈',nsfwOnly:true,detail:'黑到肉'},
+  {text:'穿花纹丝袜',emoji:'🌸',nsfwOnly:true,detail:'花边'},
+  {text:'穿银色丝袜',emoji:'✨',nsfwOnly:true,detail:'闪闪的'},
+  // === 情趣玩具 — 震动类 ===
+  {text:'玩震动棒',emoji:'🔮',nsfwOnly:true,detail:'模式多'},
+  {text:'玩吸乳器',emoji:'💜',nsfwOnly:true,detail:'吸盘式'},
+  {text:'玩跳频器',emoji:'🔵',nsfwOnly:true,detail:'遥控'},
+  {text:'玩蛋跳蛋',emoji:'🥚',nsfwOnly:true,detail:'随身带'},
+  {text:'穿电动震动',emoji:'⚡',nsfwOnly:true,detail:'强'},
+  {text:'玩撩拨器',emoji:'💫',nsfwOnly:true,detail:'刺激'},
+  {text:'玩公主震动',emoji:'👸',nsfwOnly:true,detail:'可爱'},
+  // === 情趣玩具 — 吸吮/舒服类 ===
+  {text:'玩吸小款',emoji:'🩷',nsfwOnly:true,detail:'紧致'},
+  {text:'玩吸喷',emoji:'🌊',nsfwOnly:true,detail:'温热水流'},
+  {text:'玩乳夹',emoji:'🔗',nsfwOnly:true,detail:'夹子'},
+  {text:'玩蜡烛',emoji:'🕯️',nsfwOnly:true,detail:'热蜡'},
+  {text:'玩舒服带',emoji:'🎀',nsfwOnly:true,detail:'绑住'},
+  {text:'玩眼罩',emoji:'🙈',nsfwOnly:true,detail:'看不到'},
+  {text:'玩口球',emoji:'⚫',nsfwOnly:true,detail:'说不出话'},
+  // === 情趣玩具 — 其他 ===
+  {text:'玩刀磨',emoji:'🪶',nsfwOnly:true,detail:'轻柔派'},
+  {text:'玩指压球',emoji:'🎯',nsfwOnly:true,detail:'打在身上'},
+  {text:'玩精油',emoji:'🫧',nsfwOnly:true,detail:'滑滑的'},
+  {text:'玩冰块',emoji:'🧊',nsfwOnly:true,detail:'冰冰的'},
+  {text:'玩热蜡',emoji:'🌶️',nsfwOnly:true,detail:'热热的'},
+  {text:'玩马尾鞭',emoji:'🐍',nsfwOnly:true,detail:'轻轻打'},
+  {text:'玩鸭子球',emoji:'🐥',nsfwOnly:true,detail:'夹一下'},
+  {text:'玩嵌入器',emoji:'🫰',nsfwOnly:true,detail:'慢慢来'},
+  // === 幻想/调情 ===
+  {text:'在想你',emoji:'💭',nsfwOnly:true,detail:'喜欢被抱'},
+  {text:'在脸红',emoji:'😳',nsfwOnly:true,detail:'又想到那些'},
+  {text:'羞羞的想',emoji:'🙈',nsfwOnly:true,detail:'不好意思'},
+  {text:'在编剧本',emoji:'✍️',nsfwOnly:true,detail:'下一步'},
+  {text:'在挠布',emoji:'🫠',nsfwOnly:true,detail:'喜欢那个姿势'},
+  {text:'偷偷想你',emoji:'👀',nsfwOnly:true,detail:'被看着'},
+  // === 每日情趣 ===
+  {text:'在床上',emoji:'🛏️',nsfwOnly:true,detail:'不想动'},
+  {text:'在赖床',emoji:'😴',nsfwOnly:true,detail:'被窝好暖'},
+  {text:'试内衣',emoji:'👙',nsfwOnly:true,detail:'好看吗'},
+  {text:'在泡澡',emoji:'🛁',nsfwOnly:true,detail:'很久了'},
+  {text:'做面膜',emoji:'🧖',nsfwOnly:true,detail:'护肤'},
+  {text:'喝红酒',emoji:'🍷',nsfwOnly:true,detail:'上头'},
+  {text:'听暧昧歌',emoji:'🎵',nsfwOnly:true,detail:'气氛好'},
+  {text:'看恋爱说',emoji:'💕',nsfwOnly:true,detail:'比现实甜'},
+  // === 言语暗示 ===
+  {text:'在寂寞',emoji:'🥀',nsfwOnly:true,detail:'喜欢有人陪'},
+  {text:'欲言又止',emoji:'😶',nsfwOnly:true,detail:'想说不敢'},
+  {text:'等信号',emoji:'💌',nsfwOnly:true,detail:'你懂的'},
+  {text:'忍住不说',emoji:'🤐',nsfwOnly:true,detail:'说了你羞'},
+  {text:'回味上次',emoji:'😏',nsfwOnly:true,detail:'那次舒服'},
+  {text:'想下次',emoji:'🫢',nsfwOnly:true,detail:'试试别的'},
+  // === 重口味 ===
+  {text:'玩束缚',emoji:'🎀',nsfwOnly:true,detail:'被绑住'},
+  {text:'演出',emoji:'🎭',nsfwOnly:true,detail:'今天演谁'},
+  {text:'被欺负',emoji:'😈',nsfwOnly:true,detail:'笑一点'},
+  {text:'求饶',emoji:'🥺',nsfwOnly:true,detail:'不敢了'},
+  {text:'被惩罚',emoji:'⚡',nsfwOnly:true,detail:'刺激'},
+  {text:'当小狗',emoji:'🐶',nsfwOnly:true,detail:'听话'},
+  {text:'当小猫',emoji:'🐱',nsfwOnly:true,detail:'摸摸我'},
+  {text:'当女仆',emoji:'🎀',nsfwOnly:true,detail:'主人回来了'},
+  {text:'当公主',emoji:'👸',nsfwOnly:true,detail:'服侍我'},
+  // === 女仆 ===
+  {text:'穿女仆装',emoji:'🎀',nsfwOnly:true,detail:'主人'},
+  {text:'戴猫耳',emoji:'🐱',nsfwOnly:true,detail:'喵~'},
+  {text:'打扮',emoji:'💄',nsfwOnly:true,detail:'今天是谁'},
+  {text:'穿JK',emoji:'🎀',nsfwOnly:true,detail:'学生'},
+  {text:'穿旗袍',emoji:'👗',nsfwOnly:true,detail:'公主'},
+  {text:'穿狐狸精',emoji:'🦊',nsfwOnly:true,detail:'妖精'},
+  {text:'穿兔耳',emoji:'🐰',nsfwOnly:true,detail:'bunny'},
 ];
 
 // NSFW-flavored sleep states (sleeping + NSFW mode)
@@ -10710,6 +10774,9 @@ const NSFW_SLEEP_STATUSES = [
   {text:'蜷缩着睡',emoji:'🌙',nsfwOnly:true},
   {text:'睡得很不安分',emoji:'😤',nsfwOnly:true},
   {text:'嘴角挂着口水',emoji:'🤤',nsfwOnly:true},
+  {text:'做了个梦',emoji:'💤',nsfwOnly:true,detail:'梦里有你'},
+  {text:'睡不着',emoji:'🌙',nsfwOnly:true,detail:'在想你'},
+  {text:'被窝里动',emoji:'🫠',nsfwOnly:true,detail:'热'},
 ];
 
 // Status-emotion consistency (Plutchik + personality)
@@ -10800,7 +10867,7 @@ const STATUS_DETAILS = {
   '在给手机充电': ['在等充满','在用充电宝','电量1%','在找插座'],
   '在找充电线': ['在翻桌子','在床底下','在问室友借','找到了！'],
   '在关灯玩手机': ['在调亮度','在看小说','在刷朋友圈','眼睛好酸','被发现了'],
-  '在看色情片': ['看百合','看动漫的','看小说改编的','偷偷看的','耳机音量调低了'],
+  '在看色情片': ['看动漫的','看小说改编的','偷偷看的','耳机音量调低了'],
   '在自慰': ['……别问','在被窝里','锁门了','小声点','快要到了'],
   '在看本子': ['看新出的','在找好看的','看到有意思的了','收藏了一堆'],
   '在幻想中': ['在想一些……事','脑子放空中','脸有点红','在做白日梦'],
@@ -10810,6 +10877,21 @@ const STATUS_DETAILS = {
   '在想色色的事': ['不告诉你','才没有','你猜','……嗯'],
   '在偷偷兴奋': ['在忍着','有点上头','呼……','需要冷静一下'],
   '在夹腿': ['别看我','……你走开','没什么','有点奇怪'],
+  // NSFW 扩展详情
+  '在自慰': ['慢慢的','快了','想着你','小声'],
+  '在幻想中': ['和你','被抱住','亲亲','更多'],
+  '回味上次': ['那个动作','那句话','那个眼神'],
+  '穿黑色丝袜': ['玻璃丝','绸丝','棉丝'],
+  '穿白色丝袜': ['清纯','干净','可爱'],
+  '穿渔网袜': ['大网','小网','密集'],
+  '穿过膝袜': ['黑色','白色','肉色'],
+  '穿连体丝袜': ['全身','流体','开裆'],
+  '玩震动棒': ['低频','高频','随机','脉动'],
+  '玩吸乳器': ['浅入','深一点','慢慢来'],
+  '玩跳频器': ['低频','高频','随机','模式切换'],
+  '玩吸喷': ['温热','强','弱','脉动'],
+  '玩舒服带': ['绑手','绑脚','全身'],
+  '玩蜡烛': ['滴在背上','慢慢流','很热'],
 };
 
 // 天气→状态倾向（雨天室内，晴天可外出，极端天气只做舒适活动）
@@ -12039,15 +12121,47 @@ async function resumePendingReply() {
 // ============================================================
 // WEATHER & TIME
 // ============================================================
+// 城市设置弹窗
+function promptWeatherCity(){
+  const current=localStorage.getItem('jessica_weatherCity')||'';
+  const input=document.getElementById('cityModalInput');
+  input.value=current;
+  document.getElementById('cityModalOverlay').style.display='flex';
+  setTimeout(()=>input.focus(),100);
+}
+function closeCityModal(){
+  document.getElementById('cityModalOverlay').style.display='none';
+}
+function confirmCityModal(){
+  const input=document.getElementById('cityModalInput');
+  const city=input.value.trim();
+  if(city){
+    localStorage.setItem('jessica_weatherCity',city);
+    closeCityModal();
+    fetchWeather(true);
+    showToast(`🌤 城市已设置为 ${city}`);
+  }
+}
+
 async function fetchWeather(force=false){
   const city=localStorage.getItem('jessica_weatherCity')||'';
   if(!city){document.getElementById('weatherText').textContent='未设置城市';return;}
   if(!force&&weatherCache.city===city&&(Date.now()-weatherCache.ts<1800000)){renderWeather(weatherCache.data);return;}
   document.getElementById('weatherText').textContent='加载中...';
   try{
-    const res=await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`);if(!res.ok)throw new Error();
+    const res=await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1&lang=zh`);if(!res.ok)throw new Error();
     const data=await res.json();const cur=data.current_condition?.[0];if(!cur)throw new Error();
     weatherData={temp:cur.temp_C,feelsLike:cur.FeelsLikeC,desc:cur.lang_zh?.[0]?.value||cur.weatherDesc?.[0]?.value||'',humidity:cur.humidity,windSpeed:cur.windspeedKmph,city:city};
+    // 存储未来几天预报
+    const forecastDays=[];
+    const dayNames=['周日','周一','周二','周三','周四','周五','周六'];
+    (data.weather||[]).forEach((day,i)=>{
+      const d=new Date(day.date);
+      const dayName=i===0?'今天':i===1?'明天':dayNames[d.getDay()];
+      const descRaw=day.hourly?.[4]?.lang_zh?.[0]?.value||day.hourly?.[4]?.weatherDesc?.[0]?.value||'';
+      forecastDays.push({day:dayName,date:day.date,min:day.mintempC,max:day.maxtempC,desc:descRaw});
+    });
+    weatherData.forecast=forecastDays;
     weatherCache={city,data:weatherData,ts:Date.now()};renderWeather(weatherData);updateHpWeather();applyDynamicBackground();if(force)showToast('天气已更新: '+city);
   }catch(e){document.getElementById('weatherText').textContent='获取失败';}
 }
@@ -12057,7 +12171,7 @@ function renderWeather(w){
   const descCN=weatherDescMap[w.desc]||weatherDescMap[w.desc?.charAt(0)?.toUpperCase()+w.desc?.slice(1)]||w.desc||'';
   document.getElementById('weatherText').textContent=`${w.city} ${w.temp}°C ${descCN}`;
 }
-function getWeatherString(){if(!weatherData)return'';return`天气：${weatherData.city}，${weatherData.temp}°C（体感${weatherData.feelsLike}°C），${weatherData.desc}，湿度${weatherData.humidity}%`;}
+function getWeatherString(){if(!weatherData)return'';let s=`天气：${weatherData.city}，${weatherData.temp}°C（体感${weatherData.feelsLike}°C），${weatherData.desc}，湿度${weatherData.humidity}%`;if(weatherData.forecast&&weatherData.forecast.length>1){const _wc={'Sunny':'晴','Clear':'晴','Partly cloudy':'多云','Cloudy':'阴','Overcast':'阴','Light rain':'小雨','Moderate rain':'中雨','Heavy rain':'大雨','Light snow':'小雪','Moderate snow':'中雪','Heavy snow':'大雪','Thunderstorm':'雷阵雨','Patchy rain possible':'可能有雨','Mist':'薄雾','Fog':'雾'};const future=weatherData.forecast.slice(1,4);const parts=future.map(d=>{const descCN=_wc[d.desc]||_wc[d.desc?.charAt(0)?.toUpperCase()+d.desc?.slice(1)]||d.desc||'';return`${d.day}${d.min}~${d.max}°C${descCN?' '+descCN:''}`;});s+=`\n未来几天：${parts.join('；')}`;}return s;}
 
 // ============================================================
 // WEATHER DETAIL PAGE
@@ -18104,11 +18218,6 @@ function hookHomepageActions() {
       logHomepageAction('进入日记空间');
       return origEnterDiary.apply(this, arguments);
     };
-  }
-  // Background upload
-  const bgInput = document.getElementById('bgUploadInput');
-  if (bgInput) {
-    bgInput.addEventListener('change', () => logHomepageAction('更换了背景图片'));
   }
   // Avatar upload
   ['avatarUploadInputJessica', 'avatarUploadInputUser'].forEach(id => {
@@ -25039,5 +25148,16 @@ function switchStatsTab(tab) { StatsManager.switchTab(tab); }
   </div>
 </div>
 
+<!-- 城市设置弹窗 -->
+<div id="cityModalOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;justify-content:center;align-items:center;" onclick="if(event.target===this)closeCityModal()">
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;width:300px;max-width:90vw;">
+    <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:16px;">🏙 设置城市</div>
+    <input type="text" id="cityModalInput" placeholder="输入城市名，如：镇江" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-input);color:var(--text);font-size:14px;outline:none;font-family:inherit;" onkeydown="if(event.key==='Enter')confirmCityModal()" />
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button onclick="closeCityModal()" style="flex:1;padding:8px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;font-size:13px;">取消</button>
+      <button onclick="confirmCityModal()" style="flex:1;padding:8px;border-radius:8px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);border:none;color:#fff;cursor:pointer;font-size:13px;font-weight:600;">确认</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
