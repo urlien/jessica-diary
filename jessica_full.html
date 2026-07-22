@@ -182,7 +182,7 @@
     position: relative; z-index: 1;
   }
   .hp-card {
-    background: rgba(29,78,216,0.15);
+    background: rgba(29,78,216,0.22);
     backdrop-filter: blur(16px);
     border: 1px solid rgba(29,78,216,0.2);
     border-radius: 16px;
@@ -3001,18 +3001,6 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
         <span style="font-size:10px;color:var(--text-dim);opacity:0.5;">杰西卡亲笔</span>
       </div>
       <div class="hp-birthday-badge" id="hpBirthdayBadge">🎂</div>
-    </div>
-    <!-- Pomodoro -->
-    <div class="hp-card pomodoro-card" onclick="openPomodoroOverlay()" style="cursor:pointer;">
-      <div class="hp-card-title">🍅 番茄时钟</div>
-      <div class="hp-card-value" id="pomodoroTime">25:00</div>
-      <div class="hp-pomodoro-controls" onclick="event.stopPropagation();">
-        <button onclick="startPomodoro(25)" id="pom25">25分</button>
-        <button onclick="startPomodoro(15)" id="pom15">15分</button>
-        <button onclick="startPomodoro(5)" id="pom5">5分</button>
-        <button onclick="stopPomodoro()" id="pomStop">停止</button>
-      </div>
-      <div class="hp-card-label">番茄时钟 · 点击查看详情</div>
     </div>
     <!-- Days alive -->
     <div class="hp-card days-card" onclick="openDaysOverlay()" style="cursor:pointer;">
