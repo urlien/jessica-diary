@@ -12291,28 +12291,7 @@ function renderSunArc(sunrise, sunset) {
 function getTimeContext(){
   const now=new Date();const h=now.getHours();let p='深夜';
   if(h>=5&&h<9)p='清晨';else if(h>=9&&h<12)p='上午';else if(h>=12&&h<14)p='中午';else if(h>=14&&h<18)p='下午';else if(h>=18&&h<22)p='晚上';
-  let ctx=`📅 ${now.toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'})} ${now.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}（${p}）${isBirthday()?' 🎂':''}`;
-  // 动态时间感知：计算与上一条消息的间隔
-  try {
-    if(messages.length>0){
-      const lastMsg=messages[messages.length-1];
-      const lastTs=lastMsg.timestamp||0;
-      if(lastTs>0){
-        const diffMs=now.getTime()-lastTs;
-        const diffMin=Math.floor(diffMs/60000);
-        const diffHrs=Math.floor(diffMs/3600000);
-        const diffDays=Math.floor(diffMs/86400000);
-        let interval='';
-        if(diffMin<1) interval='刚才';
-        else if(diffMin<60) interval=`${diffMin}分钟前`;
-        else if(diffHrs<24) interval=`${diffHrs}小时前`;
-        else interval=`${diffDays}天前`;
-        const who=lastMsg.role==='user'?getUserName():'杰西卡';
-        ctx+=`\n距上一条消息（${who}）已过：${interval}`;
-      }
-    }
-  } catch(e){}
-  return ctx;
+  return`📅 ${now.toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'})} ${now.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}（${p}）${isBirthday()?' 🎂':''}`;
 }
 function updateClock(){const now=new Date();document.getElementById('liveClock').textContent=now.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
 
@@ -15313,6 +15292,37 @@ const ContextBuilder = {
     if (personalityInfo) ctx += ` + ${personalityInfo.label}（${personalityInfo.emoji}）`;
     // 时间 + 天气 + 位置
     ctx += `\n\n[系统注入]\n时间：${timeCtx}`;
+    // 消息时间感知:计算与上一条消息的间隔
+    try {
+      if (typeof messages !== 'undefined' && messages.length > 0) {
+        const lastMsg = messages[messages.length - 1];
+        if (lastMsg && lastMsg.timestamp) {
+          const gapMs = Date.now() - lastMsg.timestamp;
+          const gapMin = Math.floor(gapMs / 60000);
+          const gapHours = Math.floor(gapMin / 60);
+          const gapDays = Math.floor(gapHours / 24);
+          let gapDesc = '';
+          if (gapMin < 1) gapDesc = '刚刚(不到1分钟前)';
+          else if (gapMin < 5) gapDesc = `${gapMin}分钟前`;
+          else if (gapMin < 60) gapDesc = `${gapMin}分钟前`;
+          else if (gapHours < 24) gapDesc = `${gapHours}小时${gapMin % 60 > 0 ? gapMin % 60 + '分钟' : ''}前`;
+          else gapDesc = `${gapDays}天${gapHours % 24 > 0 ? gapHours % 24 + '小时' : ''}前`;
+          const lastRole = lastMsg.role === 'user' ? getUserName() : '你(杰西卡)';
+          ctx += `\n距离上次消息已过去:${gapDesc}(上一条是${lastRole}发的)`;
+          // 跨天感知
+          const lastDate = new Date(lastMsg.timestamp);
+          const nowDate = new Date();
+          if (lastDate.toDateString() !== nowDate.toDateString()) {
+            const dayNames = ['周日','周一','周二','周三','周四','周五','周六'];
+            ctx += `\n注意:上次聊天是${lastDate.getMonth()+1}月${lastDate.getDate()}日(${dayNames[lastDate.getDay()]}),今天是${nowDate.getMonth()+1}月${nowDate.getDate()}日(${dayNames[nowDate.getDay()]}),已经跨天了。不要把今天的对话和昨天的混为一谈。`;
+          }
+          // 长时间未聊的提示
+          if (gapHours >= 4) {
+            ctx += `\n用户很久没来找你了,你可能会想念他,或者好奇他去做了什么。自然地表现出来,但不要每次都刻意提起时间间隔。`;
+          }
+        }
+      }
+    } catch(e) { console.warn('[TimeGap]', e); }
     if (ws) ctx += `\n${ws}`;
     // 杰西卡的位置（跟随用户城市）
     const userCity = localStorage.getItem('jessica_weatherCity') || '';
@@ -16311,6 +16321,9 @@ const CORS_PROXIES = ['https://api.allorigins.win/raw?url=', 'https://corsproxy.
 function getSearchWorkerUrl() { return localStorage.getItem('jessica_search_worker') || ''; }
 const _searchCache = new Map();
 const SEARCH_CACHE_TTL = 5 * 60 * 1000;
+// ── 超时优化:统一缩短,总超时 8s ──
+const SEARCH_TIMEOUT_SINGLE = 6000;   // 单源超时
+const SEARCH_TIMEOUT_TOTAL = 8000;    // 搜索总超时(整轮搜索必须在这个时间内完成)
 const NEWS_CACHE_TTL = 3 * 60 * 1000; // News has shorter TTL
 
 function getCachedSearch(query, ttl) {
@@ -16765,12 +16778,21 @@ async function probeWorker(url, query) {
 }
 
 async function performWebSearch(query, opts = {}) {
-  // 总超时保护：8秒内必须返回
-  const TOTAL_TIMEOUT = 8000;
-  const searchStart = Date.now();
-  function timeLeft() { return Math.max(0, TOTAL_TIMEOUT - (Date.now() - searchStart)); }
-  function isExpired() { return Date.now() - searchStart >= TOTAL_TIMEOUT; }
+  const cached = getCachedSearch(query);
+  if (cached) return cached;
 
+  // 总超时包装:8s 内必须完成,否则返回已有结果
+  const totalTimeout = new Promise(resolve => setTimeout(() => resolve('__TIMEOUT__'), SEARCH_TIMEOUT_TOTAL));
+  const searchPromise = _performWebSearchInner(query, opts);
+  const result = await Promise.race([searchPromise, totalTimeout]);
+  if (result === '__TIMEOUT__') {
+    console.warn('[Search] Total timeout reached');
+    return null;
+  }
+  return result;
+}
+
+async function _performWebSearchInner(query, opts = {}) {
   const cached = getCachedSearch(query);
   if (cached) return cached;
 
@@ -16822,7 +16844,7 @@ async function performWebSearch(query, opts = {}) {
 
   const tier0Results = (await Promise.allSettled(tier0)).flatMap(r => r.status === 'fulfilled' ? r.value : []);
   addResults(tier0Results);
-  if (allResults.length >= MIN_RESULTS || isExpired()) return finalizeResults(allResults, query);
+  if (allResults.length >= MIN_RESULTS) return finalizeResults(allResults, query);
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Tier 1: 核心源（SearXNG 多实例 + Wikipedia + Wikidata + DDG Instant）
@@ -16841,7 +16863,7 @@ async function performWebSearch(query, opts = {}) {
 
   const tier1Results = (await Promise.allSettled(tier1)).flatMap(r => r.status === 'fulfilled' ? r.value : []);
   addResults(tier1Results);
-  if (allResults.length >= MIN_RESULTS || isExpired()) return finalizeResults(allResults, query);
+  if (allResults.length >= MIN_RESULTS) return finalizeResults(allResults, query);
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Tier 2: 补充源（DDG API + 百度建议 + 额外 SearXNG 变体）
@@ -16858,7 +16880,7 @@ async function performWebSearch(query, opts = {}) {
 
   const tier2Results = (await Promise.allSettled(tier2)).flatMap(r => r.status === 'fulfilled' ? r.value : []);
   addResults(tier2Results);
-  if (allResults.length >= MIN_RESULTS || isExpired()) return finalizeResults(allResults, query);
+  if (allResults.length >= MIN_RESULTS) return finalizeResults(allResults, query);
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Tier 3: 深度源（技术/社区）
@@ -16878,7 +16900,7 @@ async function performWebSearch(query, opts = {}) {
   if (tier3.length) {
     const tier3Results = (await Promise.allSettled(tier3)).flatMap(r => r.status === 'fulfilled' ? r.value : []);
     addResults(tier3Results);
-    if (allResults.length >= MIN_RESULTS || isExpired()) return finalizeResults(allResults, query);
+    if (allResults.length >= MIN_RESULTS) return finalizeResults(allResults, query);
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -18013,6 +18035,52 @@ function formatHomepageActionsForJessica() {
     });
     result += `\n[用户首页操作记录]\n${lines.join('\n')}\n`;
   }
+
+  // 7. 今日待办
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const todoData = JSON.parse(localStorage.getItem('jessica_todos') || '{}');
+    if (todoData.date === today && todoData.items && todoData.items.length) {
+      const done = todoData.items.filter(i => i.done).length;
+      const total = todoData.items.length;
+      const pending = todoData.items.filter(i => !i.done).map(i => i.text);
+      result += `今日待办：${done}/${total}已完成`;
+      if (pending.length) result += `，未完成：${pending.slice(0, 5).join('、')}`;
+      result += '\n';
+    } else {
+      result += `今日待办：暂无\n`;
+    }
+  } catch(e) {}
+
+  // 8. 体重记录
+  try {
+    const weightData = JSON.parse(localStorage.getItem('jessica_weight') || '{"records":[]}');
+    if (weightData.records && weightData.records.length) {
+      const latest = weightData.records[weightData.records.length - 1];
+      result += `体重：${latest.weight}kg`;
+      if (latest.bmi) result += `(BMI ${latest.bmi})`;
+      if (weightData.records.length > 1) {
+        const prev = weightData.records[weightData.records.length - 2];
+        const diff = (latest.weight - prev.weight).toFixed(1);
+        if (diff > 0) result += `，比上次+${diff}kg`;
+        else if (diff < 0) result += `，比上次${diff}kg`;
+        else result += '，和上次持平';
+      }
+      result += `，共记录${weightData.records.length}次\n`;
+    }
+  } catch(e) {}
+
+  // 9. 阅读进度
+  try {
+    const books = JSON.parse(localStorage.getItem('jessica_books') || '[]');
+    if (books.length) {
+      const reading = books.filter(b => b.status === 'reading');
+      if (reading.length) {
+        const b = reading[0];
+        result += `正在读：${b.title || '未知'}（${b.progress || 0}%）\n`;
+      }
+    }
+  } catch(e) {}
 
   return result;
 }
