@@ -16850,15 +16850,15 @@ async function _performWebSearchInner(query, opts = {}) {
   // Tier 1: 核心源（SearXNG 多实例 + Wikipedia + Wikidata + DDG Instant）
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const tier1 = [
-    safeSearch('SearXNG', () => searchSearXNG(query), 6000)),
+    safeSearch('SearXNG', () => searchSearXNG(query), 8000),
     safeSearch('Wikipedia', () => searchWikipedia(query), 6000),
     safeSearch('Wikidata', () => searchWikidata(query), 6000),
     safeSearch('DDGInstant', () => searchDDGInstant(query), 6000),
   ];
 
   if (isChinese) {
-    tier1.push(safeSearch('BingWeb', () => searchBingWeb(query), 6000)));
-    tier1.push(safeSearch('Zhihu', () => searchZhihu(query), 6000)));
+    tier1.push(safeSearch('BingWeb', () => searchBingWeb(query), 8000));
+    tier1.push(safeSearch('Zhihu', () => searchZhihu(query), 8000));
   }
 
   const tier1Results = (await Promise.allSettled(tier1)).flatMap(r => r.status === 'fulfilled' ? r.value : []);
@@ -16869,13 +16869,13 @@ async function _performWebSearchInner(query, opts = {}) {
   // Tier 2: 补充源（DDG API + 百度建议 + 额外 SearXNG 变体）
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const tier2 = [
-    safeSearch('DDG', () => searchDDG(query), 6000)),
+    safeSearch('DDG', () => searchDDG(query), 8000),
   ];
 
   if (isChinese) {
     tier2.push(safeSearch('Baidu', () => searchBaiduSuggestion(query), 6000));
     // 额外尝试 SearXNG 英文结果
-    tier2.push(safeSearch('SearXNG', () => searchSearXNG(query), 6000)));
+    tier2.push(safeSearch('SearXNG-en', () => searchSearXNG(query, { lang: 'en' }), 8000));
   }
 
   const tier2Results = (await Promise.allSettled(tier2)).flatMap(r => r.status === 'fulfilled' ? r.value : []);
@@ -16909,7 +16909,7 @@ async function _performWebSearchInner(query, opts = {}) {
   const tier4 = [];
 
   if (isNews || isTrending) {
-    tier4.push(safeSearch('SearXNG', () => searchSearXNG(query), 6000)));
+    tier4.push(safeSearch('SearXNG-News', () => searchSearXNGNews(query), 8000));
     tier4.push(safeSearch('BingNews', () => searchBingNews(query), 8000));
     tier4.push(safeSearch('GoogleNews', () => searchGoogleNews(query), 8000));
     tier4.push(safeSearch('RSSNews', () => searchRSSNews(query), 10000));
