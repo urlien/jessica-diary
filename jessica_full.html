@@ -240,7 +240,6 @@
   .hp-card-sub { font-size: 12px; color: var(--text-dim); margin-top: 6px; line-height: 1.5; }
   .hp-card.diary-card { grid-column: span 1; grid-row: span 2; background: linear-gradient(135deg, rgba(29,78,216,0.2), rgba(245,158,11,0.1)); border-color: rgba(29,78,216,0.25); }
   .hp-card.diary-card .hp-card-value { font-size: 22px; }
-  .hp-card.pomodoro-card .hp-card-value { font-size: 48px; font-variant-numeric: tabular-nums; }
   .hp-card.days-card .hp-card-value { font-size: 42px; background: linear-gradient(135deg, var(--accent), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   .hp-card .hp-memo-display {
     width: 100%; color: var(--text); font-size: 13px; line-height: 1.6;
@@ -360,14 +359,10 @@
     font-size: 14px; font-family: inherit; outline: none;
   }
   .hp-search-bar input::placeholder { color: rgba(255,255,255,0.3); }
-  .hp-pomodoro-controls { display: flex; gap: 8px; margin-top: 8px; }
-  .hp-pomodoro-controls button {
     padding: 4px 12px; border-radius: 6px; font-size: 11px;
     background: rgba(123,147,199,0.2); border: none; color: var(--accent);
     cursor: pointer; font-family: inherit; transition: all 0.15s;
   }
-  .hp-pomodoro-controls button:hover { background: rgba(123,147,199,0.35); }
-  .hp-pomodoro-controls button.active { background: var(--accent); color: #fff; }
   .hp-memories { max-height: 80px; overflow-y: auto; }
   .hp-memories::-webkit-scrollbar { width: 3px; }
   .hp-memories::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
@@ -1851,35 +1846,6 @@ body.private-mode .header {
 }
 .chat-bg-reset-btn:hover { border-color: var(--red); color: var(--red); }
 
-/* ========== POMODORO DETAIL OVERLAY ========== */
-.pomo-overlay { position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; padding: calc(20px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px)) 20px; }
-.pomo-overlay.active { display: flex; animation: fadeIn 0.3s ease; }
-.pomo-modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto; padding: 0; }
-.pomo-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
-.pomo-header h3 { font-size: 16px; color: var(--text); }
-.pomo-body { padding: 20px; text-align: center; }
-.pomo-timer-display { font-size: 64px; font-weight: 200; letter-spacing: 4px; color: #fff; font-variant-numeric: tabular-nums; margin-bottom: 8px; }
-.pomo-progress-ring { width: 120px; height: 120px; margin: 0 auto 20px; }
-.pomo-progress-ring svg { width: 100%; height: 100%; }
-.pomo-presets { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
-.pomo-preset-btn { padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); font-size: 12px; cursor: pointer; transition: all 0.2s; }
-.pomo-preset-btn:hover { border-color: var(--accent); color: var(--accent); }
-.pomo-preset-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-.pomo-controls { display: flex; gap: 12px; justify-content: center; margin-bottom: 24px; }
-.pomo-start-btn { padding: 12px 40px; border-radius: 14px; border: none; background: linear-gradient(135deg, var(--accent), var(--pink)); color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.pomo-start-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(123,147,199,0.3); }
-.pomo-start-btn.running { background: linear-gradient(135deg, var(--orange), var(--red)); }
-.pomo-reset-btn { padding: 12px 20px; border-radius: 14px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); font-size: 14px; cursor: pointer; transition: all 0.2s; }
-.pomo-reset-btn:hover { border-color: var(--red); color: var(--red); }
-.pomo-stats { display: flex; gap: 12px; justify-content: center; margin-bottom: 20px; }
-.pomo-stat-item { flex: 1; background: rgba(255,255,255,0.04); border-radius: 12px; padding: 12px 8px; }
-.pomo-stat-val { font-size: 24px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
-.pomo-stat-label { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
-.pomo-history { text-align: left; }
-.pomo-history-title { font-size: 13px; color: var(--text-dim); margin-bottom: 8px; }
-.pomo-history-list { max-height: 120px; overflow-y: auto; }
-.pomo-history-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; border-radius: 8px; font-size: 12px; color: var(--text-dim); }
-.pomo-history-item:nth-child(odd) { background: rgba(255,255,255,0.02); }
 
 /* ========== DAYS ALIVE DETAIL OVERLAY ========== */
 .days-overlay { position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; padding: calc(20px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px)) 20px; }
@@ -3780,53 +3746,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
   </div>
 </div>
 
-<div class="pomo-overlay" id="pomoOverlay">
-  <div class="pomo-modal">
-    <div class="pomo-header">
-      <h3>🍅 番茄时钟</h3>
-      <button class="memo-close" onclick="closePomodoroOverlay()">✕</button>
-    </div>
-    <div class="pomo-body">
-      <div class="pomo-timer-display" id="pomoTimerDisplay">25:00</div>
-      <div class="pomo-progress-ring">
-        <svg viewBox="0 0 120 120">
-          <circle cx="60" cy="60" r="54" stroke="rgba(255,255,255,0.06)" stroke-width="6" fill="none"/>
-          <circle id="pomoRing" cx="60" cy="60" r="54" stroke="var(--accent)" stroke-width="6" fill="none"
-            stroke-linecap="round" stroke-dasharray="339.29" stroke-dashoffset="0"
-            transform="rotate(-90 60 60)" style="transition: stroke-dashoffset 0.5s ease;"/>
-        </svg>
       </div>
-      <div class="pomo-presets">
-        <button class="pomo-preset-btn active" onclick="setPomoTime(25,this)">🍅 25分钟</button>
-        <button class="pomo-preset-btn" onclick="setPomoTime(15,this)">☕ 15分钟</button>
-        <button class="pomo-preset-btn" onclick="setPomoTime(5,this)">⚡ 5分钟</button>
-        <button class="pomo-preset-btn" onclick="setPomoTime(45,this)">📚 45分钟</button>
-        <button class="pomo-preset-btn" onclick="setPomoTime(60,this)">🎯 60分钟</button>
-      </div>
-      <div class="pomo-controls">
-        <button class="pomo-start-btn" id="pomoStartBtn" onclick="togglePomoTimer()">▶ 开始</button>
-        <button class="pomo-reset-btn" onclick="resetPomoTimer()">↺ 重置</button>
-      </div>
-      <div class="pomo-stats">
-        <div class="pomo-stat-item">
-          <div class="pomo-stat-val" id="pomoTodayCount">0</div>
-          <div class="pomo-stat-label">今日完成</div>
-        </div>
-        <div class="pomo-stat-item">
-          <div class="pomo-stat-val" id="pomoTotalMin">0</div>
-          <div class="pomo-stat-label">总专注(分)</div>
-        </div>
-        <div class="pomo-stat-item">
-          <div class="pomo-stat-val" id="pomoStreak">0</div>
-          <div class="pomo-stat-label">连续天数</div>
-        </div>
-      </div>
-      <div class="pomo-history" id="pomoHistory">
-        <div class="pomo-history-title">📋 最近记录</div>
-        <div class="pomo-history-list" id="pomoHistoryList">暂无记录</div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- ========== DAYS ALIVE DETAIL OVERLAY ========== -->
@@ -9108,159 +9028,6 @@ function updateHpWeather() {
   let effectEl = card.querySelector('.hp-weather-effect');
   if (!effectEl) { effectEl = document.createElement('div'); effectEl.className = 'hp-weather-effect'; effectEl.style.cssText = 'font-size:10px;color:var(--accent2);margin-top:4px;opacity:0.7;'; card.appendChild(effectEl); }
   effectEl.textContent = effectMap[wType] || '✨ 背景色随天气变化';
-}
-
-// Pomodoro
-let pomodoroInterval = null;
-let pomodoroSeconds = 25 * 60;
-
-function startPomodoro(mins) {
-  stopPomodoro();
-  pomodoroSeconds = mins * 60;
-  document.querySelectorAll('.hp-pomodoro-controls button').forEach(b => b.classList.remove('active'));
-  if (mins === 25) document.getElementById('pom25').classList.add('active');
-  else if (mins === 15) document.getElementById('pom15').classList.add('active');
-  else document.getElementById('pom5').classList.add('active');
-  pomodoroInterval = setInterval(() => {
-    pomodoroSeconds--;
-    if (pomodoroSeconds <= 0) { stopPomodoro(); alert('🍅 番茄时间到！'); }
-    renderPomodoro();
-  }, 1000);
-  renderPomodoro();
-}
-
-function stopPomodoro() {
-  if (pomodoroInterval) clearInterval(pomodoroInterval);
-  pomodoroInterval = null;
-}
-
-function renderPomodoro() {
-  const m = String(Math.floor(pomodoroSeconds / 60)).padStart(2, '0');
-  const s = String(pomodoroSeconds % 60).padStart(2, '0');
-  document.getElementById('pomodoroTime').textContent = `${m}:${s}`;
-}
-
-// ============================================================
-// POMODORO DETAIL OVERLAY
-// ============================================================
-let pomoDetailInterval = null;
-let pomoDetailSeconds = 25 * 60;
-let pomoDetailTotal = 25 * 60;
-let pomoDetailRunning = false;
-let pomoCompletedToday = 0;
-let pomoTotalMinutes = parseInt(localStorage.getItem('pomo_total_min') || '0');
-let pomoStreakDays = parseInt(localStorage.getItem('pomo_streak') || '0');
-let pomoLastDate = localStorage.getItem('pomo_last_date') || '';
-
-function openPomodoroOverlay() {
-  document.getElementById('pomoOverlay').classList.add('active');
-  renderPomoDetailTime();
-  updatePomoStats();
-  loadPomoHistory();
-}
-function closePomodoroOverlay() {
-  document.getElementById('pomoOverlay').classList.remove('active');
-}
-
-function setPomoTime(mins, btn) {
-  document.querySelectorAll('.pomo-preset-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  pomoDetailTotal = mins * 60;
-  pomoDetailSeconds = mins * 60;
-  if (pomoDetailRunning) { clearInterval(pomoDetailInterval); pomoDetailRunning = false; }
-  document.getElementById('pomoStartBtn').textContent = '▶ 开始';
-  document.getElementById('pomoStartBtn').classList.remove('running');
-  renderPomoDetailTime();
-  updatePomoRing();
-}
-
-function togglePomoTimer() {
-  if (pomoDetailRunning) {
-    clearInterval(pomoDetailInterval);
-    pomoDetailRunning = false;
-    document.getElementById('pomoStartBtn').textContent = '▶ 继续';
-    document.getElementById('pomoStartBtn').classList.remove('running');
-  } else {
-    pomoDetailRunning = true;
-    document.getElementById('pomoStartBtn').textContent = '⏸ 暂停';
-    document.getElementById('pomoStartBtn').classList.add('running');
-    pomoDetailInterval = setInterval(() => {
-      pomoDetailSeconds--;
-      renderPomoDetailTime();
-      updatePomoRing();
-      if (pomoDetailSeconds <= 0) {
-        clearInterval(pomoDetailInterval);
-        pomoDetailRunning = false;
-        document.getElementById('pomoStartBtn').textContent = '▶ 开始';
-        document.getElementById('pomoStartBtn').classList.remove('running');
-        onPomoComplete();
-      }
-    }, 1000);
-  }
-}
-
-function resetPomoTimer() {
-  clearInterval(pomoDetailInterval);
-  pomoDetailRunning = false;
-  pomoDetailSeconds = pomoDetailTotal;
-  document.getElementById('pomoStartBtn').textContent = '▶ 开始';
-  document.getElementById('pomoStartBtn').classList.remove('running');
-  renderPomoDetailTime();
-  updatePomoRing();
-}
-
-function renderPomoDetailTime() {
-  const m = String(Math.floor(pomoDetailSeconds / 60)).padStart(2, '0');
-  const s = String(pomoDetailSeconds % 60).padStart(2, '0');
-  document.getElementById('pomoTimerDisplay').textContent = `${m}:${s}`;
-}
-
-function updatePomoRing() {
-  const ring = document.getElementById('pomoRing');
-  if (!ring) return;
-  const circumference = 2 * Math.PI * 54;
-  const progress = pomoDetailTotal > 0 ? (pomoDetailTotal - pomoDetailSeconds) / pomoDetailTotal : 0;
-  ring.style.strokeDashoffset = circumference * (1 - progress);
-}
-
-function onPomoComplete() {
-  pomoCompletedToday++;
-  const mins = Math.round(pomoDetailTotal / 60);
-  pomoTotalMinutes += mins;
-  localStorage.setItem('pomo_total_min', pomoTotalMinutes);
-  // Update streak
-  const today = new Date().toDateString();
-  if (pomoLastDate !== today) {
-    const yesterday = new Date(Date.now() - 86400000).toDateString();
-    pomoStreakDays = (pomoLastDate === yesterday) ? pomoStreakDays + 1 : 1;
-    pomoLastDate = today;
-    localStorage.setItem('pomo_streak', pomoStreakDays);
-    localStorage.setItem('pomo_last_date', pomoLastDate);
-  }
-  // Save history
-  const history = JSON.parse(localStorage.getItem('pomo_history') || '[]');
-  history.unshift({ time: new Date().toLocaleString('zh-CN'), duration: mins });
-  if (history.length > 50) history.length = 50;
-  localStorage.setItem('pomo_history', JSON.stringify(history));
-  updatePomoStats();
-  loadPomoHistory();
-  // Notification
-  alert('🍅 番茄时间到！休息一下吧～');
-}
-
-function updatePomoStats() {
-  document.getElementById('pomoTodayCount').textContent = pomoCompletedToday;
-  document.getElementById('pomoTotalMin').textContent = pomoTotalMinutes;
-  document.getElementById('pomoStreak').textContent = pomoStreakDays;
-}
-
-function loadPomoHistory() {
-  const history = JSON.parse(localStorage.getItem('pomo_history') || '[]');
-  const el = document.getElementById('pomoHistoryList');
-  if (history.length === 0) { el.innerHTML = '暂无记录'; return; }
-  el.innerHTML = history.slice(0, 10).map(h =>
-    `<div class="pomo-history-item"><span>🍅 ${h.duration}分钟</span><span>${h.time}</span></div>`
-  ).join('');
 }
 
 // ============================================================
@@ -18078,14 +17845,7 @@ function formatHomepageActionsForJessica() {
     }
   } catch(e) {}
 
-  // 2. 番茄时钟
   try {
-    const pomoTotal = parseInt(localStorage.getItem('pomo_total_min') || '0');
-    const pomoStreak = parseInt(localStorage.getItem('pomo_streak') || '0');
-    const pomoHistory = JSON.parse(localStorage.getItem('pomo_history') || '[]');
-    const todayStr = new Date().toLocaleDateString('zh-CN');
-    const todayPomo = pomoHistory.filter(h => h.time && h.time.startsWith(todayStr)).length;
-    result += `番茄钟：今日完成${todayPomo}次，累计${pomoTotal}分钟，连续${pomoStreak}天\n`;
   } catch(e) {}
 
   // 3. 在世界天数
@@ -18189,18 +17949,7 @@ function formatHomepageActionsForJessica() {
   return result;
 }
 
-// Hook into homepage interactions
 function hookHomepageActions() {
-  // Memo open (new modal system)
-  // Hooks moved to openMemoModal
-  // Pomodoro
-  const origStartPom = window.startPomodoro;
-  if (typeof origStartPom === 'function') {
-    window.startPomodoro = function(mins) {
-      logHomepageAction('启动番茄时钟', `${mins}分钟`);
-      return origStartPom.apply(this, arguments);
-    };
-  }
   // Enter diary
   const origEnterDiary = window.enterDiary;
   if (typeof origEnterDiary === 'function') {
@@ -18508,7 +18257,26 @@ window.initApp = async function(){
   setupAvatarDoubleClick();
   markMessagesRead();
   scheduleDailySummary();
-  hookHomepageActions();
+  // Hook homepage actions
+  const origEnterDiary = window.enterDiary;
+  if (typeof origEnterDiary === 'function') {
+    window.enterDiary = function() {
+      logHomepageAction('进入日记空间');
+      return origEnterDiary.apply(this, arguments);
+    };
+  }
+  ['avatarUploadInputJessica', 'avatarUploadInputUser'].forEach(id => {
+    const avatarInput = document.getElementById(id);
+    if (avatarInput) {
+      avatarInput.addEventListener('change', () => logHomepageAction('更换了头像'));
+    }
+  });
+  document.querySelectorAll('.hp-bottom-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const label = btn.querySelector('.btn-label')?.textContent || '未知操作';
+      logHomepageAction(`点击底部按钮`, label);
+    });
+  });
   // Idle-time prefetch
   prefetchDuringIdle();
   prefetchApiEndpoints();
@@ -18517,7 +18285,7 @@ window.initApp = async function(){
   // BGM only starts when user explicitly clicks the toggle button (no auto-start)
   // Global click sound effect (like deepseek.html)
   document.addEventListener('click', (e) => {
-    const btn = e.target.closest('button, .hp-card, .action-btn, .settings-action-btn, .pomo-preset-btn, .pomo-start-btn, .pomo-reset-btn, .bgm-toggle-btn, .notif-preview-btn, .kb-upload-area, .sticker-add-btn, .ws-option-item, .modal-actions button');
+    const btn = e.target.closest('button, .hp-card, .action-btn, .settings-action-btn, .bgm-toggle-btn, .notif-preview-btn, .kb-upload-area, .sticker-add-btn, .ws-option-item, .modal-actions button');
     if (btn) {
       try { bgmSys.playSFX('click'); } catch(e) {}
     }
