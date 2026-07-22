@@ -12291,7 +12291,28 @@ function renderSunArc(sunrise, sunset) {
 function getTimeContext(){
   const now=new Date();const h=now.getHours();let p='深夜';
   if(h>=5&&h<9)p='清晨';else if(h>=9&&h<12)p='上午';else if(h>=12&&h<14)p='中午';else if(h>=14&&h<18)p='下午';else if(h>=18&&h<22)p='晚上';
-  return`📅 ${now.toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'})} ${now.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}（${p}）${isBirthday()?' 🎂':''}`;
+  let ctx=`📅 ${now.toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'})} ${now.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}（${p}）${isBirthday()?' 🎂':''}`;
+  // 动态时间感知：计算与上一条消息的间隔
+  try {
+    if(messages.length>0){
+      const lastMsg=messages[messages.length-1];
+      const lastTs=lastMsg.timestamp||0;
+      if(lastTs>0){
+        const diffMs=now.getTime()-lastTs;
+        const diffMin=Math.floor(diffMs/60000);
+        const diffHrs=Math.floor(diffMs/3600000);
+        const diffDays=Math.floor(diffMs/86400000);
+        let interval='';
+        if(diffMin<1) interval='刚才';
+        else if(diffMin<60) interval=`${diffMin}分钟前`;
+        else if(diffHrs<24) interval=`${diffHrs}小时前`;
+        else interval=`${diffDays}天前`;
+        const who=lastMsg.role==='user'?getUserName():'杰西卡';
+        ctx+=`\n距上一条消息（${who}）已过：${interval}`;
+      }
+    }
+  } catch(e){}
+  return ctx;
 }
 function updateClock(){const now=new Date();document.getElementById('liveClock').textContent=now.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
 
@@ -16744,6 +16765,12 @@ async function probeWorker(url, query) {
 }
 
 async function performWebSearch(query, opts = {}) {
+  // 总超时保护：8秒内必须返回
+  const TOTAL_TIMEOUT = 8000;
+  const searchStart = Date.now();
+  function timeLeft() { return Math.max(0, TOTAL_TIMEOUT - (Date.now() - searchStart)); }
+  function isExpired() { return Date.now() - searchStart >= TOTAL_TIMEOUT; }
+
   const cached = getCachedSearch(query);
   if (cached) return cached;
 
@@ -16795,43 +16822,43 @@ async function performWebSearch(query, opts = {}) {
 
   const tier0Results = (await Promise.allSettled(tier0)).flatMap(r => r.status === 'fulfilled' ? r.value : []);
   addResults(tier0Results);
-  if (allResults.length >= MIN_RESULTS) return finalizeResults(allResults, query);
+  if (allResults.length >= MIN_RESULTS || isExpired()) return finalizeResults(allResults, query);
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Tier 1: 核心源（SearXNG 多实例 + Wikipedia + Wikidata + DDG Instant）
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const tier1 = [
-    safeSearch('SearXNG', () => searchSearXNG(query), 8000),
+    safeSearch('SearXNG', () => searchSearXNG(query), 6000)),
     safeSearch('Wikipedia', () => searchWikipedia(query), 6000),
     safeSearch('Wikidata', () => searchWikidata(query), 6000),
     safeSearch('DDGInstant', () => searchDDGInstant(query), 6000),
   ];
 
   if (isChinese) {
-    tier1.push(safeSearch('BingWeb', () => searchBingWeb(query), 8000));
-    tier1.push(safeSearch('Zhihu', () => searchZhihu(query), 8000));
+    tier1.push(safeSearch('BingWeb', () => searchBingWeb(query), 6000)));
+    tier1.push(safeSearch('Zhihu', () => searchZhihu(query), 6000)));
   }
 
   const tier1Results = (await Promise.allSettled(tier1)).flatMap(r => r.status === 'fulfilled' ? r.value : []);
   addResults(tier1Results);
-  if (allResults.length >= MIN_RESULTS) return finalizeResults(allResults, query);
+  if (allResults.length >= MIN_RESULTS || isExpired()) return finalizeResults(allResults, query);
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Tier 2: 补充源（DDG API + 百度建议 + 额外 SearXNG 变体）
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const tier2 = [
-    safeSearch('DDG', () => searchDDG(query), 8000),
+    safeSearch('DDG', () => searchDDG(query), 6000)),
   ];
 
   if (isChinese) {
     tier2.push(safeSearch('Baidu', () => searchBaiduSuggestion(query), 6000));
     // 额外尝试 SearXNG 英文结果
-    tier2.push(safeSearch('SearXNG-en', () => searchSearXNG(query, { lang: 'en' }), 8000));
+    tier2.push(safeSearch('SearXNG', () => searchSearXNG(query), 6000)));
   }
 
   const tier2Results = (await Promise.allSettled(tier2)).flatMap(r => r.status === 'fulfilled' ? r.value : []);
   addResults(tier2Results);
-  if (allResults.length >= MIN_RESULTS) return finalizeResults(allResults, query);
+  if (allResults.length >= MIN_RESULTS || isExpired()) return finalizeResults(allResults, query);
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Tier 3: 深度源（技术/社区）
@@ -16851,7 +16878,7 @@ async function performWebSearch(query, opts = {}) {
   if (tier3.length) {
     const tier3Results = (await Promise.allSettled(tier3)).flatMap(r => r.status === 'fulfilled' ? r.value : []);
     addResults(tier3Results);
-    if (allResults.length >= MIN_RESULTS) return finalizeResults(allResults, query);
+    if (allResults.length >= MIN_RESULTS || isExpired()) return finalizeResults(allResults, query);
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -16860,7 +16887,7 @@ async function performWebSearch(query, opts = {}) {
   const tier4 = [];
 
   if (isNews || isTrending) {
-    tier4.push(safeSearch('SearXNG-News', () => searchSearXNGNews(query), 8000));
+    tier4.push(safeSearch('SearXNG', () => searchSearXNG(query), 6000)));
     tier4.push(safeSearch('BingNews', () => searchBingNews(query), 8000));
     tier4.push(safeSearch('GoogleNews', () => searchGoogleNews(query), 8000));
     tier4.push(safeSearch('RSSNews', () => searchRSSNews(query), 10000));
