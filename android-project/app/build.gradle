@@ -10,8 +10,8 @@ android {
         applicationId "com.jessica.diary"
         minSdk 24
         targetSdk 34
-        versionCode 35
-        versionName "台风"
+        versionCode 36
+        versionName "酷暑"
     }
 
     buildTypes {
