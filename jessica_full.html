@@ -1131,6 +1131,31 @@
   .settings-section { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
   .settings-section:first-of-type { border-top: none; padding-top: 0; margin-top: 12px; }
   .settings-section-title { font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 10px; }
+  .settings-action-btn { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; border-radius: 8px; background: var(--accent-dim); border: 1px solid var(--border); color: var(--text); cursor: pointer; font-size: 12px; font-family: inherit; transition: all 0.15s; white-space: nowrap; position: relative; }
+  .settings-action-btn:hover { border-color: var(--accent); background: rgba(29,78,216,0.18); color: var(--accent); }
+  .settings-action-btn:active { transform: scale(0.97); }
+  .slider-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+  .slider-row input[type="range"] { flex: 1; }
+  .slider-row span { font-size: 12px; color: var(--text-dim); min-width: 36px; text-align: right; }
+  .toggle-switch-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; }
+  .toggle-switch { position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; inset: 0; background: var(--border); border-radius: 24px; cursor: pointer; transition: 0.25s; }
+  .toggle-slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.25s; }
+  .toggle-switch input:checked + .toggle-slider { background: var(--accent); }
+  .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+  .ws-dropdown { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; font-size: 13px; color: var(--text); transition: border-color 0.2s; }
+  .ws-dropdown:hover { border-color: var(--accent); }
+  .notif-sound-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; transition: background 0.15s; font-size: 13px; color: var(--text-dim); }
+  .notif-sound-item:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+  .notif-sound-item.selected { background: var(--accent-dim); color: var(--accent); }
+  .notif-sound-radio { width: 16px; height: 16px; border: 2px solid var(--border); border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: border-color 0.15s; }
+  .notif-sound-item.selected .notif-sound-radio { border-color: var(--accent); }
+  .notif-sound-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); opacity: 0; transition: opacity 0.15s; }
+  .notif-sound-item.selected .notif-sound-dot { opacity: 1; }
+  .notif-preview-btn { margin-left: auto; flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); background: transparent; color: var(--text-dim); cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .notif-preview-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .bgm-control-row { display: flex; align-items: center; gap: 10px; }
   .hint { font-size: 11px; color: var(--text-dim); margin-top: 6px; opacity: 0.7; font-family: 'KaiTi', '楷体', 'STKaiti', serif; font-style: italic; }
   .modal-actions { margin-top: 24px; display: flex; gap: 10px; justify-content: flex-end; }
   .modal-actions button { padding: 8px 20px; border-radius: 8px; font-size: 13px; cursor: pointer; border: none; font-family: inherit; }
@@ -3324,7 +3349,7 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
 
     <!-- 知识库文件 -->
     <div class="settings-section">
-      <div class="settings-section-title">知识库文件</div>
+<!--       <div class="settings-section-title">知识库文件</div> -->
       <!-- 上传区域 -->
       <div id="kbUploadArea" onclick="document.getElementById('kbFileInput').click()" style="cursor:pointer;border:1px dashed var(--border);border-radius:10px;padding:20px;text-align:center;margin-bottom:10px;transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
         <div style="font-size:12px;color:var(--text-dim);">支持 PDF / Word (.docx) / txt / markdown</div>
@@ -3384,13 +3409,13 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       </div>
       <label>最大回复长度</label>
       <div class="slider-row">
-        <input type="range" id="maxTokens" min="256" max="8192" step="256" value="2048" />
+        <input type="range" id="maxTokens" min="64" max="512" step="64" value="64" />
         <span id="maxTokensValue">2048</span>
       </div>
     </div>
 
-    <!-- 主动消息 -->
-    <div class="settings-section">
+<!-- 主动消息 - DISABLED -->
+    <div class="settings-section" style="display:none">
       <div class="settings-section-title">主动消息</div>
       <label>开关</label>
       <select id="proactiveToggle" onchange="document.getElementById('proactiveIntervalWrap').style.display=this.value==='off'?'none':'block'">
@@ -7416,6 +7441,7 @@ ACG文化：熟悉二次元圈子，玩过少女前线、碧蓝航线、崩坏�
 // 知识库搜索
 // ============================================================
 function searchKnowledgeBase(query) {
+  return; // disabled by凯西
   if (!query || !DEFAULT_KNOWLEDGE_BASE) return '';
   const docs = Object.entries(DEFAULT_KNOWLEDGE_BASE);
   // 分词为关键词
@@ -9765,9 +9791,9 @@ async function buildMemoryContext(currentMessage) {
     all.forEach(m => { const d = m.date || new Date(m.timestamp).toLocaleDateString('zh-CN'); if (!byDate[d]) byDate[d] = []; byDate[d].push(m); });
     const dates = Object.keys(byDate).sort();
     let ctx = `[长期记忆库 — 共 ${all.length} 条记录，跨越 ${dates.length} 天]\n`;
-    const recent = dates.slice(-7);
+    const recent = dates.slice(-3);
     if (recent.length) {
-      ctx += `\n[最近7天完整记录]\n`;
+      ctx += `\n[最近3天完整记录]\n`;
       recent.forEach(d => {
         ctx += `\n--- ${d} ---\n`;
         byDate[d].forEach(m => {
@@ -9985,7 +10011,7 @@ function extractFactsFromMessage(userName, userText, jessicaReply) {
 // 定期从最近对话中提取事实
 async function runMemoryExtraction() {
   try {
-    const recentMsgs = messages.slice(-30);
+    const recentMsgs = messages.slice(-20);
     const existingFacts = loadMemoryFacts();
     const existingContents = new Set(existingFacts.map(f => f.content));
     const userName = getUserName();
@@ -10041,10 +10067,10 @@ buildMemoryContext = async function(currentMessage) {
     const dates = Object.keys(byDate).sort();
     let ctx = `[长期记忆库 — 共 ${all.length} 条记录，跨越 ${dates.length} 天]\n`;
 
-    // 最近 7 天完整记录
-    const recent = dates.slice(-7);
+    // 最近 3 天完整记录
+    const recent = dates.slice(-3);
     if (recent.length) {
-      ctx += `\n[最近7天完整记录]\n`;
+      ctx += `\n[最近3天完整记录]\n`;
       recent.forEach(d => {
         ctx += `\n--- ${d} ---\n`;
         byDate[d].forEach(m => {
@@ -10069,7 +10095,7 @@ buildMemoryContext = async function(currentMessage) {
     if (currentMessage && currentMessage.length > 2) {
       let oramaResults = [];
       if (_oramaReady) {
-        oramaResults = await oramaSearch(currentMessage, 15);
+        oramaResults = await oramaSearch(currentMessage, 10);
       }
 
       // 结构化记忆事实
@@ -10998,7 +11024,7 @@ function checkDiversityBonus(type) {
 // ============================================================
 // AFFECTION CHANGE ENGINE — 基于用户消息驱动好感度变化
 // ============================================================
-function processAffectionFromChat(userText, sentiment) {
+function processAffectionFromChat(userText, sentiment) { return; // disabled by凯西
   if (!userText || !sentiment) return;
   const today = new Date().toISOString().slice(0, 10);
   affection.lastChatDate = today;
@@ -11067,7 +11093,7 @@ function processAffectionFromChat(userText, sentiment) {
 // ============================================================
 // AFFECTION SYSTEM PROMPT INJECTION
 // ============================================================
-function getAffectionPromptInjection() {
+function getAffectionPromptInjection() { return ""; // disabled by凯西
   const stage = getAffectionStage();
   const R = getAffectionR();
   const H = Math.round(affection.value * 10) / 10;
@@ -11293,7 +11319,7 @@ function generateInnerThought(R, stage) {
 }
 
 // 初始化好感度
-loadAffection();
+/* loadAffection disabled by凯西 */
 
 // ============================================================
 // USER SENTIMENT DETECTION (Chinese emotion keywords)
@@ -11467,8 +11493,9 @@ const PROACTIVE_MSGS={
   nsfw_curious:["你今天有没有想我？老实说","你最近……精力还够吗","你觉得我穿什么好看？","你有没有偷偷看什么不该看的","……你会不会觉得我太黏人了","你洗澡的时候会想我吗","你有没有梦到过我……那种梦"],
 };
 function scheduleProactiveMessage(){
+  return; // disabled by凯西
   if(proactiveTimer)clearTimeout(proactiveTimer);
-  if(localStorage.getItem('jessica_proactive')==='off')return;
+/* disabled:   if(localStorage.getItem('jessica_proactive')==='off')return; */
   const baseInterval=parseInt(localStorage.getItem('jessica_proactive_interval')||'15');
   // Affection affects proactive frequency: high affection = more frequent
   const R = getAffectionR();
@@ -11483,11 +11510,11 @@ function scheduleProactiveMessage(){
     _proactiveMsgTs=0;
     try{localStorage.removeItem(PROACTIVE_PERSIST_KEY);}catch(e){}
     const sleepState=getSleepState();
-    if(sleepState==='sleeping'){console.log('[Proactive] 杰西卡在睡觉，跳过');scheduleProactiveMessage();return;}
+    if(sleepState==='sleeping'){console.log('[Proactive] 杰西卡在睡觉，跳过');/* scheduleProactiveMessage() disabled */;return;}
     const last=[...messages].reverse().find(m=>m.role==='user');
-    if(last&&Date.now()-last.timestamp<3*60*1000){console.log('[Proactive] 用户刚活跃，跳过');scheduleProactiveMessage();return;}
+    if(last&&Date.now()-last.timestamp<3*60*1000){console.log('[Proactive] 用户刚活跃，跳过');/* scheduleProactiveMessage() disabled */;return;}
     // 15% chance to skip (reduced from 30%)
-    if(Math.random()>0.85){console.log('[Proactive] 随机跳过');scheduleProactiveMessage();return;}
+    if(Math.random()>0.85){console.log('[Proactive] 随机跳过');/* scheduleProactiveMessage() disabled */;return;}
     const h=new Date().getHours();
     const hasMemo=(JSON.parse(localStorage.getItem('jessica_memos')||'[]').length>0);
     let cat='curious';
@@ -11513,31 +11540,33 @@ function scheduleProactiveMessage(){
     const text=pool[Math.floor(Math.random()*pool.length)];
     console.log(`[Proactive] 触发主动消息: cat=${cat}`);
     await sendProactiveMessage(text);
-    scheduleProactiveMessage();
+    /* scheduleProactiveMessage() disabled */;
   },interval);
 }
 
 // 页面加载时检查是否有错过的触发点（持久化补发机制）
 function initProactiveCheck(){
-  if(localStorage.getItem('jessica_proactive')==='off')return;
+  return; // disabled by凯西
+/* disabled:   if(localStorage.getItem('jessica_proactive')==='off')return; */
   const savedTs=parseInt(localStorage.getItem(PROACTIVE_PERSIST_KEY)||'0');
   if(savedTs&&Date.now()>savedTs){
     // 错过了触发时间，延迟 5 秒补发
     const overdue=Date.now()-savedTs;
     console.log(`[Proactive] 检测到错过 ${(overdue/60000).toFixed(1)} 分钟，准备补发`);
-    setTimeout(()=>{try{catchUpProactiveMessages();}catch(e){}},5000);
+/* disabled by凯西:     setTimeout(()=>{try{catchUpProactiveMessages();}catch(e){}},5000); */
   }
   // 启动常规循环
-  scheduleProactiveMessage();
+  /* scheduleProactiveMessage() disabled */;
 }
 
 // 补发错过的主动消息（页面可见时 + 页面加载时调用）
 function catchUpProactiveMessages(){
-  if(localStorage.getItem('jessica_proactive')==='off')return;
+  return; // disabled by凯西
+/* disabled:   if(localStorage.getItem('jessica_proactive')==='off')return; */
   const sleepState=getSleepState();
-  if(sleepState==='sleeping'){console.log('[Proactive] 杰西卡在睡觉，不补发');scheduleProactiveMessage();return;}
+  if(sleepState==='sleeping'){console.log('[Proactive] 杰西卡在睡觉，不补发');/* scheduleProactiveMessage() disabled */;return;}
   const last=[...messages].reverse().find(m=>m.role==='user');
-  if(last&&Date.now()-last.timestamp<3*60*1000){console.log('[Proactive] 用户刚活跃，不补发');scheduleProactiveMessage();return;}
+  if(last&&Date.now()-last.timestamp<3*60*1000){console.log('[Proactive] 用户刚活跃，不补发');/* scheduleProactiveMessage() disabled */;return;}
   // 检查上次主动消息的时间
   const lastProactive=[...messages].reverse().find(m=>m.proactive);
   const lastProactiveTs=lastProactive?lastProactive.timestamp:0;
@@ -11565,9 +11594,10 @@ function catchUpProactiveMessages(){
       sendProactiveMessage(text);
     }
   }
-  scheduleProactiveMessage();
+  /* scheduleProactiveMessage() disabled */;
 }
 async function sendProactiveMessage(triggerText){
+  return; // disabled by凯西
   const cfg=loadConfig();
   if(!cfg.apiBase||!cfg.apiKey){console.warn(STR.log.proactiveNoApi);return;}
   if(isGenerating){console.warn(STR.log.proactiveBusy);return;}
@@ -11700,7 +11730,7 @@ async function resumePendingReply() {
         model: cfg.model,
         messages: [
           { role: 'system', content: sc },
-          ...messages.slice(-30).map(m => ({ role: m.role, content: m.content }))
+          ...messages.slice(-20).map(m => ({ role: m.role, content: m.content }))
         ],
         temperature: cfg.temperature,
         stream: true,
@@ -12349,9 +12379,11 @@ const NotificationBridge = {
       this.startBackgroundService();
     }
     // Auto-request notification permission if proactive messages are on
+/* disabled:
     if (localStorage.getItem('jessica_proactive') !== 'off') {
       this.requestPermission();
     }
+*/
   }
 };
 function loadConfig(){
@@ -12369,8 +12401,8 @@ function loadConfig(){
   return{
     apiBase:localStorage.getItem('jessica_apiBase')||'',
     apiKey:localStorage.getItem('jessica_apiKey')||'',
-    model:localStorage.getItem('jessica_model')||'deepseek-chat',
-    temperature:parseFloat(localStorage.getItem('jessica_temperature'))||0.8,
+    model:localStorage.getItem('jessica_model')||'deepseek-v4-flash',
+    temperature:parseFloat(localStorage.getItem('jessica_temperature'))||1.1,
     maxTokens:parseInt(localStorage.getItem('jessica_maxTokens'))||2048,
     jessicaPrompt:jp,
     hendersonProfile:hp,
@@ -12547,13 +12579,7 @@ function toggleSidebar(){document.getElementById('sidebar').classList.toggle('hi
 // ============================================================
 async function loadHistory(){
   try{
-    // 优先从 localStorage 读取（云同步备份兼容）
-    const s=localStorage.getItem('jessica_messages');
-    if(s){
-      messages=JSON.parse(s);
-      if(messages.length){renderAllMessages();return;}
-    }
-    // 回退到 IndexedDB
+    // 优先从 IndexedDB 读取（数据最新）
     messages=await dbGetAllMessages();
     // 如果 messages store 为空，尝试从 _idb_memories 恢复
     if(!messages.length){
@@ -12565,6 +12591,14 @@ async function loadHistory(){
           console.log('[loadHistory] 从 _idb_memories 恢复了 '+messages.length+' 条消息');
         }
       }catch(e3){console.warn('[loadHistory] memories恢复失败:',e3);}
+    }
+    // 回退到 localStorage（旧数据兼容）
+    if(!messages.length){
+      const s=localStorage.getItem('jessica_messages');
+      if(s){
+        messages=JSON.parse(s);
+        console.log('[loadHistory] 从 localStorage 恢复了 '+messages.length+' 条消息');
+      }
     }
     renderAllMessages();
   }catch(e){
@@ -13142,7 +13176,7 @@ async function sendMessage(){
   sc += await ContextBuilder.getDynamicContext(text);
 
   // 内置知识库搜索
-  const kbResult = searchKnowledgeBase(text);
+  const kbResult = null /* searchKnowledgeBase disabled */;
   if (kbResult) sc += kbResult;
 
   // 吵醒后的持续清醒期上下文注入（不只是刚吵醒的2分钟，整个30-60分钟清醒期都注入）
@@ -13167,7 +13201,8 @@ async function sendMessage(){
   if(jpEntries.length){
     sc+=`\n[你的日记本]\n你有自己的日记，你记得所有写过的内容。以下是全部日记：\n`;
     // Include all entries (truncated for context window)
-    jpEntries.forEach(e=>{
+    const _recentDiary = jpEntries.filter(e => Date.now() - (e.timestamp||0) < 7*24*60*60*1000);
+    _recentDiary.forEach(e=>{
       sc+=`[${jpDateKey(e.timestamp)} ${e.mood||'😌'}] ${e.content}\n`;
     });
     // Keyword search for relevant entries
@@ -13220,7 +13255,7 @@ async function sendMessage(){
   sc+=`[/系统注入]`;
   await saveMessageAsMemory(userMsg);
 
-  const apiMessages=[{role:'system',content:sc},...messages.slice(-30).map(m=>{
+  const apiMessages=[{role:'system',content:sc},...messages.slice(-20).map(m=>{
     if(m.role==='user'&&m===userMsg){
       const hasMedia=m.files?.some(f=>f.dataUrl);
       if(hasMedia){const c=[];if(userContent)c.push({type:'text',text:userContent});m.files?.forEach(f=>{if(f.dataUrl&&f.isImage)c.push({type:'image_url',image_url:{url:f.dataUrl}});else if(f.isAudio)c.push({type:'text',text:`[音频: ${f.name}]`});});return{role:'user',content:c};}
@@ -13235,7 +13270,7 @@ async function sendMessage(){
   try{
     const res=await fetch(`${cfg.apiBase.replace(/\/+$/,'')}/chat/completions`,{
       method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${cfg.apiKey}`},
-      body:JSON.stringify({model:cfg.model,messages:apiMessages,temperature:cfg.temperature,stream:true,max_tokens:8192}),
+      body:JSON.stringify({model:cfg.model,messages:apiMessages,temperature:cfg.temperature,stream:true,max_tokens:cfg.maxTokens||64}),
       signal:localAbortController.signal,
     });
     if(_generationId!==myGenId)return;
@@ -13454,7 +13489,7 @@ function openSettings(){
   }
   const unEl=document.getElementById('userName');if(unEl)unEl.value=localStorage.getItem('jessica_userName')||'';
   const wcEl=document.getElementById('weatherCity');if(wcEl)wcEl.value=localStorage.getItem('jessica_weatherCity')||'';
-  const ptEl=document.getElementById('proactiveToggle');
+/* disabled:   const ptEl=document.getElementById('proactiveToggle'); */
   // Background running
   const bgRunEl = document.getElementById('bgRunningToggle');
   if (bgRunEl) bgRunEl.checked = localStorage.getItem('jessica_bg_running') === 'on';
@@ -13468,8 +13503,8 @@ function openSettings(){
       showToast(this.checked ? '🔔 通知已开启' : '🔕 通知已关闭');
     });
   }
-  if(ptEl){ptEl.value=localStorage.getItem('jessica_proactive')!=='off'?'on':'off';
-    const piWrap=document.getElementById('proactiveIntervalWrap');if(piWrap)piWrap.style.display=ptEl.value==='off'?'none':'block';}
+/* disabled:   if(ptEl){ptEl.value=localStorage.getItem('jessica_proactive')!=='off'?'on':'off'; */
+/* disabled:     const piWrap=document.getElementById('proactiveIntervalWrap');if(piWrap)piWrap.style.display=ptEl.value==='off'?'none':'block';} */
   const piEl=document.getElementById('proactiveInterval');if(piEl)piEl.value=localStorage.getItem('jessica_proactive_interval')||'15';
   // Cloud sync token
   const gistTokenEl = document.getElementById('gistToken');
@@ -13657,7 +13692,7 @@ function saveSettings(){
   const hpInput = document.getElementById('hpUserNameInput');
   if (hpInput) hpInput.value = document.getElementById('userName').value.trim();
   localStorage.setItem('jessica_weatherCity',document.getElementById('weatherCity').value.trim());
-  localStorage.setItem('jessica_proactive',document.getElementById('proactiveToggle').value);
+/* disabled:   localStorage.setItem('jessica_proactive',document.getElementById('proactiveToggle').value); */
   // Background running
   const bgRunVal = document.getElementById('bgRunningToggle').checked;
   localStorage.setItem('jessica_bg_running', bgRunVal ? 'on' : 'off');
@@ -13684,7 +13719,7 @@ function saveSettings(){
   const bdayVal=document.getElementById('userBirthday')?.value||'';
   if(bdayVal)localStorage.setItem('jessica_user_birthday',bdayVal);else localStorage.removeItem('jessica_user_birthday');
   showToast('✅ 保存成功');
-  closeSettings();fetchWeather(true);scheduleProactiveMessage();updateDaysAlive();
+  closeSettings();fetchWeather(true);/* scheduleProactiveMessage() disabled */;updateDaysAlive();
   // Sync days overlay if open
   if(document.getElementById('daysOverlay')?.classList.contains('active'))renderDaysDetail();
 }
@@ -16092,6 +16127,7 @@ async function generatePatResponse() {
 
 // Jessica proactively pats user (called from heartbeat/proactive system)
 async function jessicaPatUser() {
+  return; // disabled by凯西
   const cfg = loadConfig();
   if (!cfg.apiBase || !cfg.apiKey || isGenerating) return;
   const userName = getUserName();
@@ -18121,6 +18157,7 @@ function startHomepageIdleCheck() {
 }
 
 function startChatIdleCheck() {
+  return; // disabled by凯西
   if (chatIdleTimer) clearTimeout(chatIdleTimer);
   chatIdleTimer = setTimeout(() => {
     const chatView = document.getElementById('chatView');
@@ -18155,7 +18192,7 @@ function enterDiary() {
     // Auto-switch to diary mode
     if (typeof switchChatMode === 'function') switchChatMode('diary');
     scrollToBottom();
-    startChatIdleCheck();
+    /* startChatIdleCheck() disabled */;
     if (homepageIdleTimer) { clearTimeout(homepageIdleTimer); homepageIdleTimer = null; }
   };
   if (document.startViewTransition) {
@@ -18221,7 +18258,7 @@ window.initApp = async function(){
   // Safety: force-hide login screen
   const loginScreen = document.getElementById('loginScreen');
   if (loginScreen) { loginScreen.style.display = 'none'; loginScreen.classList.add('hidden'); loginScreen.style.pointerEvents = 'none'; loginScreen.style.zIndex = '-1'; }
-  applyBackground();applyAvatars();loadMemo();updateHpClock();updateDaysAlive();loadHpUserName();applyNSFWState();loadAffection();renderAffectionBar();
+  applyBackground();applyAvatars();loadMemo();updateHpClock();updateDaysAlive();loadHpUserName();applyNSFWState();/* loadAffection disabled by凯西 *//* renderAffectionBar disabled */;
   setInterval(()=>{if(!document.hidden)updateHpClock();},1000);setInterval(()=>{if(!document.hidden)updateClock();},1000);
   await loadEntryDatesCache();initCalendar();await loadHistory();await migrateMessagesToMemory();
   rebuildSearchIndex();
@@ -18252,7 +18289,7 @@ window.initApp = async function(){
   setInterval(randomizeSleep,86400000);
   updateHpMsgCount();updateHpWeather();
   document.getElementById('userInput').addEventListener('input',function(){updateSendBtn();});
-  initProactiveCheck(); // 使用持久化检查 + 调度，支持跨页面刷新恢复
+  /* initProactiveCheck() disabled */; // 使用持久化检查 + 调度，支持跨页面刷新恢复
   startGenerationHealthCheck();
   setupAvatarDoubleClick();
   markMessagesRead();
@@ -18301,7 +18338,7 @@ window.initApp = async function(){
       // Resume pending reply when user returns to tab
       setTimeout(() => { try { resumePendingReply(); } catch(e) {} }, 1500);
       // Catch up on missed proactive messages
-      setTimeout(() => { try { catchUpProactiveMessages(); } catch(e) {} }, 2000);
+/* disabled by凯西:       setTimeout(() => { try { catchUpProactiveMessages(); } catch(e) {} }, 2000); */
       // Refresh status on return
       try { refreshStatus(); } catch(e) {}
     }
@@ -18530,7 +18567,7 @@ window.initApp = async function(){
 
     const statusBar = document.querySelector('.jessica-status');
     if (statusBar) statusBar.style.display = '';
-    renderAffectionBar();
+    /* renderAffectionBar disabled */;
 
     // 关闭面板（仅移动端）
     if (window.innerWidth <= 768) {
@@ -20888,6 +20925,15 @@ const cloudSync = {
         }
       }
     } catch(e) { console.warn('[CloudSync] 收集聊天记录失败:', e); }
+    // 收集 IndexedDB 表情包数据
+    try {
+      if (typeof dbGetAllStickers === 'function') {
+        const stickers = await dbGetAllStickers();
+        if (stickers && stickers.length) {
+          data['_idb_stickers'] = stickers;
+        }
+      }
+    } catch(e) { console.warn('[CloudSync] 收集表情包数据失败:', e); }
     return data;
   },
 
@@ -20908,19 +20954,19 @@ const cloudSync = {
     const DEFAULTS = {
       _version: currentVersion,
       jessica_weatherCity: '',
-      jessica_model: 'default',
-      jessica_temperature: 0.7,
+      jessica_model: 'deepseek-v4-flash',
+      jessica_temperature: 1.1,
       jessica_maxTokens: 2048,
       jessica_notification: 'on',
-      jessica_bg_running: 'on',
+      jessica_bg_running: 'off',
       jessica_proactive: 'off',
       jessica_proactive_interval: 30,
       jessica_search_engine: 'tavily',
       jessica_nsfw: 'off',
       jessica_private_chat: 'off',
       jessica_writingStyle: 'emotional',
-      jessica_userName: '',
-      jessica_user_birthday: '',
+      jessica_userName: '赵',
+      jessica_user_birthday: '2003-02-08',
       jessica_affection: { level: 0, points: 0, history: [] },
       jessica_memory_facts: [],
       jessica_hp_actions: [],
@@ -20945,6 +20991,27 @@ const cloudSync = {
     }
 
     const SKIP = new Set(['jessica_gist_token', 'jessica_gist_id', 'jessica_last_backup']);
+    // 兼容旧版备份：jessica_settings dict → 拆成独立key
+    if (data.jessica_settings && typeof data.jessica_settings === 'object') {
+      const settingsMap = {
+        apiBase: 'jessica_apiBase', apiKey: 'jessica_apiKey', model: 'jessica_model',
+        temperature: 'jessica_temperature', maxTokens: 'jessica_maxTokens',
+        weatherCity: 'jessica_weatherCity', userName: 'jessica_userName',
+        nsfw: 'jessica_nsfw', proactive: 'jessica_proactive',
+        proactive_interval: 'jessica_proactive_interval',
+        search_engine: 'jessica_search_engine', notification: 'jessica_notification',
+        bg_running: 'jessica_bg_running', private_chat: 'jessica_private_chat',
+        writingStyle: 'jessica_writingStyle', user_birthday: 'jessica_user_birthday',
+        jessicaPrompt: 'jessica_jessicaPrompt', hendersonProfile: 'jessica_hendersonProfile',
+        hendersonStyle: 'jessica_hendersonStyle', systemPrompt: 'jessica_systemPrompt'
+      };
+      for (const [oldKey, newKey] of Object.entries(settingsMap)) {
+        if (data.jessica_settings[oldKey] !== undefined && !(newKey in data)) {
+          data[newKey] = data.jessica_settings[oldKey];
+        }
+      }
+      console.log('[CloudSync] 兼容：jessica_settings 已拆分为独立key');
+    }
     let count = 0;
     for (const [k, v] of Object.entries(data)) {
       if (k.startsWith('_') || SKIP.has(k)) continue;
@@ -20973,66 +21040,68 @@ const cloudSync = {
         console.log(`[CloudSync] 恢复了 ${diaryCount} 篇日记`);
       }
     } catch(e) { console.warn('[CloudSync] 恢复日记数据失败:', e); }
-    // 恢复 IndexedDB 记忆数据
+    // ── 工具：单事务原子写（clear + add all），await tx.oncomplete 确保真正落盘 ──
+    const _idbBulkRestore = (storeName, records) => openDB().then(db => new Promise((res, rej) => {
+      const tx = db.transaction(storeName, 'readwrite');
+      const store = tx.objectStore(storeName);
+      store.clear();
+      records.forEach(r => { const c = {...r}; delete c.id; store.add(c); });
+      tx.oncomplete = () => { db.close(); res(records.length); };
+      tx.onerror   = () => { db.close(); rej(tx.error); };
+      tx.onabort   = () => { db.close(); rej(new Error('transaction aborted')); };
+    }));
+
+    // 恢复 IndexedDB 记忆数据（单事务原子写）
     try {
       const memories = data['_idb_memories'];
-      if (memories && Array.isArray(memories) && typeof dbAddMemory === 'function') {
-        const existingMem = typeof dbGetAllMemories === 'function' ? await dbGetAllMemories() : [];
-        if (existingMem.length) {
+      if (memories && Array.isArray(memories) && memories.length) {
+        const memCount = await _idbBulkRestore(MEMORY_STORE, memories);
+        count += memCount;
+        console.log(`[CloudSync] 恢复了 ${memCount} 条记忆（单事务原子写）`);
+      }
+    } catch(e) { console.warn('[CloudSync] 恢复记忆数据失败:', e); }
+
+    // 恢复 IndexedDB 聊天记录（单事务原子写）
+    // 优先用 _idb_messages；旧版备份没有此字段时从记忆中提取
+    try {
+      const msgs = data['_idb_messages'];
+      if (msgs && Array.isArray(msgs) && msgs.length) {
+        const msgCount = await _idbBulkRestore(STORE_NAME, msgs);
+        count += msgCount;
+        console.log(`[CloudSync] 恢复了 ${msgCount} 条聊天记录（单事务原子写）`);
+      } else {
+        // 旧版备份兼容：从 _idb_memories 中过滤出聊天记录
+        const chatMsgs = (data['_idb_memories'] || []).filter(m => m.role === 'user' || m.role === 'assistant');
+        if (chatMsgs.length) {
+          const msgCount = await _idbBulkRestore(STORE_NAME, chatMsgs);
+          count += msgCount;
+          console.log(`[CloudSync] 从记忆中恢复了 ${msgCount} 条聊天记录（单事务原子写）`);
+        }
+      }
+    } catch(e) { console.warn('[CloudSync] 恢复聊天记录失败:', e); }
+    // 恢复 IndexedDB 表情包数据
+    try {
+      const stickers = data['_idb_stickers'];
+      if (stickers && Array.isArray(stickers) && stickers.length && typeof dbAddSticker === 'function') {
+        const existingStickers = typeof dbGetAllStickers === 'function' ? await dbGetAllStickers() : [];
+        if (existingStickers.length) {
           const db = await openDB();
           await new Promise((res, rej) => {
-            const tx = db.transaction(MEMORY_STORE, 'readwrite');
-            tx.objectStore(MEMORY_STORE).clear().onsuccess = () => res();
+            const tx = db.transaction(STICKER_STORE, 'readwrite');
+            tx.objectStore(STICKER_STORE).clear().onsuccess = () => res();
             tx.onerror = () => rej(tx.error);
             tx.oncomplete = () => db.close();
           });
         }
-        let memCount = 0;
-        for (const mem of memories) {
-          try { await dbAddMemory(mem); memCount++; } catch(e) {}
+        let stickerCount = 0;
+        for (const s of stickers) {
+          const copy = { ...s }; delete copy.id;
+          try { await dbAddSticker(copy); stickerCount++; } catch(e) {}
         }
-        count += memCount;
-        console.log(`[CloudSync] 恢复了 ${memCount} 条记忆`);
-        // 如果记忆中有聊天消息，也写入 messages store
-        const chatMsgs = memories.filter(m => m.role === 'user' || m.role === 'assistant');
-        if (chatMsgs.length) {
-          try {
-            const db = await openDB();
-            await new Promise((res) => {
-              const tx = db.transaction(STORE_NAME, 'readwrite');
-              const store = tx.objectStore(STORE_NAME);
-              store.clear().onsuccess = () => {
-                chatMsgs.forEach(m => { const c = {...m}; delete c.id; try { store.put(c); } catch(e) {} });
-                res();
-              };
-              tx.onerror = () => res();
-            });
-            db.close();
-            console.log(`[CloudSync] 从记忆中恢复了 ${chatMsgs.length} 条聊天记录`);
-          } catch(e) {}
-        }
+        count += stickerCount;
+        console.log(`[CloudSync] 恢复了 ${stickerCount} 个表情包`);
       }
-    } catch(e) { console.warn('[CloudSync] 恢复记忆数据失败:', e); }
-    // 恢复 IndexedDB 聊天记录
-    try {
-      const msgs = data['_idb_messages'];
-      if (msgs && Array.isArray(msgs) && msgs.length) {
-        const db = await openDB();
-        await new Promise((res, rej) => {
-          const tx = db.transaction(STORE_NAME, 'readwrite');
-          tx.objectStore(STORE_NAME).clear().onsuccess = () => res();
-          tx.onerror = () => rej(tx.error);
-          tx.oncomplete = () => db.close();
-        });
-        let msgCount = 0;
-        for (const m of msgs) {
-          const copy = { ...m }; delete copy.id;
-          try { await dbAddMessage(copy); msgCount++; } catch(e) {}
-        }
-        count += msgCount;
-        console.log(`[CloudSync] 恢复了 ${msgCount} 条聊天记录`);
-      }
-    } catch(e) { console.warn('[CloudSync] 恢复聊天记录失败:', e); }
+    } catch(e) { console.warn('[CloudSync] 恢复表情包数据失败:', e); }
     this._show(`已恢复 ${count} 条数据`);
     return true;
   },
@@ -21057,15 +21126,19 @@ const cloudSync = {
   REPO_OWNER: 'urlien',
   REPO_NAME: 'jessica-data',
   FILE_PATH: 'jessica-backup.json',
+  COMPRESS_THRESHOLD: 50 * 1024, // 50KB 以上启用压缩
 
   async _getFile(token) {
     try {
       const res = await fetch(`https://api.github.com/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/${this.FILE_PATH}`, {
         headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
       });
-      if (!res.ok) return null;
+      if (res.status === 401) return { _error: 401, _msg: 'Token 无效或已过期，请重新生成' };
+      if (res.status === 403) return { _error: 403, _msg: 'Token 权限不足（需要 repo 读写权限）' };
+      if (res.status === 404) return { _error: 404, _msg: '备份文件不存在（首次使用请先点「备份到云端」）' };
+      if (!res.ok) return { _error: res.status, _msg: `GitHub API 返回 ${res.status}` };
       return await res.json();
-    } catch(e) { return null; }
+    } catch(e) { return { _error: 0, _msg: '网络请求失败: ' + e.message }; }
   },
 
   async backup() {
@@ -21074,17 +21147,30 @@ const cloudSync = {
     this._saveToken(token);
     this._show('正在收集数据...');
     const data = await this._collectData();
-    const content = JSON.stringify(data, null, 2);
+    let content = JSON.stringify(data, null, 2);
+    const rawSize = content.length;
+    
+    // 大文件压缩
+    let isCompressed = false;
+    if (rawSize > this.COMPRESS_THRESHOLD && typeof LZString !== 'undefined') {
+      this._show(`数据 ${(rawSize/1024).toFixed(1)}KB，正在压缩...`);
+      content = LZString.compressToBase64(content);
+      isCompressed = true;
+      const compressedSize = content.length;
+      console.log(`[CloudSync] 压缩: ${(rawSize/1024).toFixed(1)}KB → ${(compressedSize/1024).toFixed(1)}KB (${((1-compressedSize/rawSize)*100).toFixed(0)}% 减少)`);
+    }
+    
     const sizeKB = (content.length / 1024).toFixed(1);
-    this._show(`数据大小 ${sizeKB}KB，正在上传...`);
+    this._show(`数据大小 ${sizeKB}KB${isCompressed ? '（已压缩）' : ''}，正在上传...`);
     try {
       const existing = await this._getFile(token);
+      const existingOk = existing && !existing._error;
       const now = new Date();
       const body = {
-        message: `备份 ${now.toLocaleString('zh-CN')}`,
+        message: `备份 ${now.toLocaleString('zh-CN')}${isCompressed ? ' (compressed)' : ''}`,
         content: btoa(unescape(encodeURIComponent(content))),
       };
-      if (existing) body.sha = existing.sha;
+      if (existingOk) body.sha = existing.sha;
       const res = await fetch(`https://api.github.com/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/${this.FILE_PATH}`, {
         method: 'PUT',
         headers: {
@@ -21096,7 +21182,7 @@ const cloudSync = {
       });
       if (!res.ok) { const err = await res.json().catch(()=>({})); throw new Error(err.message || `GitHub API ${res.status}`); }
       localStorage.setItem('jessica_last_backup', now.toISOString());
-      this._show(`✅ 已备份 (${sizeKB}KB) — ${now.toLocaleString('zh-CN')}`);
+      this._show(`✅ 已备份 (${sizeKB}KB${isCompressed ? ' 压缩' : ''}) — ${now.toLocaleString('zh-CN')}`);
       showToast('☁️ 备份成功！');
     } catch(e) {
       this._show(`❌ 备份失败: ${e.message}`);
@@ -21112,9 +21198,39 @@ const cloudSync = {
     try {
       const file = await this._getFile(token);
       if (!file) { this._show('❌ 未找到备份（请先备份一次）'); return; }
+      if (file._error) { this._show(`❌ ${file._msg}`); return; }
+      
       this._show('正在下载备份...');
-      const content = decodeURIComponent(escape(atob(file.content)));
-      const data = JSON.parse(content);
+      let rawContent;
+      if (file.content && file.encoding !== 'none') {
+        // 小文件（≤1MB）：直接用 base64 content
+        rawContent = decodeURIComponent(escape(atob(file.content)));
+      } else {
+        // 大文件（>1MB）：GitHub API 返回 encoding:none，需要重新用 API 下载原始内容
+        this._show('正在下载大文件备份...');
+        const apiUrl = `https://api.github.com/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/${this.FILE_PATH}`;
+        const res = await fetch(apiUrl, {
+          headers: {
+            'Authorization': `token ${token}`,
+            'Accept': 'application/vnd.github.v3.raw'
+          }
+        });
+        if (!res.ok) throw new Error(`下载失败 (${res.status})`);
+        rawContent = await res.text();
+      }
+      
+      // 检测是否压缩
+      let data;
+      if (rawContent.startsWith('{') || rawContent.startsWith('[')) {
+        data = JSON.parse(rawContent);
+      } else {
+        this._show('正在解压备份数据...');
+        if (typeof LZString === 'undefined') throw new Error('LZString 库未加载，无法解压备份');
+        const decompressed = LZString.decompressFromBase64(rawContent);
+        if (!decompressed) throw new Error('解压失败，备份数据可能已损坏');
+        data = JSON.parse(decompressed);
+      }
+      
       this._show('正在恢复数据...');
       if (await this._restoreData(data)) {
         showToast('✅ 数据已恢复！即将刷新页面...');
@@ -21122,6 +21238,7 @@ const cloudSync = {
         setTimeout(() => location.reload(), 3000);
       }
     } catch(e) {
+      console.error('[CloudSync] 恢复失败:', e);
       this._show(`❌ 恢复失败: ${e.message}`);
       showToast('❌ 恢复失败: ' + e.message);
     }
@@ -21134,7 +21251,9 @@ const cloudSync = {
     try {
       const file = await this._getFile(token);
       const lastBackup = localStorage.getItem('jessica_last_backup');
-      if (file) {
+      if (file && file._error) {
+        this._show(`⚠️ ${file._msg}`);
+      } else if (file && file.sha) {
         this._show(`✅ 备份存在 — 大小 ${(file.size/1024).toFixed(1)}KB${lastBackup ? '，上次本地备份: ' + new Date(lastBackup).toLocaleString('zh-CN') : ''}`);
       } else {
         this._show('⚠️ 无备份记录，点击「备份到云端」创建');
@@ -21444,8 +21563,15 @@ function importAllData(event) {
             const tx = db.transaction('memories', 'readwrite');
             const store = tx.objectStore('memories');
             store.clear().onsuccess = () => {
-              data._idb_memories.forEach(m => { const c = {...m}; delete c.id; try { store.put(c); idbCount++; } catch(e) {} });
-              res();
+              let putCount = 0;
+              const total = data._idb_memories.length;
+              data._idb_memories.forEach(m => {
+                const c = {...m}; delete c.id;
+                const req = store.put(c);
+                req.onsuccess = () => { putCount++; idbCount++; if(putCount >= total) res(); };
+                req.onerror = () => { putCount++; idbCount++; if(putCount >= total) res(); };
+              });
+              if(total === 0) res();
             };
             tx.onerror = () => res();
           });
@@ -21456,8 +21582,15 @@ function importAllData(event) {
               const tx = db.transaction('messages', 'readwrite');
               const store = tx.objectStore('messages');
               store.clear().onsuccess = () => {
-                chatMsgs.forEach(m => { const c = {...m}; delete c.id; try { store.put(c); idbCount++; } catch(e) {} });
-                res();
+                let putCount = 0;
+                const total = chatMsgs.length;
+                chatMsgs.forEach(m => {
+                  const c = {...m}; delete c.id;
+                  const req = store.put(c);
+                  req.onsuccess = () => { putCount++; idbCount++; if(putCount >= total) res(); };
+                  req.onerror = () => { putCount++; idbCount++; if(putCount >= total) res(); };
+                });
+                if(total === 0) res();
               };
               tx.onerror = () => res();
             });
