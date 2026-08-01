@@ -21131,6 +21131,7 @@ const cloudSync = {
   async _getFile(token) {
     try {
       const res = await fetch(`https://api.github.com/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/${this.FILE_PATH}`, {
+        cache: 'no-store',
         headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
       });
       if (res.status === 401) return { _error: 401, _msg: 'Token 无效或已过期，请重新生成' };
@@ -21210,6 +21211,7 @@ const cloudSync = {
         this._show('正在下载大文件备份...');
         const apiUrl = `https://api.github.com/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/${this.FILE_PATH}`;
         const res = await fetch(apiUrl, {
+          cache: 'no-store',
           headers: {
             'Authorization': `token ${token}`,
             'Accept': 'application/vnd.github.v3.raw'
