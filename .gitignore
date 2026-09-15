@@ -7,6 +7,11 @@ android-project/gradle/
 # APK (keep latest only via explicit git add)
 *.apk
 
+# Keystore — 绝不提交到公开仓库
+*.keystore
+*.jks
+android-project/app/jessica.keystore
+
 # OS
 .DS_Store
 Thumbs.db
