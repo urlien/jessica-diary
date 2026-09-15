@@ -6,6 +6,7 @@ on:
     paths:
       - 'jessica_full.html'
       - 'android-project/**'
+      - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
 permissions:
@@ -32,35 +33,58 @@ jobs:
     - name: Set up Android SDK
       uses: android-actions/setup-android@v3
 
+    - name: Decode keystore
+      env:
+        KEYSTORE_BASE64: ${{ secrets.JESSICA_KEYSTORE_BASE64 }}
+      run: |
+        if [ -z "$KEYSTORE_BASE64" ]; then
+          echo "!! 未配置 JESSICA_KEYSTORE_BASE64 secret，将使用默认签名（无法覆盖安装）"
+          exit 0
+        fi
+        echo "$KEYSTORE_BASE64" | base64 -d > android-project/app/jessica.keystore
+        echo "keystore 已解出:"
+        ls -la android-project/app/jessica.keystore
+
     - name: Copy HTML to assets
       run: cp jessica_full.html android-project/app/src/main/assets/index.html
 
     - name: Build APK
+      env:
+        JESSICA_KEYSTORE_PATH: jessica.keystore
+        JESSICA_KEYSTORE_PASSWORD: ${{ secrets.JESSICA_KEYSTORE_PASSWORD }}
+        JESSICA_KEY_PASSWORD: ${{ secrets.JESSICA_KEYSTORE_PASSWORD }}
       run: |
         cd android-project
         gradle assembleDebug --no-daemon
+
+    - name: Verify signature
+      run: |
+        BT=$(ls -d $ANDROID_HOME/build-tools/*/ | tail -1)
+        "${BT}apksigner" verify --print-certs android-project/app/build/outputs/apk/debug/app-debug.apk | head -5 || true
 
     - name: Get version
       id: version
       run: |
         VERSION=$(grep 'versionName' android-project/app/build.gradle | sed 's/.*"\(.*\)".*/\1/')
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        CODE=$(grep 'versionCode' android-project/app/build.gradle | sed 's/[^0-9]//g')
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "code=${CODE}" >> $GITHUB_OUTPUT
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: 杰西卡v${{ steps.version.outputs.version }}
+        name: jessica-v${{ steps.version.outputs.version }}
         path: android-project/app/build/outputs/apk/debug/app-debug.apk
 
     - name: Create Release
-      
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: v${{ steps.version.outputs.version }}
+        tag_name: v${{ steps.version.outputs.version }}-${{ github.run_number }}
         name: 杰西卡 v${{ steps.version.outputs.version }}
         files: android-project/app/build/outputs/apk/debug/app-debug.apk
         body: |
           自动编译 ${{ github.event.head_commit.message }}
           编译时间: ${{ github.event.head_commit.timestamp }}
+          签名: 固定 keystore（可覆盖安装）
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
