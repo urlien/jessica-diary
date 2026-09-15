@@ -19,8 +19,8 @@
 <!-- Markdown -->
 <script defer src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
 <!-- Code highlight (single bundled file instead of 10 separate lang files) -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.11.1/styles/github-dark-dimmed.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/highlight.js@11.11.1/build/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.11.1/styles/github-dark-dimmed.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.11.1/highlight.min.js"></script>
 <!-- Sanitizer -->
 <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
 <!-- Date library -->
@@ -32,7 +32,17 @@
 <script defer src="https://cdn.jsdelivr.net/npm/lottie-web@5.12.2/build/player/lottie.min.js"></script>
 <!-- ========== NEW LIBRARIES (v2 enhancement) ========== -->
 <!-- 1. transformers.js — browser-side AI (embeddings, NLP) -->
-<script defer src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js"></script>
+<script type="module">
+// ESM 库桥接：把模块导出挂到 window，供普通脚本使用
+import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/+esm';
+import { franc, francAll } from 'https://cdn.jsdelivr.net/npm/franc@6.2.0/+esm';
+import Sentiment from 'https://cdn.jsdelivr.net/npm/sentiment@5.0.2/+esm';
+window.pipeline = pipeline; window.env = env;
+window.franc = franc; window.francAll = francAll;
+window.Sentiment = Sentiment;
+window.__esmLibsReady = true;
+console.log('[ESM Bridge] pipeline/franc/Sentiment 已挂载');
+</script>
 <!-- 2. mammoth.js — Word doc parser -->
 <script defer src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
 <!-- 3. pdf.js — PDF parser (loaded dynamically via import() in V2DocParser) -->
@@ -42,7 +52,7 @@
 <!-- 9. lz-string — localStorage compression -->
 <script defer src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 <!-- 10. diff-match-patch — text diffing -->
-<script defer src="https://cdn.jsdelivr.net/npm/diff-match-patch@1.0.5/index.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/diff_match_patch/20121119/diff_match_patch.js"></script>
 <!-- 11. typed.js — typewriter effect -->
 <script defer src="https://cdn.jsdelivr.net/npm/typed.js@2.1.0/dist/typed.umd.min.js"></script>
 <!-- 12. emoji-mart — replaced with vanilla V2Emoji picker (no React dependency) -->
@@ -51,7 +61,6 @@
 <!-- 14. compromise — lightweight browser NLP -->
 <script defer src="https://cdn.jsdelivr.net/npm/compromise@14.14.3/builds/compromise.min.js"></script>
 <!-- 15. sentiment — AFINN-based sentiment analysis -->
-<script defer src="https://cdn.jsdelivr.net/npm/sentiment@5.0.2/build/sentiment.min.js"></script>
 <!-- 27. Chart.js — Charts for stats -->
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
@@ -60,7 +69,6 @@
 <!-- 21. tesseract.js — Browser-side OCR (image text recognition) -->
 <script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- 22. franc — Language detection (400+ languages, ~100KB) -->
-<script defer src="https://cdn.jsdelivr.net/npm/franc@6.2.0/dist/franc-min.min.js"></script>
 <!-- 23. mermaid.js — Diagram/flowchart rendering from text -->
 <script defer src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 <!-- 24. KaTeX — Fast math formula rendering -->
@@ -3087,32 +3095,12 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
       </div>
       <label>最大回复长度</label>
       <div class="slider-row">
-        <input type="range" id="maxTokens" min="64" max="512" step="64" value="64" />
-        <span id="maxTokensValue">2048</span>
+        <input type="range" id="maxTokens" min="256" max="2048" step="256" value="1024" />
+        <span id="maxTokensValue">1024</span>
       </div>
     </div>
 
-<!-- 主动消息 - DISABLED -->
-    <div class="settings-section" style="display:none">
-      <div class="settings-section-title">主动消息</div>
-      <label>开关</label>
-      <select id="proactiveToggle" onchange="document.getElementById('proactiveIntervalWrap').style.display=this.value==='off'?'none':'block'">
-        <option value="on">开启 — 杰西卡偶尔会主动找你</option>
-        <option value="off">关闭</option>
-      </select>
-      <div id="proactiveIntervalWrap" style="margin-top:8px;">
-        <label>间隔</label>
-        <select id="proactiveInterval">
-          <option value="2">极频繁 — 每 2~5 分钟</option>
-          <option value="5">频繁 — 每 5~15 分钟</option>
-          <option value="15" selected>正常 — 每 15~45 分钟</option>
-          <option value="30">较少 — 每 30~60 分钟</option>
-          <option value="60">安静 — 每 1~2 小时</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- 后台运行 -->
+<!-- 后台运行 -->
     <div class="settings-section">
       <div class="settings-section-title">后台运行</div>
       <div class="toggle-switch-row">
@@ -10932,195 +10920,6 @@ function getSleepContextPrompt(){
 function randomizeSleep(){isStayingUpLate=Math.random()<0.3;if(isStayingUpLate){sleepStartHour=2+Math.random()*2;}else{sleepStartHour=1+Math.random()*2;}sleepEndHour=7+Math.random()*2;}
 
 // ============================================================
-// PROACTIVE MESSAGES
-// ============================================================
-let proactiveTimer=null;
-let _proactiveMsgTs=0; // Track when last proactive message was scheduled
-const PROACTIVE_PERSIST_KEY='_jessica_next_proactive_ts'; // 持久化下次触发时间
-const PROACTIVE_MSGS={
-  morning:["早。今天有什么计划？","起了吗？别又赖床","☀️ 早安"],
-  afternoon:["下午了，吃饭了没？","在干嘛呢","刚看了一篇文章，挺有意思的","你今天怎么没找我"],
-  evening:["晚上好。今天过得怎么样？","在忙什么？","刚吃完饭，好撑","有点无聊"],
-  night:["还没睡？","别熬太晚","……突然想起一件事"],
-  curious:["你最近学业怎么样？","上次说的那件事后来怎样了？","你有没有好好吃饭？","最近有什么新爱好吗？","你之前说要学的那个，还在坚持吗？","家里人最近还好吗？","你最近心情怎么样？","有没有什么想跟我说的？"],
-  memo:["你备忘录里记的那个，后来怎么样了？","你那个备忘录是打算干什么用的？","看了眼你的备忘录，你在忙什么呢？","你记的那些备忘录，有些我挺好奇的"],
-  // Emotion-based proactive messages
-  sad:["今天有点低落……你那边还好吗？","突然想起一些事，心情不太好的说","……你在干嘛呢，想找人说说话","看了一部电影，看哭了（别笑我）"],
-  anxious:["总觉得有什么事要发生……你最近还好吗？","有点心神不宁的，不知道为什么","你有没有那种突然不安的感觉？","……算了，没什么"],
-  joyful:["嘿嘿，今天心情超好","刚发生了一件好玩的事，想跟你说","你猜怎么着？……算了不告诉你","☀️ 今天天气好好，心情也好好"],
-  sweet:["在想你呢……才没有","你今天有没有好好吃饭？","突然好想见你","……你有没有想我？（小声）"],
-  playful:["嘿嘿，我想到一个坏主意","你猜我在干嘛？","今天要不要做点有趣的事？","无聊了，来陪我玩"],
-  bored:["好无聊啊……","你那边有什么好玩的吗？","我快发霉了","来聊聊天嘛，什么都行"],
-  // NSFW proactive messages (only used when NSFW mode is on)
-  nsfw_playful:["今晚想我了吗","……你在干嘛呢，有没有想歪","刚洗完澡……你脑子里在想什么","嘿嘿，你猜我今天穿的什么","你有没有偷偷看别的女生","……突然有点热","你最近有没有做什么奇怪的梦","你在干嘛呀……我在床上翻来覆去","腿好酸……你帮我揉揉？","今天穿了新内衣……猜猜什么颜色"],
-  nsfw_sweet:["好想抱你……才没有","你身上是什么味道来着","……想你了，各种意义上的","今天特别想见你，不许笑","你能不能……就一会，别说话","想被你抱着睡……单纯睡觉的那种","你呼吸声好好听……嗯……继续"],
-  nsfw_curious:["你今天有没有想我？老实说","你最近……精力还够吗","你觉得我穿什么好看？","你有没有偷偷看什么不该看的","……你会不会觉得我太黏人了","你洗澡的时候会想我吗","你有没有梦到过我……那种梦"],
-};
-function scheduleProactiveMessage(){
-  return; // disabled by凯西
-  if(proactiveTimer)clearTimeout(proactiveTimer);
-/* disabled:   if(localStorage.getItem('jessica_proactive')==='off')return; */
-  const baseInterval=parseInt(localStorage.getItem('jessica_proactive_interval')||'15');
-  // Affection affects proactive frequency: high affection = more frequent
-  const R = getAffectionR();
-  const affectionMultiplier = R > 70 ? 0.6 : R > 40 ? 0.8 : R > 0 ? 1.0 : R > -40 ? 1.3 : 2.0;
-  const jitter=baseInterval*(0.5+Math.random())*affectionMultiplier;
-  const interval=Math.max(60000,jitter*60*1000); // min 1 minute
-  _proactiveMsgTs=Date.now()+interval;
-  // 持久化：下次应该触发的时间戳（跨页面刷新恢复）
-  try{localStorage.setItem(PROACTIVE_PERSIST_KEY,String(_proactiveMsgTs));}catch(e){}
-  console.log(`[Proactive] 计划 ${(interval/60000).toFixed(1)} 分钟后发送主动消息`);
-  proactiveTimer=setTimeout(async()=>{
-    _proactiveMsgTs=0;
-    try{localStorage.removeItem(PROACTIVE_PERSIST_KEY);}catch(e){}
-    const sleepState=getSleepState();
-    if(sleepState==='sleeping'){console.log('[Proactive] 杰西卡在睡觉，跳过');/* scheduleProactiveMessage() disabled */;return;}
-    const last=[...messages].reverse().find(m=>m.role==='user');
-    if(last&&Date.now()-last.timestamp<3*60*1000){console.log('[Proactive] 用户刚活跃，跳过');/* scheduleProactiveMessage() disabled */;return;}
-    // 15% chance to skip (reduced from 30%)
-    if(Math.random()>0.85){console.log('[Proactive] 随机跳过');/* scheduleProactiveMessage() disabled */;return;}
-    const h=new Date().getHours();
-    const hasMemo=(JSON.parse(localStorage.getItem('jessica_memos')||'[]').length>0);
-    let cat='curious';
-    if(hasMemo&&Math.random()<0.15){cat='memo';}
-    else if(h>=6&&h<12)cat=Math.random()<0.4?'curious':'morning';
-    else if(h>=12&&h<18)cat=Math.random()<0.4?'curious':'afternoon';
-    else if(h>=18&&h<23)cat=Math.random()<0.3?'curious':'evening';
-    else cat=Math.random()<0.3?'curious':'night';
-    if(Math.random()<0.3){
-      const emo=currentEmotion;
-      if(emo.plutchik==='sadness')cat='sad';
-      else if(emo.plutchik==='fear')cat='anxious';
-      else if(emo.plutchik==='joy'&&emo.intensity!=='mild')cat='joyful';
-      else if(emo.personality==='sweet')cat='sweet';
-      else if(emo.personality==='playful')cat='playful';
-      else if(emo.personality==='bored'||emo.plutchik==='disgust')cat='bored';
-    }
-    if(isNSFW()&&getAffectionR()>=20&&Math.random()<0.5){
-      const nsfwPool=['nsfw_playful','nsfw_sweet','nsfw_curious'];
-      cat=nsfwPool[Math.floor(Math.random()*nsfwPool.length)];
-    }
-    const pool=PROACTIVE_MSGS[cat];
-    const text=pool[Math.floor(Math.random()*pool.length)];
-    console.log(`[Proactive] 触发主动消息: cat=${cat}`);
-    await sendProactiveMessage(text);
-    /* scheduleProactiveMessage() disabled */;
-  },interval);
-}
-
-// 页面加载时检查是否有错过的触发点（持久化补发机制）
-function initProactiveCheck(){
-  return; // disabled by凯西
-/* disabled:   if(localStorage.getItem('jessica_proactive')==='off')return; */
-  const savedTs=parseInt(localStorage.getItem(PROACTIVE_PERSIST_KEY)||'0');
-  if(savedTs&&Date.now()>savedTs){
-    // 错过了触发时间，延迟 5 秒补发
-    const overdue=Date.now()-savedTs;
-    console.log(`[Proactive] 检测到错过 ${(overdue/60000).toFixed(1)} 分钟，准备补发`);
-/* disabled by凯西:     setTimeout(()=>{try{catchUpProactiveMessages();}catch(e){}},5000); */
-  }
-  // 启动常规循环
-  /* scheduleProactiveMessage() disabled */;
-}
-
-// 补发错过的主动消息（页面可见时 + 页面加载时调用）
-function catchUpProactiveMessages(){
-  return; // disabled by凯西
-/* disabled:   if(localStorage.getItem('jessica_proactive')==='off')return; */
-  const sleepState=getSleepState();
-  if(sleepState==='sleeping'){console.log('[Proactive] 杰西卡在睡觉，不补发');/* scheduleProactiveMessage() disabled */;return;}
-  const last=[...messages].reverse().find(m=>m.role==='user');
-  if(last&&Date.now()-last.timestamp<3*60*1000){console.log('[Proactive] 用户刚活跃，不补发');/* scheduleProactiveMessage() disabled */;return;}
-  // 检查上次主动消息的时间
-  const lastProactive=[...messages].reverse().find(m=>m.proactive);
-  const lastProactiveTs=lastProactive?lastProactive.timestamp:0;
-  const baseInterval=parseInt(localStorage.getItem('jessica_proactive_interval')||'15')*60*1000;
-  const timeSinceLast=Date.now()-lastProactiveTs;
-  // 如果超过 1.5 倍间隔没有主动消息，补发一条
-  if(timeSinceLast>baseInterval*1.5){
-    console.log(`[Proactive] 距上次主动消息 ${(timeSinceLast/60000).toFixed(1)} 分钟，补发中`);
-    const h=new Date().getHours();
-    let cat='curious';
-    if(h>=6&&h<12)cat='morning';
-    else if(h>=12&&h<18)cat='afternoon';
-    else if(h>=18&&h<23)cat='evening';
-    else cat='night';
-    const emo=currentEmotion;
-    if(emo.plutchik==='sadness')cat='sad';
-    else if(emo.plutchik==='fear')cat='anxious';
-    else if(emo.plutchik==='joy'&&emo.intensity!=='mild')cat='joyful';
-    else if(emo.personality==='sweet')cat='sweet';
-    else if(emo.personality==='playful')cat='playful';
-    else if(emo.personality==='bored')cat='bored';
-    const pool=PROACTIVE_MSGS[cat];
-    if(pool){
-      const text=pool[Math.floor(Math.random()*pool.length)];
-      sendProactiveMessage(text);
-    }
-  }
-  /* scheduleProactiveMessage() disabled */;
-}
-async function sendProactiveMessage(triggerText){
-  return; // disabled by凯西
-  const cfg=loadConfig();
-  if(!cfg.apiBase||!cfg.apiKey){console.warn(STR.log.proactiveNoApi);return;}
-  if(isGenerating){console.warn(STR.log.proactiveBusy);return;}
-  const timeCtx=getTimeContext();const ws=getWeatherString();const ss=getSleepState();const mood=getMoodString();
-  const status=currentStatuses.map(s=>`${s.emoji}${s.text}${s.detail?`（${s.detail}）`:''}`).join('+');
-  const plutchikInfo=EMOTION_WHEEL[currentEmotion.plutchik];
-  const personalityInfo=currentEmotion.personality?PERSONALITY_EMOTIONS[currentEmotion.personality]:null;
-  let sc=buildSystemPrompt(cfg.systemPrompt);
-  sc+=`\n\n[系统注入]\n时间：${timeCtx}\n${ws?ws+'\n':''}心情：${mood}\n状态：${status}\n睡眠：${ss}\n`;
-  sc+=getAffectionPromptInjection()+'\n';
-  sc+=`情感维度：${plutchikInfo.base}${currentEmotion.intensity==='intense'?'强烈':currentEmotion.intensity==='mild'?'淡淡':'正常'}`;
-  if(personalityInfo)sc+=` + ${personalityInfo.label}`;
-  sc+=`\n`;
-  // Emotion-aware proactive message guidance
-  if(currentEmotion.plutchik==='sadness')sc+=`你现在心情低落，可能会说一些感性的话，或想找人倾诉。\n`;
-  else if(currentEmotion.plutchik==='anger')sc+=`你现在有点烦躁，可能会吐槽或抱怨些什么。\n`;
-  else if(currentEmotion.plutchik==='joy')sc+=`你现在心情不错，可能会分享开心的事或开玩笑。\n`;
-  else if(currentEmotion.plutchik==='fear')sc+=`你现在有点不安，可能会说一些担心的话。\n`;
-  else if(currentEmotion.plutchik==='surprise')sc+=`你刚经历了什么意外的事，可能会提起。\n`;
-  else if(currentEmotion.personality==='sweet')sc+=`你现在特别想他，可能会撒娇或说甜蜜的话。\n`;
-  else if(currentEmotion.personality==='playful')sc+=`你现在调皮，可能会逗他或开个小玩笑。\n`;
-  else if(currentEmotion.personality==='shy')sc+=`你现在有点害羞，说话可能会含蓄一些。\n`;
-  const hpActions=formatHomepageActionsForJessica();if(hpActions)sc+=`\n${hpActions}\n`;
-  sc+=`[主动消息] 触发："${triggerText}"\n自然地说点什么。开启一个新话题，不要假装在回复之前不存在的消息。不要编造记忆。简短、真实。不要提"系统"。只输出对话，不要输出动作描写。\n`;
-  const mc=await buildMemoryContext(triggerText);if(mc)sc+=`\n${mc}\n`;
-  sc+=`[/系统注入]`;
-  const proactiveAbort=new AbortController();
-  try{
-    const res=await fetch(`${cfg.apiBase.replace(/\/+$/,'')}/chat/completions`,{
-      method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${cfg.apiKey}`},
-      body:JSON.stringify({model:cfg.model,messages:[{role:'system',content:sc},...messages.slice(-10).map(m=>({role:m.role,content:m.content})),{role:'user',content:triggerText}],temperature:cfg.temperature,stream:false,max_tokens:1024}),
-      signal:proactiveAbort.signal,
-    });
-    if(!res.ok){console.warn(STR.log.proactiveErr, res.status);return;}
-    const data=await res.json();
-    const reply=stripActions(stripReasoning(data.choices?.[0]?.message?.content));
-    if(!reply){console.warn(STR.log.proactiveEmpty);return;}
-    console.log('[Proactive] 主动消息发送成功:',reply.slice(0,50));
-    const msg={role:'assistant',content:reply,timestamp:Date.now(),proactive:true,readByUser:false};
-    await dbAddMessage(msg);messages.push(msg);await saveMessageAsMemory(msg);
-    // Sticker detection for proactive messages
-    const stickerEmotion=detectStickerRequest(msg.content);
-    if(stickerEmotion){
-      msg.content=stripStickerTokens(msg.content);
-      await dbUpdateMessage(msg);
-      const sticker=getStickerForEmotion(stickerEmotion);
-      if(sticker){
-        const stickerMsg={role:'assistant',content:'[表情包]',timestamp:Date.now(),proactive:true,readByUser:false,files:[{name:'sticker.gif',size:0,type:'image/gif',dataUrl:sticker.imageDataUrl,isImage:true}]};
-        await dbAddMessage(stickerMsg);messages.push(stickerMsg);
-        renderMessage(stickerMsg,true);
-      }
-    }
-    renderMessage(msg,true);saveHistoryFallback();playNotificationSound();showNotificationToast(reply);renderCalendar();
-    // Send system notification for proactive messages
-    if(document.hidden || document.visibilityState !== 'visible') {
-      NotificationBridge.send('杰西卡', reply);
-    }
-  }catch(e){console.warn(STR.log.proactiveEx, e);}
-}
 async function sendSystemTriggeredMessage(triggerText){
   const cfg=loadConfig();if(!cfg.apiBase||!cfg.apiKey||isGenerating)return;
   const timeCtx=getTimeContext();const mood=getMoodString();const status=currentStatuses.map(s=>`${s.emoji}${s.text}${s.detail?`（${s.detail}）`:''}`).join('+');
@@ -11149,6 +10948,8 @@ async function sendSystemTriggeredMessage(triggerText){
 // ============================================================
 async function resumePendingReply() {
   if (isGenerating) return;
+  // 导入数据后不触发（避免误调 API 浪费 token）
+  try { if (sessionStorage.getItem('_justImported')) { sessionStorage.removeItem('_justImported'); console.log('[Jessica] resumePendingReply: skipped (just imported)'); return; } } catch(e) {}
   if (!messages.length) return;
   const lastMsg = messages[messages.length - 1];
   if (lastMsg.role !== 'user') return;
@@ -11194,11 +10995,16 @@ async function resumePendingReply() {
         model: cfg.model,
         messages: [
           { role: 'system', content: sc },
-          ...messages.slice(-20).map(m => ({ role: m.role, content: m.content }))
+          ...messages.slice(-20).map(m => {
+            const _ts = new Date(m.timestamp);
+            const _ds = `${(_ts.getMonth()+1).toString().padStart(2,'0')}/${_ts.getDate().toString().padStart(2,'0')}`;
+            const _tms = _ts.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+            return { role: m.role, content: `[${_ds} ${_tms}] ${m.content}` };
+          })
         ],
         temperature: cfg.temperature,
         stream: true,
-        max_tokens: 8192
+        max_tokens: cfg.maxTokens || 1024
       }),
       signal: localAbortController.signal,
     });
@@ -11842,12 +11648,7 @@ const NotificationBridge = {
     if (localStorage.getItem('jessica_bg_running') === 'on') {
       this.startBackgroundService();
     }
-    // Auto-request notification permission if proactive messages are on
-/* disabled:
-    if (localStorage.getItem('jessica_proactive') !== 'off') {
-      this.requestPermission();
-    }
-*/
+    // Auto-request notification permission handled by notification toggle
   }
 };
 function loadConfig(){
@@ -11867,7 +11668,7 @@ function loadConfig(){
     apiKey:localStorage.getItem('jessica_apiKey')||'',
     model:localStorage.getItem('jessica_model')||'deepseek-v4-flash',
     temperature:parseFloat(localStorage.getItem('jessica_temperature'))||1.1,
-    maxTokens:parseInt(localStorage.getItem('jessica_maxTokens'))||2048,
+    maxTokens:parseInt(localStorage.getItem('jessica_maxTokens'))||1024,
     jessicaPrompt:jp,
     hendersonProfile:hp,
     systemPrompt:jp+'\n\n'+hp,
@@ -11904,10 +11705,20 @@ async function handleFileSelect(e){
     if(file.type.startsWith('image/')){entry.dataUrl=await readAsDataUrl(file);entry.content=`[图片: ${file.name}]`;entry.isImage=true;}
     else if(file.type.startsWith('audio/')){entry.dataUrl=await readAsDataUrl(file);entry.content=`[音乐文件: ${file.name}]`;entry.isAudio=true;}
     else if(file.type==='application/pdf'||file.name.endsWith('.pdf')){
-      try{entry.content=await V2DocParser.parsePDF(file);}catch(err){console.warn('PDF解析失败:',err);entry.content=`[PDF文件: ${file.name} - 解析失败]`;}
+      try{
+        const _r = await V2DocParser.parsePDF(file);
+        if(_r && typeof _r === 'object'){
+          if(_r.empty) entry.content = `[PDF文件: ${file.name} - 扫描版，无法提取文字]`;
+          else if(_r.error) entry.content = `[PDF文件: ${file.name} - 解析失败，请检查网络]`;
+          else entry.content = `[PDF文件: ${file.name} - 解析失败]`;
+        } else { entry.content = _r || `[PDF文件: ${file.name} - 内容为空]`; }
+      }catch(err){console.warn('PDF解析失败:',err);entry.content=`[PDF文件: ${file.name} - 解析失败]`;}
     }
     else if(file.type==='application/vnd.openxmlformats-officedocument.wordprocessingml.document'||file.name.endsWith('.docx')){
-      try{entry.content=await V2DocParser.parseDOCX(file);}catch(err){console.warn('DOCX解析失败:',err);entry.content=`[Word文件: ${file.name} - 解析失败]`;}
+      try{
+        const _r = await V2DocParser.parseDOCX(file);
+        entry.content = _r || `[Word文件: ${file.name} - 解析失败]`;
+      }catch(err){console.warn('DOCX解析失败:',err);entry.content=`[Word文件: ${file.name} - 解析失败]`;}
     }
     else if(isTextFile(file)){entry.content=await readAsText(file);}
     else{entry.content=`[文件: ${file.name}]`;}
@@ -11935,7 +11746,7 @@ function buildFileContentForAPI(){
   let parts=['【附件内容】'];
   pendingFiles.forEach((f,i)=>{
     parts.push(`\n--- 文件${i+1}: ${f.name} (${formatSize(f.size)}) ---`);
-    if(f.isImage)parts.push(`[图片]`);else if(f.isAudio)parts.push(`[音频文件]`);else if(f.content)parts.push(f.content.slice(0,15000));
+    if(f.isImage)parts.push(`[图片]`);else if(f.isAudio)parts.push(`[音频文件]`);else if(f.content && typeof f.content === 'string')parts.push(f.content.slice(0,15000));
     parts.push('---\n');
   });
   return parts.join('\n');
@@ -12766,7 +12577,7 @@ async function sendMessage(){
   try{
     const res=await fetch(`${cfg.apiBase.replace(/\/+$/,'')}/chat/completions`,{
       method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${cfg.apiKey}`},
-      body:JSON.stringify({model:cfg.model,messages:apiMessages,temperature:cfg.temperature,stream:true,max_tokens:cfg.maxTokens||64}),
+      body:JSON.stringify({model:cfg.model,messages:apiMessages,temperature:cfg.temperature,stream:true,max_tokens:cfg.maxTokens||1024}),
       signal:localAbortController.signal,
     });
     if(_generationId!==myGenId)return;
@@ -12999,9 +12810,6 @@ function openSettings(){
       showToast(this.checked ? '🔔 通知已开启' : '🔕 通知已关闭');
     });
   }
-/* disabled:   if(ptEl){ptEl.value=localStorage.getItem('jessica_proactive')!=='off'?'on':'off'; */
-/* disabled:     const piWrap=document.getElementById('proactiveIntervalWrap');if(piWrap)piWrap.style.display=ptEl.value==='off'?'none':'block';} */
-  const piEl=document.getElementById('proactiveInterval');if(piEl)piEl.value=localStorage.getItem('jessica_proactive_interval')||'15';
   // Cloud sync token
   const gistTokenEl = document.getElementById('gistToken');
   if (gistTokenEl) { const saved = localStorage.getItem('jessica_gist_token'); if (saved) gistTokenEl.value = saved; }
@@ -13198,7 +13006,6 @@ function saveSettings(){
   const notifVal = document.getElementById('notifToggle').checked;
   localStorage.setItem('jessica_notification', notifVal ? 'on' : 'off');
   if (notifVal) NotificationBridge.requestPermission();
-  localStorage.setItem('jessica_proactive_interval',document.getElementById('proactiveInterval').value);
   // 搜索设置
   localStorage.setItem('jessica_search_off',document.getElementById('searchEnabled').checked?'false':'true');
   localStorage.setItem('jessica_search_engine',document.getElementById('searchEngine').value);
@@ -14853,7 +14660,7 @@ const ContextBuilder = {
 - 需要验证的事实性问题
 - 用户明确要求你搜索或查证的内容
 - 任何你不确定的、可能过时的信息
-搜索要求：1. 搜索关键词要精准简短（5-15个字）2. 一次只搜一个最核心的query 3. 如果第一次搜不到满意结果，可以换关键词再搜一次 4. 搜完后用自己的话自然地回答 5. 不要编造搜索结果中没有的信息。
+搜索要求：1. 搜索关键词要精准简短（5-15个字）2. 一次只搜一个最核心的query 3. 如果第一次搜不到满意结果，可以换关键词再搜一次 4. 搜完后用自己的话自然地回答 5. 不要编造搜索结果中没有的信息。`;
     }
   },
 };
@@ -20208,6 +20015,93 @@ window.initApp = async function() {
 // ============================================================
 // CLOUD SYNC (GitHub Gist)
 // ============================================================
+// 二进制 ↔ base64 工具（用于原生 gzip 备份）
+function _bufToBase64(buf) {
+  const bytes = new Uint8Array(buf);
+  let bin = '';
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(bin);
+}
+function _base64ToBuf(b64) {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+// 备份用：压缩数据里的图片（图片占备份体积 90%+）
+async function _guxiCompressBackupImages(data, opts) {
+  opts = opts || {};
+  const maxDim = opts.maxDim || 1600;
+  const quality = opts.quality || 0.82;
+  const minSize = opts.minSize || 100 * 1024; // 小于100KB不压
+  let count = 0, savedBytes = 0;
+
+  function compressOne(dataUrl) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      let done = false;
+      const finish = (v) => { if (!done) { done = true; resolve(v); } };
+      const timer = setTimeout(() => finish(dataUrl), 6000);
+      img.onload = () => {
+        clearTimeout(timer);
+        try {
+          const w0 = img.naturalWidth || img.width, h0 = img.naturalHeight || img.height;
+          if (!w0 || !h0) return finish(dataUrl);
+          const scale = Math.min(1, maxDim / Math.max(w0, h0));
+          const w = Math.max(1, Math.round(w0 * scale));
+          const h = Math.max(1, Math.round(h0 * scale));
+          const cv = document.createElement('canvas');
+          cv.width = w; cv.height = h;
+          const ctx = cv.getContext('2d');
+          ctx.fillStyle = '#fff';
+          ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          const out = cv.toDataURL('image/jpeg', quality);
+          if (out.length < dataUrl.length) {
+            count++;
+            savedBytes += (dataUrl.length - out.length);
+            finish(out);
+          } else {
+            finish(dataUrl);
+          }
+        } catch(e) { finish(dataUrl); }
+      };
+      img.onerror = () => { clearTimeout(timer); finish(dataUrl); };
+      img.src = dataUrl;
+    });
+  }
+
+  async function walk(node, depth) {
+    if (depth > 14 || !node || typeof node !== 'object') return;
+    if (Array.isArray(node)) {
+      for (let i = 0; i < node.length; i++) {
+        const v = node[i];
+        if (typeof v === 'string' && v.startsWith('data:image/')) {
+          if (v.length >= minSize) node[i] = await compressOne(v);
+        } else if (v && typeof v === 'object') {
+          await walk(v, depth + 1);
+        }
+      }
+      return;
+    }
+    for (const k of Object.keys(node)) {
+      const v = node[k];
+      if (typeof v === 'string' && v.startsWith('data:image/')) {
+        if (v.length >= minSize) node[k] = await compressOne(v);
+      } else if (v && typeof v === 'object') {
+        await walk(v, depth + 1);
+      }
+    }
+  }
+
+  await walk(data, 0);
+  return { count, savedBytes };
+}
+
 const cloudSync = {
   GIST_DESC: 'jessica-diary-backup (auto)',
   _hint: null,
@@ -20481,45 +20375,91 @@ const cloudSync = {
     this._saveToken(token);
     this._show('正在收集数据...');
     const data = await this._collectData();
-    let content = JSON.stringify(data, null, 2);
-    const rawSize = content.length;
-    
-    // 大文件压缩
-    let isCompressed = false;
-    if (rawSize > this.COMPRESS_THRESHOLD && typeof LZString !== 'undefined') {
-      this._show(`数据 ${(rawSize/1024).toFixed(1)}KB，正在压缩...`);
-      content = LZString.compressToBase64(content);
-      isCompressed = true;
-      const compressedSize = content.length;
-      console.log(`[CloudSync] 压缩: ${(rawSize/1024).toFixed(1)}KB → ${(compressedSize/1024).toFixed(1)}KB (${((1-compressedSize/rawSize)*100).toFixed(0)}% 减少)`);
-    }
-    
-    const sizeKB = (content.length / 1024).toFixed(1);
-    this._show(`数据大小 ${sizeKB}KB${isCompressed ? '（已压缩）' : ''}，正在上传...`);
+
+    // 方案B：压缩图片（占备份体积 90%+）
     try {
-      const existing = await this._getFile(token);
-      const existingOk = existing && !existing._error;
+      this._show('正在压缩图片...');
+      const _ir = await _guxiCompressBackupImages(data, { maxDim: 1600, quality: 0.82 });
+      if (_ir.count > 0) console.log('[CloudSync] 图片压缩 ' + _ir.count + ' 张，省 ' + (_ir.savedBytes/1048576).toFixed(1) + 'MB');
+    } catch(e) { console.warn('[CloudSync] 图片压缩跳过:', e); }
+
+    const _json = JSON.stringify(data);
+    const rawMB = (_json.length / 1048576).toFixed(2);
+    this._show('数据 ' + rawMB + 'MB，正在压缩...');
+
+    let content, compressMode = 'plain';
+    try {
+      if (typeof CompressionStream !== 'undefined') {
+        const _b = new TextEncoder().encode(_json);
+        const _cs = new CompressionStream('gzip');
+        const _w = _cs.writable.getWriter(); _w.write(_b); _w.close();
+        const _buf = await new Response(_cs.readable).arrayBuffer();
+        content = _bufToBase64(_buf);
+        compressMode = 'gzip';
+      } else if (typeof LZString !== 'undefined') {
+        content = LZString.compressToBase64(_json);
+        compressMode = 'lzstring';
+      } else {
+        content = _json;
+        compressMode = 'plain';
+      }
+    } catch(_ce) {
+      console.warn('[CloudSync] 压缩失败，直传:', _ce);
+      content = _json; compressMode = 'plain';
+    }
+
+    const sizeMB = content.length / 1048576;
+    this._show('压缩后 ' + sizeMB.toFixed(2) + 'MB，正在上传...');
+
+    const SINGLE_LIMIT = 35 * 1024 * 1024;
+
+    try {
       const now = new Date();
-      const body = {
-        message: `备份 ${now.toLocaleString('zh-CN')}${isCompressed ? ' (compressed)' : ''}`,
-        content: btoa(unescape(encodeURIComponent(content))),
-      };
-      if (existingOk) body.sha = existing.sha;
-      const res = await fetch(`https://api.github.com/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/${this.FILE_PATH}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `token ${token}`,
-          'Accept': 'application/vnd.github.v3+json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) { const err = await res.json().catch(()=>({})); throw new Error(err.message || `GitHub API ${res.status}`); }
+      if (content.length < SINGLE_LIMIT) {
+        const existing = await this._getFile(token);
+        const existingOk = existing && !existing._error;
+        const body = {
+          message: '备份 ' + now.toLocaleString('zh-CN') + ' (' + compressMode + ')',
+          content: btoa(unescape(encodeURIComponent(content))),
+        };
+        if (existingOk) body.sha = existing.sha;
+        const res = await fetch('https://api.github.com/repos/' + this.REPO_OWNER + '/' + this.REPO_NAME + '/contents/' + this.FILE_PATH, {
+          method: 'PUT',
+          headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) { const err = await res.json().catch(function(){return {};}); throw new Error(err.message || ('GitHub API ' + res.status)); }
+      } else {
+        const PART_SIZE = 20 * 1024 * 1024;
+        const parts = [];
+        for (let i = 0; i < content.length; i += PART_SIZE) parts.push(content.slice(i, i + PART_SIZE));
+        const total = parts.length;
+        for (let i = 0; i < total; i++) {
+          const fname = 'jessica-backup-part-' + (i+1) + '.json';
+          const pdata = JSON.stringify({ p: i+1, n: total, d: parts[i] });
+          const pbody = { message: '备份分片 ' + (i+1) + '/' + total + ' ' + now.toLocaleString('zh-CN'), content: btoa(unescape(encodeURIComponent(pdata))) };
+          const ex = await fetch('https://api.github.com/repos/' + this.REPO_OWNER + '/' + this.REPO_NAME + '/contents/' + fname, {
+            cache: 'no-store', headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' }
+          });
+          if (ex.ok) { const ej = await ex.json(); if (ej.sha) pbody.sha = ej.sha; }
+          const pres = await fetch('https://api.github.com/repos/' + this.REPO_OWNER + '/' + this.REPO_NAME + '/contents/' + fname, {
+            method: 'PUT', headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' }, body: JSON.stringify(pbody),
+          });
+          if (!pres.ok) { const err = await pres.json().catch(function(){return {};}); throw new Error('分片 ' + (i+1) + '/' + total + ' 失败: ' + (err.message || pres.status)); }
+          this._show('已上传 ' + (i+1) + '/' + total + ' 片...');
+        }
+        const meta = JSON.stringify({ _chunked: true, parts: total, format: compressMode, exportedAt: now.toISOString(), sizeMB: sizeMB.toFixed(2) });
+        const mexF = await fetch('https://api.github.com/repos/' + this.REPO_OWNER + '/' + this.REPO_NAME + '/contents/jessica-backup-meta.json', { cache: 'no-store', headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' } });
+        const mbody = { message: '备份元信息 ' + now.toLocaleString('zh-CN'), content: btoa(unescape(encodeURIComponent(meta))) };
+        if (mexF.ok) { const mj = await mexF.json(); if (mj.sha) mbody.sha = mj.sha; }
+        const mres = await fetch('https://api.github.com/repos/' + this.REPO_OWNER + '/' + this.REPO_NAME + '/contents/jessica-backup-meta.json', { method: 'PUT', headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' }, body: JSON.stringify(mbody) });
+        if (!mres.ok) throw new Error('元信息上传失败');
+      }
       localStorage.setItem('jessica_last_backup', now.toISOString());
-      this._show(`✅ 已备份 (${sizeKB}KB${isCompressed ? ' 压缩' : ''}) — ${now.toLocaleString('zh-CN')}`);
+      this._show('✅ 已备份 (' + sizeMB.toFixed(2) + 'MB ' + compressMode + ') — ' + now.toLocaleString('zh-CN'));
       showToast('☁️ 备份成功！');
     } catch(e) {
-      this._show(`❌ 备份失败: ${e.message}`);
+      this._show('❌ 备份失败: ' + e.message);
       showToast('❌ 备份失败: ' + e.message);
     }
   },
@@ -20530,6 +20470,60 @@ const cloudSync = {
     this._saveToken(token);
     this._show('正在查找备份...');
     try {
+      // ===== 检测分片备份（方案C）=====
+      let _chunkedRaw = null;
+      try {
+        const _mr = await fetch(`https://api.github.com/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/jessica-backup-meta.json`, {
+          cache: 'no-store', headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3.raw' }
+        });
+        if (_mr.ok) {
+          let _meta = null;
+          try { _meta = JSON.parse(await _mr.text()); } catch(e) {}
+          if (_meta && _meta._chunked) {
+            const _total = _meta.parts || 0;
+            this._show(`发现分片备份（${_total} 片），正在下载...`);
+            let _acc = '';
+            for (let _i = 1; _i <= _total; _i++) {
+              const _pr = await fetch(`https://api.github.com/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/jessica-backup-part-${_i}.json`, {
+                cache: 'no-store', headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3.raw' }
+              });
+              if (!_pr.ok) throw new Error(`分片 ${_i}/${_total} 下载失败`);
+              const _pt = (await _pr.text()).trim();
+              let _po = null; try { _po = JSON.parse(_pt); } catch(e) { _po = { d: _pt }; }
+              _acc += (_po.d !== undefined ? _po.d : _pt);
+              this._show(`已下载 ${_i}/${_total} 片...`);
+            }
+            _chunkedRaw = _acc;
+          }
+        }
+      } catch(_ce) { console.warn('[CloudSync] 分片检测跳过:', _ce); }
+      if (_chunkedRaw !== null) {
+        let data;
+        _chunkedRaw = _chunkedRaw.trim();
+        if (_chunkedRaw.startsWith('{') || _chunkedRaw.startsWith('[')) {
+          data = JSON.parse(_chunkedRaw);
+        } else {
+          const _b = _base64ToBuf(_chunkedRaw);
+          if (_b.length >= 2 && _b[0] === 0x1f && _b[1] === 0x8b) {
+            const _ds = new DecompressionStream('gzip');
+            const _w = _ds.writable.getWriter(); _w.write(_b); _w.close();
+            const _out = await new Response(_ds.readable).arrayBuffer();
+            data = JSON.parse(new TextDecoder().decode(_out));
+          } else if (typeof LZString !== 'undefined') {
+            data = JSON.parse(LZString.decompressFromBase64(_chunkedRaw));
+          } else {
+            throw new Error('无法解压分片备份');
+          }
+        }
+        this._show('正在恢复数据...');
+        if (await this._restoreData(data)) {
+          showToast('✅ 数据已恢复！即将刷新页面...');
+          this._show('✅ 恢复成功，3 秒后刷新...');
+          try { sessionStorage.setItem('_justImported', '1'); } catch(e) {}
+          setTimeout(() => location.reload(), 3000);
+        }
+        return;
+      }
       const file = await this._getFile(token);
       if (!file) { this._show('❌ 未找到备份（请先备份一次）'); return; }
       if (file._error) { this._show(`❌ ${file._msg}`); return; }
@@ -20554,22 +20548,42 @@ const cloudSync = {
         rawContent = await res.text();
       }
       
-      // 检测是否压缩
+      // 检测备份格式：JSON 直读 / gzip / lzstring
       let data;
+      rawContent = rawContent.trim();
       if (rawContent.startsWith('{') || rawContent.startsWith('[')) {
         data = JSON.parse(rawContent);
       } else {
         this._show('正在解压备份数据...');
-        if (typeof LZString === 'undefined') throw new Error('LZString 库未加载，无法解压备份');
-        const decompressed = LZString.decompressFromBase64(rawContent);
-        if (!decompressed) throw new Error('解压失败，备份数据可能已损坏');
-        data = JSON.parse(decompressed);
+        // base64 解码，看魔数判断格式
+        let _isGzip = false;
+        try {
+          const _b = _base64ToBuf(rawContent);
+          if (_b.length >= 2 && _b[0] === 0x1f && _b[1] === 0x8b) _isGzip = true;
+        } catch(e) {}
+        if (_isGzip) {
+          // 原生 gzip 解压
+          if (typeof DecompressionStream === 'undefined') throw new Error('当前浏览器不支持解压此备份，请更新 APP');
+          const _bytes = _base64ToBuf(rawContent);
+          const _ds = new DecompressionStream('gzip');
+          const _w = _ds.writable.getWriter();
+          _w.write(_bytes); _w.close();
+          const _out = await new Response(_ds.readable).arrayBuffer();
+          data = JSON.parse(new TextDecoder().decode(_out));
+        } else {
+          // 旧格式：LZString
+          if (typeof LZString === 'undefined') throw new Error('LZString 库未加载，无法解压备份');
+          const decompressed = LZString.decompressFromBase64(rawContent);
+          if (!decompressed) throw new Error('解压失败，备份数据可能已损坏');
+          data = JSON.parse(decompressed);
+        }
       }
       
       this._show('正在恢复数据...');
       if (await this._restoreData(data)) {
         showToast('✅ 数据已恢复！即将刷新页面...');
         this._show('✅ 恢复成功，3 秒后刷新...');
+        try { sessionStorage.setItem('_justImported', '1'); } catch(e) {}
         setTimeout(() => location.reload(), 3000);
       }
     } catch(e) {
@@ -20602,60 +20616,87 @@ const cloudSync = {
 // ============================================================
 // EXPORT / IMPORT DATA
 // ============================================================
-async function exportAllData() {
-  showToast('📤 正在收集数据...');
-  const data = { _version: 2, _exportedAt: new Date().toISOString() };
-  // Collect all localStorage keys related to jessica
-  const keys = [];
+// ============ 导出（分享式）============
+async function _guxiCollectFullBackup() {
+  const data = { _version: 4, _exportedAt: new Date().toISOString(), _source: 'local-export' };
+  const SKIP = new Set(['jessica_gist_token', 'jessica_gist_id', 'jessica_last_backup']);
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (key && (key.startsWith('jessica_') || key.startsWith('chat_') || key.startsWith('jp_') || key.startsWith('V2'))) {
-      keys.push(key);
+    if (!key || SKIP.has(key)) continue;
+    if (key.startsWith('jessica_') || key.startsWith('chat_') || key.startsWith('jp_') || key.startsWith('V2')) {
+      try { data[key] = JSON.parse(localStorage.getItem(key)); } catch(e) { data[key] = localStorage.getItem(key); }
     }
   }
-  keys.forEach(k => {
-    try { data[k] = JSON.parse(localStorage.getItem(k)); } catch(e) { data[k] = localStorage.getItem(k); }
-  });
-  // Export localforage data
-  if (typeof V2Store !== 'undefined' && V2Store._ready) {
-    const lfData = {};
-    const storeNames = ['messages', 'memories', 'diary', 'affection', 'stickers', 'config', 'knowledge'];
-    for (const sn of storeNames) {
-      try {
-        const allKeys = await V2Store.getAllKeys(sn);
-        const items = {};
-        for (const k of allKeys) { items[k] = await V2Store.get(k, sn); }
-        lfData[sn] = items;
-      } catch(e) { console.warn('[Export] 导出 store 失败:', sn, e); }
-    }
-    data._localforage = lfData;
-  }
-  // Also export IndexedDB (messages, memories) with timeout fallback
-  let idbDone = false;
-  const idbTimeout = setTimeout(() => { if (!idbDone) { idbDone = true; finishExport(data, {}); } }, 8000);
-  try {
-    const dbReq = indexedDB.open('jessica_diary_db');
-    dbReq.onsuccess = function(e) {
-      if (idbDone) return;
-      const db = e.target.result;
-      const storeNames = Array.from(db.objectStoreNames);
-      if (storeNames.length === 0) { idbDone = true; clearTimeout(idbTimeout); finishExport(data, {}); return; }
-      const tx = db.transaction(storeNames, 'readonly');
-      const stores = {};
-      let pending = storeNames.length;
-      storeNames.forEach(storeName => {
-        const store = tx.objectStore(storeName);
-        const getAll = store.getAll();
-        getAll.onsuccess = () => { stores[storeName] = getAll.result; if (--pending === 0 && !idbDone) { idbDone = true; clearTimeout(idbTimeout); finishExport(data, stores); } };
-        getAll.onerror = () => { stores[storeName] = []; if (--pending === 0 && !idbDone) { idbDone = true; clearTimeout(idbTimeout); finishExport(data, stores); } };
-      });
-    };
-    dbReq.onerror = function() { if (!idbDone) { idbDone = true; clearTimeout(idbTimeout); finishExport(data, {}); } };
-    dbReq.onblocked = function() { if (!idbDone) { idbDone = true; clearTimeout(idbTimeout); finishExport(data, {}); } };
-  } catch(e) {
-    if (!idbDone) { idbDone = true; clearTimeout(idbTimeout); finishExport(data, {}); }
-  }
+  try { if (typeof dbGetAllJpEntries === 'function') { const a = await dbGetAllJpEntries(); if (a && a.length) data['_idb_jp_entries'] = a; } } catch(e) {}
+  try { if (typeof dbGetAllMemories === 'function') { const a = await dbGetAllMemories(); if (a && a.length) data['_idb_memories'] = a; } } catch(e) {}
+  try { if (typeof dbGetAllMessages === 'function') { const a = await dbGetAllMessages(); if (a && a.length) data['_idb_messages'] = a; } } catch(e) {}
+  try { if (typeof dbGetAllStickers === 'function') { const a = await dbGetAllStickers(); if (a && a.length) data['_idb_stickers'] = a; } } catch(e) {}
+  return data;
 }
+
+function _guxiShowSaveOverlay(blob, filename) {
+  const old = document.getElementById('_guxiSaveOverlay');
+  if (old) old.remove();
+  const overlay = document.createElement('div');
+  overlay.id = '_guxiSaveOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;';
+  const box = document.createElement('div');
+  box.style.cssText = 'background:var(--card,#1e2433);border-radius:16px;padding:24px 20px;width:290px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.4);';
+  box.innerHTML = '<div style="font-size:15px;margin-bottom:6px;color:var(--text,#eee);">文件已生成</div>'
+    + '<div style="font-size:12px;color:var(--text-dim,#999);margin-bottom:18px;word-break:break-all;">' + filename + ' · ' + (blob.size/1048576).toFixed(2) + 'MB</div>';
+  const btn = document.createElement('button');
+  btn.textContent = '📥 保存 / 分享到本地';
+  btn.style.cssText = 'width:100%;padding:12px;border-radius:10px;border:none;background:var(--accent,#1d4ed8);color:#fff;font-size:14px;cursor:pointer;margin-bottom:10px;';
+  btn.onclick = async () => {
+    const file = new File([blob], filename, { type: blob.type || 'application/octet-stream' });
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: '杰西卡备份' }); overlay.remove(); return; }
+      catch(e) { if (e.name === 'AbortError') { overlay.remove(); return; } console.warn('分享失败，降级下载:', e); }
+    }
+    try {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = filename;
+      a.style.display = 'none';
+      document.body.appendChild(a); a.click();
+      setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 600);
+      overlay.remove();
+      showToast('📤 已触发下载');
+    } catch(e) { showToast('❌ 保存失败: ' + e.message); }
+  };
+  const cancel = document.createElement('button');
+  cancel.textContent = '取消';
+  cancel.style.cssText = 'width:100%;padding:10px;border-radius:10px;border:1px solid var(--line,#333);background:transparent;color:var(--text-dim,#999);font-size:13px;cursor:pointer;';
+  cancel.onclick = () => overlay.remove();
+  box.appendChild(btn); box.appendChild(cancel);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+
+async function exportAllData() {
+  try {
+    showToast('📤 正在收集数据...');
+    const data = await _guxiCollectFullBackup();
+    try { showToast('🗜 正在压缩图片...'); await _guxiCompressBackupImages(data, { maxDim: 1600, quality: 0.82 }); } catch(e) {}
+    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+    _guxiShowSaveOverlay(blob, 'jessica_backup_' + new Date().toISOString().slice(0,10) + '.json');
+  } catch(e) { console.error(e); showToast('❌ 导出失败: ' + e.message); }
+}
+
+async function exportAsZip() {
+  if (typeof JSZip === 'undefined') { showToast('❌ JSZip 未加载，请刷新页面后重试'); return; }
+  try {
+    showToast('📦 正在收集数据...');
+    const data = await _guxiCollectFullBackup();
+    try { showToast('🗜 正在压缩图片...'); await _guxiCompressBackupImages(data, { maxDim: 1600, quality: 0.82 }); } catch(e) {}
+    const zip = new JSZip();
+    zip.file('backup.json', JSON.stringify(data));
+    zip.file('README.txt', '杰西卡日记备份\n导出时间: ' + new Date().toLocaleString('zh-CN') + '\n版本: ' + data._version + '\n\n将 backup.json 导入即可恢复数据。');
+    const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } },
+      function(meta) { showToast('📦 打包中 ' + meta.percent.toFixed(0) + '%'); });
+    _guxiShowSaveOverlay(blob, 'jessica_backup_' + new Date().toISOString().slice(0,10) + '.zip');
+  } catch(e) { console.error(e); showToast('❌ 压缩包导出失败: ' + e.message); }
+}
+
 function finishExport(data, dbStores) {
   data._indexedDB = dbStores;
   try {
@@ -20759,52 +20800,6 @@ function doDownload(blob, filename, isMobile, shareBlob, shareFilename) {
 }
 
 // 压缩包导出（ZIP 格式，移动端友好）
-async function exportAsZip() {
-  if (typeof JSZip === 'undefined') {
-    showToast('❌ JSZip 未加载，请刷新页面后重试');
-    return;
-  }
-  showToast('📦 正在打包数据...');
-  const data = { _version: 2, _exportedAt: new Date().toISOString() };
-  // Collect localStorage
-  const keys = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && (key.startsWith('jessica_') || key.startsWith('chat_') || key.startsWith('jp_') || key.startsWith('V2'))) {
-      keys.push(key);
-    }
-  }
-  keys.forEach(k => {
-    try { data[k] = JSON.parse(localStorage.getItem(k)); } catch(e) { data[k] = localStorage.getItem(k); }
-  });
-  // Collect localforage
-  if (typeof V2Store !== 'undefined' && V2Store._ready) {
-    const lfData = {};
-    const storeNames = ['messages', 'memories', 'diary', 'affection', 'stickers', 'config', 'knowledge'];
-    for (const sn of storeNames) {
-      try {
-        const allKeys = await V2Store.getAllKeys(sn);
-        const items = {};
-        for (const k of allKeys) { items[k] = await V2Store.get(k, sn); }
-        lfData[sn] = items;
-      } catch(e) { console.warn('[ZIP-Export] store 失败:', sn, e); }
-    }
-    data._localforage = lfData;
-  }
-  // Build ZIP
-  try {
-    const zip = new JSZip();
-    zip.file('backup.json', JSON.stringify(data, null, 2));
-    zip.file('README.txt', `杰西卡日记备份\n导出时间: ${new Date().toLocaleString('zh-CN')}\n版本: ${data._version}\n\n将 backup.json 导入即可恢复数据。`);
-    const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
-    const filename = `jessica_backup_${new Date().toISOString().slice(0,10)}.zip`;
-    const fileSizeMB = (blob.size / 1048576).toFixed(2);
-    fallbackDownload(blob, filename, true, blob, filename);
-  } catch(e) {
-    console.error('[ZIP-Export] 打包失败:', e);
-    showToast('❌ 压缩包导出失败: ' + e.message);
-  }
-}
 function importAllData(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -20976,6 +20971,7 @@ function importAllData(event) {
       }
       console.log('[Import] 导入完成! localStorage:', lsCount, 'V2Store:', lfCount, 'IndexedDB:', idbCount);
       showToast('✅ 导入成功！共恢复 ' + (lsCount + lfCount + idbCount) + ' 项数据，正在刷新...');
+      try { sessionStorage.setItem('_justImported', '1'); } catch(e) {}
       setTimeout(() => location.reload(), 1500);
     } catch(err) {
       console.error('[Import] 导入失败:', err);
@@ -21035,6 +21031,7 @@ async function importFromClipboard() {
       } catch(e) { console.warn('[Import-Clipboard] IndexedDB恢复异常', e); }
     }
     showToast('✅ 导入成功！共恢复 ' + (lsCount + lfCount + idbCount) + ' 项数据，正在刷新...');
+    try { sessionStorage.setItem('_justImported', '1'); } catch(e) {}
     setTimeout(() => location.reload(), 1500);
   } catch(e) {
     showToast('❌ 剪贴板导入失败: ' + e.message);
@@ -21352,6 +21349,7 @@ async function importFromPaste() {
   }
   console.log('[Import-Paste] 完成! localStorage:', lsCount, 'V2Store:', lfCount, 'IndexedDB:', idbCount);
   showToast('✅ 导入成功！共恢复 ' + (lsCount + lfCount + idbCount) + ' 项数据，正在刷新...');
+  try { sessionStorage.setItem('_justImported', '1'); } catch(e) {}
   setTimeout(() => location.reload(), 1500);
 }
 
