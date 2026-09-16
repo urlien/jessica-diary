@@ -10,8 +10,8 @@ android {
         applicationId "com.jessica.diary"
         minSdk 24
         targetSdk 34
-        versionCode 37
-        versionName "白露"
+        versionCode 38
+        versionName "秋分"
     }
 
     // 固定签名：CI 从环境变量读 keystore，本地未设置则回退默认
