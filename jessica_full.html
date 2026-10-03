@@ -695,6 +695,23 @@ console.log('[ESM Bridge] pipeline/franc/Sentiment 已挂载');
   .jp-write-actions .jp-btn-save { background: var(--accent2); color: #fff; }
   .jp-write-actions .jp-btn-save:hover { background: #d7a58b; }
 
+  /* Diary settings modal */
+  .jp-set-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 260; backdrop-filter: blur(6px); }
+  .jp-set-overlay.active { display: flex; }
+  .jp-set-panel { background: var(--bg-chat); border: 1px solid var(--border); border-radius: 18px; width: 320px; max-width: calc(100vw - 40px); padding: 22px; }
+  .jp-set-panel h3 { font-size: 15px; color: var(--accent2); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+  .jp-set-row { margin-bottom: 18px; }
+  .jp-set-row label { display: block; font-size: 13px; color: var(--text); margin-bottom: 8px; }
+  .jp-set-hint { font-size: 11px; color: var(--text-dim); margin-top: 8px; line-height: 1.6; opacity: 0.8; }
+  .jp-set-time { width: 100%; padding: 12px 14px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 16px; font-weight: 600; text-align: center; font-family: inherit; }
+  .jp-set-time:focus { outline: none; border-color: var(--accent2); }
+  .jp-set-btns { display: flex; gap: 10px; margin-top: 22px; }
+  .jp-set-btns button { flex: 1; padding: 11px 0; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; font-family: inherit; }
+  .jp-set-save { background: var(--accent2); color: #fff; }
+  .jp-set-save:hover { background: #d7a58b; }
+  .jp-set-cancel { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
+  .jp-set-cancel:hover { border-color: var(--accent2); color: var(--accent2); }
+
   @media (max-width: 768px) {
     .jp-section { padding: 0 16px; }
     .jp-modal { width: 100%; max-width: 100%; height: 100%; max-height: 100%; border-radius: 0; }
@@ -3365,7 +3382,10 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
   <div class="jp-modal">
     <div class="jp-modal-header">
       <h3 id="jpModalTitle">📔 杰西卡的日记</h3>
-      <button class="jp-modal-close" onclick="closeJpModal()">✕</button>
+      <div style="display:flex;gap:8px;">
+        <button class="jp-modal-close" onclick="openJpSettings()" title="设置" style="font-size:15px;">⚙️</button>
+        <button class="jp-modal-close" onclick="closeJpModal()">✕</button>
+      </div>
     </div>
     <!-- Scrollable entry strip -->
     <div class="jp-modal-strip" id="jpModalStrip"></div>
@@ -3381,6 +3401,22 @@ const DEFAULT_JESSICA_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ
         <div class="nav-keys">← → 翻页 · Esc 关闭</div>
       </div>
       <button onclick="jpNavEntry(1)" id="jpNavNext">下一篇 ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== DIARY SETTINGS MODAL ========== -->
+<div class="jp-set-overlay" id="jpSetOverlay">
+  <div class="jp-set-panel">
+    <h3>⚙️ 日记设置</h3>
+    <div class="jp-set-row">
+      <label>日记生成时间</label>
+      <input class="jp-set-time" type="time" id="jpSetGenTime" value="23:50">
+      <div class="jp-set-hint">每天到这个点后，若当天还没写日记，自动生成一篇。一天只写一份，不回溯。</div>
+    </div>
+    <div class="jp-set-btns">
+      <button class="jp-set-cancel" onclick="closeJpSettings()">取消</button>
+      <button class="jp-set-save" onclick="saveJpSettings()">保存</button>
     </div>
   </div>
 </div>
@@ -9018,6 +9054,27 @@ async function dbDeleteMessage(msg) {
     tx.oncomplete = () => db.close();
   });
 }
+async function dbDeleteMemory(msg) {
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(MEMORY_STORE, 'readwrite');
+    const store = tx.objectStore(MEMORY_STORE);
+    const req = store.openCursor();
+    req.onsuccess = (e) => {
+      const cursor = e.target.result;
+      if (cursor) {
+        if (cursor.value.timestamp === msg.timestamp && cursor.value.role === msg.role) {
+          cursor.delete();
+          res();
+          return;
+        }
+        cursor.continue();
+      } else { res(); }
+    };
+    req.onerror = () => rej(req.error);
+    tx.oncomplete = () => db.close();
+  });
+}
 async function dbAddMemory(m) {
   const db = await openDB();
   return new Promise((res, rej) => {
@@ -11245,6 +11302,8 @@ function openWeatherDetail() {
   })();
 }
 
+function closeWeatherDetail() { document.getElementById('weatherDetail').classList.remove('active'); }
+
 function windDirToZH(deg) {
   const dirs = ['北','东北','东','东南','南','西南','西','西北'];
   const idx = Math.round(((Number(deg) % 360) / 45)) % 8;
@@ -12142,6 +12201,7 @@ function createMessageElement(msg) {
   dropdown.innerHTML = `
     <button class="msg-action-item" onclick="copyMessageText(this)"><span class="action-icon">📋</span>复制</button>
     <button class="msg-action-item" onclick="editMessage(this)"><span class="action-icon">✏️</span>编辑</button>
+    <button class="msg-action-item" onclick="regenerateMessage(this)"><span class="action-icon">🔄</span>重新生成</button>
     <button class="msg-action-item danger" onclick="deleteMessage(this)"><span class="action-icon">🗑️</span>删除</button>
   `;
   actionsBtn.onclick = (e) => {
@@ -12455,6 +12515,34 @@ function copyMessageText(btn) {
   });
 }
 
+// 重新生成：删掉该消息（及之后），重发它之前的最后一条 user 消息
+async function regenerateMessage(btn) {
+  const { msg } = findMessageByEl(btn);
+  if (!msg) return;
+  btn.closest('.msg-actions-dropdown').classList.remove('show');
+  const idx = messages.indexOf(msg);
+  if (idx < 0) return;
+
+  let userIdx = -1;
+  if (msg.role === 'assistant') {
+    for (let i = idx - 1; i >= 0; i--) { if (messages[i].role === 'user') { userIdx = i; break; } }
+  } else {
+    userIdx = idx;
+  }
+  if (userIdx < 0) { showToast('这条没有可重发的用户消息'); return; }
+
+  const userMsg = messages[userIdx];
+  // 删掉 userMsg 之后的所有消息（含本条），保留 userMsg 本身待复用
+  const toDelete = messages.slice(userIdx + 1);
+  for (const m of toDelete) { try { await dbDeleteMessage(m); } catch (e) {} try { await dbDeleteMemory(m); } catch (e) {} }
+  messages.splice(userIdx + 1);
+  renderAllMessages();
+  saveHistoryFallback(); rebuildSearchIndex();
+
+  window._regenUserMsg = userMsg;   // 标记：复用这条 user 消息，不新增
+  await sendMessage();
+}
+
 // Edit message
 function editMessage(btn) {
   const { msg, div } = findMessageByEl(btn);
@@ -12497,7 +12585,31 @@ function editMessage(btn) {
     await dbUpdateMessage(msg).catch(() => {});
     saveHistoryFallback();
   };
+  const resendBtn = document.createElement('button');
+  resendBtn.className = 'msg-edit-save';
+  resendBtn.textContent = '保存并重发';
+  resendBtn.onclick = async () => {
+    const newContent = textarea.value.trim();
+    if (!newContent) return;
+    msg.content = newContent;
+    await dbUpdateMessage(msg).catch(() => {});
+    if (msg.role === 'user') {
+      // 重发这条用户消息：删掉它之后的回复，重新请求
+      const idx = messages.indexOf(msg);
+      if (idx > -1) {
+        const toDelete = messages.slice(idx + 1);
+        for (const m of toDelete) { try { await dbDeleteMessage(m); } catch(e){} try { await dbDeleteMemory(m); } catch(e){} }
+        messages.splice(idx + 1);
+        renderAllMessages(); saveHistoryFallback(); rebuildSearchIndex();
+        window._regenUserMsg = msg;
+        await sendMessage();
+      }
+    } else {
+      saveHistoryFallback();
+    }
+  };
   actions.appendChild(cancelBtn);
+  if (msg.role === 'user') actions.appendChild(resendBtn);
   actions.appendChild(saveBtn);
   bubble.appendChild(actions);
 
@@ -12526,6 +12638,8 @@ async function deleteMessage(btn) {
 
   // Remove from DB
   await dbDeleteMessage(msg).catch(() => {});
+  // 同步删记忆库那副本（否则 loadHistory 从 memories 恢复时它会复活）
+  await dbDeleteMemory(msg).catch(() => {});
 
   // Remove from DOM with animation
   div.style.transition = 'opacity 0.3s, transform 0.3s';
@@ -12541,21 +12655,31 @@ async function deleteMessage(btn) {
 // SEND
 // ============================================================
 async function sendMessage(){
-  const input=document.getElementById('userInput');const text=input.value.trim();
-  if(!text&&!pendingFiles.length)return;
+  const input=document.getElementById('userInput');
+  const _regen=window._regenUserMsg||null;
+  const text=_regen?String(_regen.content||''):input.value.trim();
+  if(!text&&!pendingFiles.length&&!_regen)return;
   if(isGenerating){
     if(_isGeneratingSince&&Date.now()-_isGeneratingSince>30000){
       safeResetGeneration('sendMessage: force reset after 30s');
     } else { return; }
   }
   const cfg=loadConfig();if(!cfg.apiBase||!cfg.apiKey){openSettings();return;}
-  const wasSleeping=checkSleepAndMaybeWake();
-  let userContent=text;const fc=buildFileContentForAPI();if(fc)userContent=userContent?`${userContent}\n\n${fc}`:fc;
-  const filesForDisplay=pendingFiles.map(f=>({name:f.name,size:f.size,type:f.type,dataUrl:f.dataUrl,isImage:f.isImage,isAudio:f.isAudio}));
-  const userMsg={role:'user',content:text||'(发送了文件)',timestamp:Date.now(),files:filesForDisplay,readByJessica:false};
-  try { await dbAddMessage(userMsg); } catch(e) { console.warn(STR.log.dbWriteUser, e); }
-  messages.push(userMsg);renderMessage(userMsg);saveHistoryFallback();rebuildSearchIndex();
-  input.value='';input.style.height='44px';pendingFiles=[];renderFilePreview();document.getElementById('sendBtn').disabled=true;
+  let userContent=text;
+  let userMsg;
+  let wasSleeping=false;
+  if(_regen){
+    // 重发模式：复用已有 user 消息，不新增、不重复落库
+    userMsg=_regen;window._regenUserMsg=null;
+  }else{
+    wasSleeping=checkSleepAndMaybeWake();
+    const fc=buildFileContentForAPI();if(fc)userContent=userContent?`${userContent}\n\n${fc}`:fc;
+    const filesForDisplay=pendingFiles.map(f=>({name:f.name,size:f.size,type:f.type,dataUrl:f.dataUrl,isImage:f.isImage,isAudio:f.isAudio}));
+    userMsg={role:'user',content:text||'(发送了文件)',timestamp:Date.now(),files:filesForDisplay,readByJessica:false};
+    try { await dbAddMessage(userMsg); } catch(e) { console.warn(STR.log.dbWriteUser, e); }
+    messages.push(userMsg);renderMessage(userMsg);saveHistoryFallback();rebuildSearchIndex();
+    input.value='';input.style.height='44px';pendingFiles=[];renderFilePreview();document.getElementById('sendBtn').disabled=true;
+  }
 
   const userName=getUserName();
 
@@ -13749,6 +13873,51 @@ function jpFormatTime(ts) {
 }
 
 // ── Regenerate a diary entry ──
+// 编辑日记：正文变输入框
+function editDiaryEntry(idx) {
+  if (idx < 0 || idx >= jpEntries.length) return;
+  const entry = jpEntries[idx];
+  const body = document.getElementById('jpModalBody');
+  if (!body) return;
+  const orig = entry.content || '';
+  const sec = document.getElementById('jpViewSection');
+  const contentEl = sec ? sec.querySelector('.jp-view-content') : null;
+  if (!contentEl) return;
+  contentEl.outerHTML = '<textarea class="jp-write-textarea" id="jpEditArea"></textarea>'
+    + '<div class="jp-write-actions"><button class="jp-btn-cancel" id="jpEditCancel">取消</button><button class="jp-btn-save" id="jpEditSave">保存</button></div>';
+  const ta = document.getElementById('jpEditArea');
+  ta.value = orig;
+  ta.style.height = Math.min(Math.max(ta.scrollHeight, 120), 400) + 'px';
+  ta.addEventListener('input', () => { ta.style.height='120px'; ta.style.height=Math.min(ta.scrollHeight,400)+'px'; });
+  document.getElementById('jpEditCancel').onclick = () => renderJpView();
+  document.getElementById('jpEditSave').onclick = async () => {
+    const v = ta.value.trim();
+    if (!v) return;
+    entry.content = v;
+    if (entry.id) await dbUpdateJpEntry(entry).catch(()=>{});
+    localStorage.setItem('jessica_jp_entries', JSON.stringify(jpEntries));
+    renderJpView(); renderJpModalStrip(); renderJpPreview();
+    if (typeof V2Search !== 'undefined' && V2Search._ready) { try { V2Search.indexDiary(jpEntries); } catch(e){} }
+    showToast('📔 已保存');
+  };
+}
+
+// 删除日记：删掉 + 记"这天弃了"（防自动复活）
+async function deleteDiaryEntry(idx) {
+  if (idx < 0 || idx >= jpEntries.length) return;
+  if (!confirm('删除这篇日记？该日期以后不会再自动生成。')) return;
+  const entry = jpEntries[idx];
+  const dk = entry.dateKey || jpDateKey(new Date(entry.timestamp));
+  if (entry.id) await dbDeleteJpEntry(entry.id).catch(()=>{});
+  jpEntries.splice(idx, 1);
+  markDiaryDiscarded(dk);
+  localStorage.setItem('jessica_jp_entries', JSON.stringify(jpEntries));
+  if (jpCurrentIdx >= jpEntries.length) jpCurrentIdx = Math.max(0, jpEntries.length - 1);
+  renderJpView(); renderJpModalStrip(); renderJpPreview();
+  if (typeof V2Search !== 'undefined' && V2Search._ready) { try { V2Search.indexDiary(jpEntries); } catch(e){} }
+  showToast('📔 已删除');
+}
+
 async function regenerateDiaryEntry(idx) {
   if (idx < 0 || idx >= jpEntries.length) return;
   if (!confirm('确定要删掉这篇日记并重新生成吗？')) return;
@@ -13822,6 +13991,7 @@ async function regenerateDiaryEntry(idx) {
     renderJpPreview();
     renderJpView();
     renderJpModalStrip();
+    if (typeof V2Search !== 'undefined' && V2Search._ready) { try { V2Search.indexDiary(jpEntries); } catch(e){} }
     showToast('📔 日记已重新生成');
   } catch(e) {
     console.error('[Regenerate] 失败:', e);
@@ -13864,6 +14034,21 @@ function openJpModal(mode, idx) {
   document.addEventListener('keydown', jpKeyHandler);
 }
 
+function openJpSettings() {
+  const t = getDiaryGenTime();
+  const input = document.getElementById('jpSetGenTime');
+  if (input) input.value = String(t.h).padStart(2,'0') + ':' + String(t.m).padStart(2,'0');
+  document.getElementById('jpSetOverlay').classList.add('active');
+}
+function closeJpSettings() {
+  document.getElementById('jpSetOverlay').classList.remove('active');
+}
+function saveJpSettings() {
+  const v = document.getElementById('jpSetGenTime').value || '23:50';
+  localStorage.setItem('jessica_diary_gen_time', v);
+  closeJpSettings();
+  showToast('📔 生成时间已设为 ' + v);
+}
 function closeJpModal() {
   document.getElementById('jpModalOverlay').classList.remove('active');
   document.removeEventListener('keydown', jpKeyHandler);
@@ -13952,15 +14137,19 @@ function renderJpView() {
       </div>
       <div class="jp-view-content">${escapeHtml(entry.content)}</div>
       ${reactionsHtml}
-      <div style="margin-top:16px;text-align:center;">
-        <button id="jpRegenBtn" style="background:rgba(123,147,199,0.15);border:1px solid rgba(123,147,199,0.3);color:var(--accent);padding:6px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.15s;">🔄 重新生成这篇日记</button>
+      <div style="margin-top:16px;text-align:center;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+        <button id="jpEditBtn" style="background:rgba(199,155,123,0.12);border:1px solid rgba(199,155,123,0.3);color:var(--accent2);padding:6px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.15s;">✏️ 编辑</button>
+        <button id="jpRegenBtn" style="background:rgba(123,147,199,0.15);border:1px solid rgba(123,147,199,0.3);color:var(--accent);padding:6px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.15s;">🔄 重写</button>
+        <button id="jpDelBtn" style="background:rgba(199,123,123,0.12);border:1px solid rgba(199,123,123,0.3);color:var(--red);padding:6px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.15s;">🗑️ 删除</button>
       </div>
     </div>`;
-  // 绑定重新生成按钮事件
+  // 绑定按钮事件
   const regenBtn = document.getElementById('jpRegenBtn');
-  if (regenBtn) {
-    regenBtn.onclick = () => regenerateDiaryEntry(jpCurrentIdx);
-  }
+  if (regenBtn) regenBtn.onclick = () => regenerateDiaryEntry(jpCurrentIdx);
+  const editBtn = document.getElementById('jpEditBtn');
+  if (editBtn) editBtn.onclick = () => editDiaryEntry(jpCurrentIdx);
+  const delBtn = document.getElementById('jpDelBtn');
+  if (delBtn) delBtn.onclick = () => deleteDiaryEntry(jpCurrentIdx);
 }
 
 // ── Navigation (V2: also updates strip highlight) ──
@@ -16700,18 +16889,57 @@ async function searchAndRespondWithResults(query, originalMessages, results) {
 // ============================================================
 // DAILY SUMMARY (23:50 auto-summary)
 // ============================================================
-async function generateDailySummary() {
+// 日记生成时间（可配置，默认23:50）
+function getDiaryGenTime() {
+  try {
+    const t = localStorage.getItem('jessica_diary_gen_time') || '23:50';
+    const p = t.split(':');
+    const h = parseInt(p[0], 10), m = parseInt(p[1], 10);
+    return { h: isNaN(h) ? 23 : h, m: isNaN(m) ? 50 : m };
+  } catch(e) { return { h: 23, m: 50 }; }
+}
+// 弃写日期（删除过的，不再自动生成）
+function getDiscardedDates() {
+  try { return new Set(JSON.parse(localStorage.getItem('jessica_jp_discarded') || '[]')); }
+  catch(e) { return new Set(); }
+}
+function markDiaryDiscarded(dateKey) {
+  const s = getDiscardedDates(); s.add(dateKey);
+  localStorage.setItem('jessica_jp_discarded', JSON.stringify(Array.from(s)));
+}
+// 找一个"该写日记但还没写"的日期：到点写今天；没到点补昨天（仅一天，不回溯）
+function findDiaryTargetDate() {
+  const now = new Date();
+  const todayKey = jpDateKey(now);
+  const gt = getDiaryGenTime();
+  const passed = (now.getHours() * 60 + now.getMinutes()) >= (gt.h * 60 + gt.m);
+  const disc = getDiscardedDates();
+  const done = (k) => jpEntries.some(e => e.dateKey === k && e.summaryType === 'daily') || disc.has(k);
+  if (passed) {
+    return done(todayKey) ? null : todayKey;
+  }
+  const y = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+  const yKey = jpDateKey(y);
+  return done(yKey) ? null : yKey;
+}
+
+async function generateDailySummary(targetKey) {
   const cfg = loadConfig();
   if (!cfg.apiBase || !cfg.apiKey) return;
 
-  const todayKey = jpDateKey();
+  if (!targetKey) targetKey = findDiaryTargetDate();
+  if (!targetKey) return;  // 没有需要补写的一天
+
+  const todayKey = targetKey;
   // Check if summary already exists for today
   if (jpEntries.some(e => e.dateKey === todayKey && e.summaryType === 'daily')) return;
 
-  // Get today's messages
+  // Get target day + previous day messages (2 days)
+  const _d0 = new Date(todayKey + 'T00:00:00');
+  const _day1Key = jpDateKey(new Date(_d0.getTime() - 86400000));
   const todayMsgs = messages.filter(m => {
-    const d = new Date(m.timestamp);
-    return jpDateKey(d) === todayKey && m.role !== 'system';
+    const k = jpDateKey(new Date(m.timestamp));
+    return (k === todayKey || k === _day1Key) && m.role !== 'system';
   });
 
   const timeCtx = getTimeContext();
@@ -16726,10 +16954,10 @@ async function generateDailySummary() {
     const convLog = todayMsgs.map(m => {
       const role = m.role === 'assistant' ? '杰西卡' : userName;
       const time = new Date(m.timestamp).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-      return `[${time}] ${role}: ${m.content?.slice(0, 200) || ''}`;
+      return `[${time}] ${role}: ${m.content || ''}`;
     }).join('\n');
 
-    sc += `[日记总结] 现在是23:50，请把今天的对话总结成一篇日记。\n`;
+    sc += `[日记总结] 请把【${todayKey}】（含前一天）这两天的对话总结成一篇日记。\n`;
     sc += `要求：\n`;
     sc += `- 第一人称（"我"的视角），你是杰西卡\n`;
     sc += `- 记录今天发生的事、你们聊了什么、你的心情变化\n`;
@@ -16738,12 +16966,12 @@ async function generateDailySummary() {
     sc += `- 可以提到${userName}说了什么让你印象深刻\n`;
     sc += `- 不要提到"系统""注入""总结"这些词\n`;
     sc += `- 这是你的私人日记，写得真实、自然\n`;
-    sc += `\n今天的对话记录：\n${convLog}\n[/系统注入]`;
+    sc += `\n这两天的对话记录：\n${convLog}\n[/系统注入]`;
   } else {
     // No/few messages - Jessica writes on her own
     const hour = new Date().getHours();
     const statusStr = currentStatuses.map(s => `${s.emoji}${s.text}${s.detail?`（${s.detail}）`:''}`).join('、');
-    sc += `[独自日记] 今天${userName}没有找你聊天。已经23:50了。\n`;
+    sc += `[独自日记] 【${todayKey}】这天${userName}没有找你聊天。\n`;
     sc += `你自己写一篇日记。可以是：\n`;
     sc += `- 抱怨他今天没来找你（傲娇、小委屈、阴阳怪气都行）\n`;
     sc += `- 写你自己今天干了什么（看书、刷手机、发呆、想事情……）\n`;
@@ -16809,42 +17037,22 @@ async function generateDailySummary() {
 // Background scheduler: checks every 5 min if summary needs to run
 let dailySummaryCheckInterval = null;
 function scheduleDailySummary() {
-  // Immediate check: if it's past 23:50 today and no summary yet, run now
   const checkAndRun = async () => {
-    const now = new Date();
-    const todayKey = jpDateKey();
-    const hasSummary = jpEntries.some(e => e.dateKey === todayKey && e.summaryType === 'daily');
-    if (hasSummary) return;
-    // Run if it's past 23:50 or within 5 min after
-    if (now.getHours() === 23 && now.getMinutes() >= 50) {
-      await generateDailySummary();
-    } else if (now.getHours() === 0 && now.getMinutes() < 10) {
-      // Just past midnight - check if yesterday's summary was missed
-      const yesterday = new Date(now - 86400000);
-      const yKey = jpDateKey(yesterday);
-      if (!jpEntries.some(e => e.dateKey === yKey && e.summaryType === 'daily')) {
-        // Yesterday had no summary - but we can't go back, just ensure today's will run
-      }
-    }
+    if (window._diaryGenerating) return;  // 防重入
+    const target = findDiaryTargetDate();
+    if (!target) return;  // 没有要补的
+    window._diaryGenerating = true;
+    try { await generateDailySummary(target); }
+    catch (e) { console.warn('diary gen failed', e); }
+    finally { window._diaryGenerating = false; }
   };
-
-  // Run check immediately
+  // 打开 App 立即检查（补写漏掉的日记，不再依赖 setTimeout）
   checkAndRun();
-
-  // Schedule at exact 23:50
-  const now = new Date();
-  const target = new Date(now);
-  target.setHours(23, 50, 0, 0);
-  if (now >= target) target.setDate(target.getDate() + 1);
-  const delay = target - now;
-  setTimeout(async () => {
-    await generateDailySummary();
-    // Then schedule daily recurring
-    setInterval(() => generateDailySummary(), 24 * 60 * 60 * 1000);
-  }, delay);
-
-  // Safety net: check every 5 minutes in case the page was open but setTimeout was missed
+  // 每 5 分钟检查一次（代替原 setTimeout 定时；App 在前台时能补写）
+  if (dailySummaryCheckInterval) clearInterval(dailySummaryCheckInterval);
   dailySummaryCheckInterval = setInterval(checkAndRun, 5 * 60 * 1000);
+  // 暴露给 visibilitychange：前台恢复时也补一次
+  window._checkDailySummary = checkAndRun;
 }
 
 // ============================================================
@@ -17597,6 +17805,8 @@ window.initApp = async function(){
 /* disabled by凯西:       setTimeout(() => { try { catchUpProactiveMessages(); } catch(e) {} }, 2000); */
       // Refresh status on return
       try { refreshStatus(); } catch(e) {}
+      // 前台恢复时补写漏掉的日记
+      try { window._checkDailySummary && window._checkDailySummary(); } catch(e) {}
     }
   });
   setInterval(() => {
