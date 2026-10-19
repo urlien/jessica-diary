@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -1928,6 +1928,32 @@ body.private-mode .header {
   display: none; align-items: center; justify-content: center;
 }
 .memo-overlay.active { display: flex; }
+.gomoku-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  display: none; align-items: center; justify-content: center;
+}
+.gomoku-overlay.active { display: flex; }
+.gomoku-container {
+  width: 90%; max-width: 420px; max-height: 80vh;
+  background: rgba(20,24,32,0.97);
+  border: 1px solid var(--border); border-radius: 16px;
+  display: flex; overflow: hidden;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.5);
+  animation: memoSlideUp 0.3s ease;
+}
+.gomoku-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+}
+.gomoku-header h3 { font-size: 16px; color: var(--text); font-weight: 600; margin: 0; }
+.gomoku-close {
+  background: transparent; border: none; color: var(--text-dim);
+  font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 8px;
+  transition: all 0.2s; font-family: inherit;
+}
+.gomoku-close:hover { background: rgba(255,255,255,0.08); color: var(--text); }
 .memo-modal {
   width: 90%; max-width: 420px; max-height: 80vh;
   background: rgba(20,24,32,0.97);
@@ -13527,8 +13553,23 @@ function jpDateKey(d) {
 }
 
 // Load all JP entries
+function dedupeDailyEntries(list) {
+  const newest = new Map();
+  for (const e of list) {
+    if (e.summaryType !== 'daily') continue;
+    const cur = newest.get(e.dateKey);
+    if (!cur || (e.id || e.timestamp || 0) > (cur.id || cur.timestamp || 0)) newest.set(e.dateKey, e);
+  }
+  return list.filter(e => e.summaryType !== 'daily' || newest.get(e.dateKey) === e);
+}
+
 async function loadJpEntries() {
-  try { jpEntries = await dbGetAllJpEntries(); jpEntries.sort((a,b) => b.timestamp - a.timestamp); } catch(e) { jpEntries = []; }
+  try {
+    jpEntries = await dbGetAllJpEntries();
+    jpEntries = dedupeDailyEntries(jpEntries);
+    jpEntries.sort((a,b) => b.timestamp - a.timestamp);
+    try { localStorage.setItem('jessica_jp_entries', JSON.stringify(jpEntries)); } catch (e) {}
+  } catch(e) { jpEntries = []; }
 }
 
 // ── Mini Calendar state ──
@@ -13908,10 +13949,45 @@ async function deleteDiaryEntry(idx) {
   if (!confirm('删除这篇日记？该日期以后不会再自动生成。')) return;
   const entry = jpEntries[idx];
   const dk = entry.dateKey || jpDateKey(new Date(entry.timestamp));
-  if (entry.id) await dbDeleteJpEntry(entry.id).catch(()=>{});
-  jpEntries.splice(idx, 1);
-  markDiaryDiscarded(dk);
-  localStorage.setItem('jessica_jp_entries', JSON.stringify(jpEntries));
+  const isDaily = entry.summaryType === 'daily';
+
+  if (isDaily) markDiaryDiscarded(dk);
+
+  try {
+    const db = await getDiaryDb();
+    await new Promise((resolve, reject) => {
+      let settled = false;
+      const tx = db.transaction(JP_STORE, 'readwrite');
+      const store = tx.objectStore(JP_STORE);
+      const done = (fn, v) => { if (settled) return; settled = true; clearTimeout(timer); fn(v); };
+      const timer = setTimeout(() => { try { tx.abort(); } catch (e) {} done(reject, new Error('tx timeout')); }, 10000);
+      tx.oncomplete = () => done(resolve);
+      tx.onabort = () => done(reject, tx.error || new Error('tx aborted'));
+      tx.onerror = () => {};
+      
+      if (isDaily) {
+        const req = store.index('dateKey').openCursor(IDBKeyRange.only(dk));
+        req.onsuccess = () => {
+          const c = req.result;
+          if (c) {
+            if (c.value.summaryType === 'daily') c.delete();
+            c.continue();
+          }
+        };
+      } else {
+        if (entry.id) store.delete(entry.id);
+      }
+    });
+  } catch(e) {
+    console.warn('[DeleteDiary] DB 清理失败:', e);
+    showToast('删除失败，请重试');
+    return;
+  }
+
+  jpEntries = jpEntries.filter(e => isDaily
+    ? !(e.dateKey === dk && e.summaryType === 'daily')
+    : e.id !== entry.id);
+  try { localStorage.setItem('jessica_jp_entries', JSON.stringify(jpEntries)); } catch (e) {}
   if (jpCurrentIdx >= jpEntries.length) jpCurrentIdx = Math.max(0, jpEntries.length - 1);
   renderJpView(); renderJpModalStrip(); renderJpPreview();
   if (typeof V2Search !== 'undefined' && V2Search._ready) { try { V2Search.indexDiary(jpEntries); } catch(e){} }
@@ -13920,20 +13996,18 @@ async function deleteDiaryEntry(idx) {
 
 async function regenerateDiaryEntry(idx) {
   if (idx < 0 || idx >= jpEntries.length) return;
-  if (!confirm('确定要删掉这篇日记并重新生成吗？')) return;
+  if (!confirm('确定要重新生成这篇日记吗？')) return;
   const cfg = loadConfig();
   if (!cfg.apiBase || !cfg.apiKey) { openSettings(); return; }
 
   const oldEntry = jpEntries[idx];
-  const oldDate = new Date(oldEntry.timestamp);
-  const oldDateKey = oldEntry.dateKey || jpDateKey(oldDate);
+  if (oldEntry.summaryType !== 'daily') { showToast('只能重新生成每日日记'); return; }
+  const dateKey = oldEntry.dateKey;
 
-  // 1. 先删掉旧条目
-  jpEntries.splice(idx, 1);
-  if (oldEntry.id) dbDeleteJpEntry(oldEntry.id).catch(() => {});
-  localStorage.setItem('jessica_jp_entries', JSON.stringify(jpEntries));
+  const token = Date.now() + ':' + Math.random().toString(36).slice(2);
+  if (!acquireLock(token)) { showToast('日记正在生成，请稍后再试'); return; }
 
-  // 2. 在模态窗里显示"正在写日记"
+  // 显示"正在写日记"
   const viewSection = document.getElementById('jpViewSection');
   if (viewSection) {
     viewSection.innerHTML = `<div class="jp-empty" style="text-align:center;padding:40px;">
@@ -13942,70 +14016,40 @@ async function regenerateDiaryEntry(idx) {
       <div style="color:var(--text-dim);font-size:12px;margin-top:8px;">她会根据今天的对话重新写一篇</div>
     </div>`;
   }
-  // 也更新首页预览
   const previewCard = document.getElementById('jpPreviewCard');
   if (previewCard) {
     previewCard.innerHTML = '<div class="jp-empty">杰西卡正在记日记中...</div>';
   }
 
   try {
-    const mood = oldEntry.mood || '😌';
-    const dateStr = `${oldDate.getFullYear()}年${oldDate.getMonth()+1}月${oldDate.getDate()}日`;
-    const dayMsgs = messages.filter(m => {
-      const md = new Date(m.timestamp);
-      return md.getFullYear() === oldDate.getFullYear() && md.getMonth() === oldDate.getMonth() && md.getDate() === oldDate.getDate();
-    });
-    const recentMsgs = dayMsgs.slice(-20).map(m => `${m.role === 'user' ? getUserName() : '杰西卡'}：${m.content}`).join('\n');
-    const sc = buildSystemPrompt(cfg.systemPrompt);
-    const promptText = `你正在写日记。日期：${dateStr}，心情：${mood}\n\n今天你们的对话：\n${recentMsgs || '（今天没有对话记录）'}\n\n请写一篇简短的日记（50-150字），记录今天的心情和感受。用第一人称，自然真实。只输出日记内容，不要加标题或标签。`;
-    const res = await fetch(`${cfg.apiBase.replace(/\/+$/,'')}/chat/completions`, {
-      method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${cfg.apiKey}`},
-      body:JSON.stringify({model:cfg.model,messages:[{role:'system',content:sc},{role:'user',content:promptText}],temperature:cfg.temperature,stream:false,max_tokens:300}),
-    });
-    if (!res.ok) throw new Error(`API错误 ${res.status}`);
-    const data = await res.json();
-    const newContent = stripActions(stripReasoning(data.choices?.[0]?.message?.content));
-    if (!newContent) throw new Error('返回内容为空');
-
-    // 3. 创建新条目，插入到原位置
-    const newEntry = {
-      id: Date.now(),
-      content: newContent,
-      mood: mood,
-      timestamp: oldDate.getTime(),
-      dateKey: oldDateKey,
-      aiGenerated: true,
-      summaryType: oldEntry.summaryType || 'daily',
-      comments: [],
-      reactions: {}
-    };
-    if (idx >= jpEntries.length) {
-      jpEntries.push(newEntry);
-    } else {
-      jpEntries.splice(idx, 0, newEntry);
+    const have = (await getMessagesForDay(dateKey)).length;
+    const had = oldEntry.messageCount || 0;
+    if (had > 0 && have < Math.floor(had * 0.8)) {
+      throw new Error('该日期的聊天记录未完整加载，无法重新生成');
     }
-    await dbAddJpEntry(newEntry);
-    localStorage.setItem('jessica_jp_entries', JSON.stringify(jpEntries));
-
-    // 4. 刷新所有界面
-    renderJpPreview();
-    renderJpView();
-    renderJpModalStrip();
-    if (typeof V2Search !== 'undefined' && V2Search._ready) { try { V2Search.indexDiary(jpEntries); } catch(e){} }
+    const { text, count } = await generateDiary(dateKey);
+    if (!heartbeatLock(token)) throw new Error('lock lost');
+    
+    const rec = buildDiaryRecord(dateKey, text, count);
+    rec.mood = oldEntry.mood || rec.mood;
+    rec.comments = oldEntry.comments || [];
+    rec.reactions = oldEntry.reactions || {};
+    
+    const db = await getDiaryDb();
+    await replaceDaily(db, dateKey, rec);
+    
+    await loadJpEntries();
+    refreshJpUI();
     showToast('📔 日记已重新生成');
   } catch(e) {
     console.error('[Regenerate] 失败:', e);
     showToast('重新生成失败：' + e.message);
-    // 失败时恢复旧条目
-    if (idx >= jpEntries.length) {
-      jpEntries.push(oldEntry);
-    } else {
-      jpEntries.splice(idx, 0, oldEntry);
-    }
-    localStorage.setItem('jessica_jp_entries', JSON.stringify(jpEntries));
+    await loadJpEntries();
     renderJpPreview();
     renderJpView();
     renderJpModalStrip();
+  } finally {
+    releaseLock(token);
   }
 }
 window.regenerateDiaryEntry = regenerateDiaryEntry;
@@ -15018,10 +15062,12 @@ const LocationSystem = {
 // 页面加载时自动定位
 setTimeout(() => { LocationSystem.autoDetect(); }, 3000);
 
-function buildSystemPrompt(base) {
+function buildSystemPrompt(base, opts = {}) {
   let prompt = base.replace(/\{\{user\}\}/g, getUserName());
   const cfg = loadConfig();
+  const refDate = opts.refDate instanceof Date ? opts.refDate : new Date();
 
+  if (!opts.diary) {
   // 日期感知指令（系统内置，最高优先级）
   const now = new Date();
   const yesterday = new Date(now - 86400000);
@@ -15040,8 +15086,10 @@ function buildSystemPrompt(base) {
       prompt += `\n（以上时间仅供你判断，回复中不要输出时间戳。）`;
     }
   } catch(e) {}
+  } // end of if (!opts.diary)
+
   // 每日双城天气（每天只注入一次）
-  prompt += maybeInjectDailyWeather();
+  if (!opts.diary) prompt += maybeInjectDailyWeather();
   const ws = cfg.writingStyle || 'default';
   if (ws === 'custom' && cfg.customWritingStyle) {
     prompt += `\n\n## 写作风格要求（自定义）\n${cfg.customWritingStyle}`;
@@ -15050,9 +15098,11 @@ function buildSystemPrompt(base) {
   }
   if (isNSFW()) prompt += NSFW_INSTRUCTION;
   // User status injection
-  const userStatus = getCurrentUserStatus();
-  if (userStatus) {
-    prompt += `\n\n## 用户当前状态\n用户现在"${userStatus.emoji} ${userStatus.text}"。你应该自然地感知到这个状态，根据对话内容适时提及或关心，但不要每次都刻意提起。像一个了解对方情况的朋友一样自然回应。`;
+  if (!opts.diary) {
+    const userStatus = getCurrentUserStatus();
+    if (userStatus) {
+      prompt += `\n\n## 用户当前状态\n用户现在"${userStatus.emoji} ${userStatus.text}"。你应该自然地感知到这个状态，根据对话内容适时提及或关心，但不要每次都刻意提起。像一个了解对方情况的朋友一样自然回应。`;
+    }
   }
 
   // ============================================================
@@ -15102,7 +15152,7 @@ function buildSystemPrompt(base) {
 
   // Get current persona state based on date
   function getCurrentPersonaState() {
-    const now = new Date();
+    const now = refDate;
     const y = now.getFullYear();
     const m = now.getMonth() + 1;
     const currentKey = `${y}-${String(m).padStart(2, '0')}`;
@@ -15115,7 +15165,7 @@ function buildSystemPrompt(base) {
 
   // Calculate age from birthday
   function calcAge(birthYear, birthMonth, birthDay) {
-    const now = new Date();
+    const now = refDate;
     let age = now.getFullYear() - birthYear;
     if (now.getMonth() + 1 < birthMonth || (now.getMonth() + 1 === birthMonth && now.getDate() < birthDay)) {
       age--;
@@ -16907,152 +16957,274 @@ function markDiaryDiscarded(dateKey) {
   const s = getDiscardedDates(); s.add(dateKey);
   localStorage.setItem('jessica_jp_discarded', JSON.stringify(Array.from(s)));
 }
-// 找一个"该写日记但还没写"的日期：到点写今天；没到点补昨天（仅一天，不回溯）
-function findDiaryTargetDate() {
-  const now = new Date();
-  const todayKey = jpDateKey(now);
-  const gt = getDiaryGenTime();
-  const passed = (now.getHours() * 60 + now.getMinutes()) >= (gt.h * 60 + gt.m);
-  const disc = getDiscardedDates();
-  const done = (k) => jpEntries.some(e => e.dateKey === k && e.summaryType === 'daily') || disc.has(k);
-  if (passed) {
-    return done(todayKey) ? null : todayKey;
-  }
-  const y = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-  const yKey = jpDateKey(y);
-  return done(yKey) ? null : yKey;
+// ===== A. Helpers & locks =====
+
+const DIARY_LOCK_KEY = 'diary_lock';
+const DIARY_LOCK_TTL = 3 * 60e3;
+const DIARY_FAIL_KEY = 'diary_fail_ts';
+const DIARY_FAIL_COOLDOWN = 10 * 60e3;
+const DIARY_FORMAT_HINT = '500字左右，不要超过600字。有温度、有细节，不要流水账。';
+
+async function getDiaryDb() { return await openDB(); }
+
+function localDateKey(offset = 0) {
+  const n = new Date();
+  return jpDateKey(new Date(n.getFullYear(), n.getMonth(), n.getDate() + offset));
+}
+function parseKey(k) { const [y, m, d] = k.split('-').map(Number); return { y, m, d }; }
+function addDaysKey(k, delta) { const { y, m, d } = parseKey(k); return jpDateKey(new Date(y, m - 1, d + delta)); }
+function dateKeyToRefDate(k) { const { y, m, d } = parseKey(k); return new Date(y, m - 1, d, 23, 59, 0); }
+function dayRangeMs(k) {
+  const { y, m, d } = parseKey(k);
+  return [new Date(y, m - 1, d).getTime(), new Date(y, m - 1, d + 1).getTime()];
 }
 
-async function generateDailySummary(targetKey) {
-  const cfg = loadConfig();
-  if (!cfg.apiBase || !cfg.apiKey) return;
-
-  if (!targetKey) targetKey = findDiaryTargetDate();
-  if (!targetKey) return;  // 没有需要补写的一天
-
-  const todayKey = targetKey;
-  // Check if summary already exists for today
-  if (jpEntries.some(e => e.dateKey === todayKey && e.summaryType === 'daily')) return;
-
-  // Get target day + previous day messages (2 days)
-  const _d0 = new Date(todayKey + 'T00:00:00');
-  const _day1Key = jpDateKey(new Date(_d0.getTime() - 86400000));
-  const todayMsgs = messages.filter(m => {
-    const k = jpDateKey(new Date(m.timestamp));
-    return (k === todayKey || k === _day1Key) && m.role !== 'system';
-  });
-
-  const timeCtx = getTimeContext();
-  const mood = getMoodString();
-  const userName = getUserName();
-
-  let sc = buildSystemPrompt(cfg.systemPrompt);
-  sc += `\n\n[系统注入]\n时间：${timeCtx}\n心情：${mood}\n`;
-
-  if (todayMsgs.length >= 3) {
-    // Has enough messages - summarize
-    const convLog = todayMsgs.map(m => {
-      const role = m.role === 'assistant' ? '杰西卡' : userName;
-      const time = new Date(m.timestamp).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-      return `[${time}] ${role}: ${m.content || ''}`;
-    }).join('\n');
-
-    sc += `[日记总结] 请把【${todayKey}】（含前一天）这两天的对话总结成一篇日记。\n`;
-    sc += `要求：\n`;
-    sc += `- 第一人称（"我"的视角），你是杰西卡\n`;
-    sc += `- 记录今天发生的事、你们聊了什么、你的心情变化\n`;
-    sc += `- 有温度、有细节，不要流水账\n`;
-    sc += `- 500字左右，不要超过600字\n`;
-    sc += `- 可以提到${userName}说了什么让你印象深刻\n`;
-    sc += `- 不要提到"系统""注入""总结"这些词\n`;
-    sc += `- 这是你的私人日记，写得真实、自然\n`;
-    sc += `\n这两天的对话记录：\n${convLog}\n[/系统注入]`;
-  } else {
-    // No/few messages - Jessica writes on her own
-    const hour = new Date().getHours();
-    const statusStr = currentStatuses.map(s => `${s.emoji}${s.text}${s.detail?`（${s.detail}）`:''}`).join('、');
-    sc += `[独自日记] 【${todayKey}】这天${userName}没有找你聊天。\n`;
-    sc += `你自己写一篇日记。可以是：\n`;
-    sc += `- 抱怨他今天没来找你（傲娇、小委屈、阴阳怪气都行）\n`;
-    sc += `- 写你自己今天干了什么（看书、刷手机、发呆、想事情……）\n`;
-    sc += `- 随便聊点什么——看了一篇文章、想起一件事、对某件事的看法\n`;
-    sc += `- 也可以是纯粹的情绪：无聊、困、有点烦、今天挺舒服的\n`;
-    sc += `要求：\n`;
-    sc += `- 第一人称，杰西卡的视角\n`;
-    sc += `- 简短，200-400字\n`;
-    sc += `- 真实、有你自己的性格，不要太文艺\n`;
-    sc += `- 如果要提${userName}，用你的方式——可以是吐槽、好奇、或者假装不在意\n`;
-    sc += `- 不要提到"系统""注入"这些词\n`;
-    sc += `你当前的状态：${statusStr || '发呆中'}\n`;
-    sc += `今天的天气：${getWeatherString() || '未知'}\n[/系统注入]`;
-  }
-
+function readLock() { try { return JSON.parse(localStorage.getItem(DIARY_LOCK_KEY) || 'null'); } catch (e) { return null; } }
+function writeLock(t) { localStorage.setItem(DIARY_LOCK_KEY, JSON.stringify({ owner: t, ts: Date.now() })); }
+function acquireLock(t) {
   try {
-    const res = await fetch(`${cfg.apiBase.replace(/\/+$/,'')}/chat/completions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cfg.apiKey}` },
-      body: JSON.stringify({
-        model: cfg.model,
-        messages: [{ role: 'system', content: sc }, { role: 'user', content: todayMsgs.length >= 3 ? '写今天的日记总结' : '写今天的日记' }],
-        temperature: 0.85,
-        stream: false,
-        max_tokens: 2048
-      }),
-    });
-    if (!res.ok) return;
-    const data = await res.json();
-    let content = stripReasoning(data.choices?.[0]?.message?.content);
-    if (!content) return;
-
-    // 清理日记内容：移除markdown标题、系统提示词前缀等
-    content = content
-      .replace(/^#[^\n]*\n/gm, '')
-      .replace(/^##[^\n]*\n/gm, '')
-      .replace(/^\*\*[^\n]*\*\*\s*\n/gm, '')
-      .replace(/^杰西卡的日记[：:]?\s*\n?/m, '')
-      .replace(/^日记[：:]?\s*\n?/m, '')
-      .replace(/^---+\s*\n?/gm, '')
-      .replace(/^\s*\n/gm, '')
-      .trim();
-
-    const entry = {
-      content,
-      mood: getMoodEmoji(),
-      timestamp: Date.now(),
-      dateKey: todayKey,
-      aiGenerated: true,
-      summaryType: 'daily',
-      messageCount: todayMsgs.length,
-      comments: [],
-      reactions: {}
-    };
-    await dbAddJpEntry(entry);
-    jpEntries.unshift(entry);
-    renderJpPreview();
-    playNotificationSound();
-    showNotificationToast(todayMsgs.length >= 3 ? '📔 今日日记已生成' : '📔 杰西卡写了今天的日记');
-  } catch(e) { console.warn(STR.log.diaryGen, e); }
+    const l = readLock();
+    if (l && l.owner !== t && Date.now() - l.ts < DIARY_LOCK_TTL) return false;
+    writeLock(t);
+    return readLock()?.owner === t;
+  } catch (e) { return false; }
+}
+function heartbeatLock(t) {
+  try { const l = readLock(); if (!l || l.owner !== t) return false; writeLock(t); return true; } catch (e) { return false; }
+}
+function releaseLock(t) {
+  try { const l = readLock(); if (l && l.owner === t) localStorage.removeItem(DIARY_LOCK_KEY); } catch (e) {}
 }
 
-// Background scheduler: checks every 5 min if summary needs to run
-let dailySummaryCheckInterval = null;
-function scheduleDailySummary() {
-  const checkAndRun = async () => {
-    if (window._diaryGenerating) return;  // 防重入
-    const target = findDiaryTargetDate();
-    if (!target) return;  // 没有要补的
-    window._diaryGenerating = true;
-    try { await generateDailySummary(target); }
-    catch (e) { console.warn('diary gen failed', e); }
-    finally { window._diaryGenerating = false; }
+function scanDaily(store, dateKey, onFound) {
+  const req = store.index('dateKey').openCursor(IDBKeyRange.only(dateKey));
+  req.onsuccess = () => {
+    const c = req.result;
+    if (!c) return false;
+    if (c.value.summaryType === 'daily') { onFound(); return true; }
+    c.continue();
+    return false;
   };
-  // 打开 App 立即检查（补写漏掉的日记，不再依赖 setTimeout）
-  checkAndRun();
-  // 每 5 分钟检查一次（代替原 setTimeout 定时；App 在前台时能补写）
-  if (dailySummaryCheckInterval) clearInterval(dailySummaryCheckInterval);
-  dailySummaryCheckInterval = setInterval(checkAndRun, 5 * 60 * 1000);
-  // 暴露给 visibilitychange：前台恢复时也补一次
-  window._checkDailySummary = checkAndRun;
+  return req;
+}
+
+function diaryExists(db, dateKey) {
+  return new Promise((resolve, reject) => {
+    let found = false, settled = false;
+    const tx = db.transaction(JP_STORE, 'readonly');
+    const done = (fn, v) => { if (settled) return; settled = true; clearTimeout(timer); fn(v); };
+    const timer = setTimeout(() => { try { tx.abort(); } catch (e) {} done(reject, new Error('exists timeout')); }, 10000);
+    tx.oncomplete = () => done(resolve, found);
+    tx.onabort = () => done(reject, tx.error || new Error('exists aborted'));
+    scanDaily(tx.objectStore(JP_STORE), dateKey, () => { found = true; });
+  });
+}
+
+// ===== B. saveIfAbsent =====
+function saveIfAbsent(db, dateKey, record) {
+  return new Promise((resolve, reject) => {
+    let found = false, settled = false;
+    const tx = db.transaction(JP_STORE, 'readwrite');
+    const store = tx.objectStore(JP_STORE);
+    const done = (fn, v) => { if (settled) return; settled = true; clearTimeout(timer); fn(v); };
+    const timer = setTimeout(() => { try { tx.abort(); } catch (e) {} done(reject, new Error('tx timeout')); }, 10000);
+    tx.oncomplete = () => done(resolve, found ? 'exists' : 'saved');
+    tx.onabort = () => done(reject, tx.error || new Error('tx aborted'));
+    tx.onerror = () => {};
+    const req = store.index('dateKey').openCursor(IDBKeyRange.only(dateKey));
+    req.onsuccess = () => {
+      const c = req.result;
+      if (c) {
+        if (c.value.summaryType === 'daily') { found = true; return; }
+        c.continue();
+        return;
+      }
+      if (!found) store.add(record);
+    };
+  });
+}
+
+function replaceDaily(db, dateKey, record) {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const tx = db.transaction(JP_STORE, 'readwrite');
+    const store = tx.objectStore(JP_STORE);
+    const done = (fn, v) => { if (settled) return; settled = true; clearTimeout(timer); fn(v); };
+    const timer = setTimeout(() => { try { tx.abort(); } catch (e) {} done(reject, new Error('tx timeout')); }, 10000);
+    tx.oncomplete = () => done(resolve, 'replaced');
+    tx.onabort = () => done(reject, tx.error || new Error('tx aborted'));
+    tx.onerror = () => {};
+    const req = store.index('dateKey').openCursor(IDBKeyRange.only(dateKey));
+    req.onsuccess = () => {
+      const c = req.result;
+      if (c) {
+        if (c.value.summaryType === 'daily') c.delete();
+        c.continue();
+        return;
+      }
+      store.add(record);
+    };
+  });
+}
+
+// ===== D. Prompt builder & LLM =====
+async function getMessagesForDay(dateKey) {
+  const [s, e] = dayRangeMs(dateKey);
+  const all = (typeof messages !== 'undefined' && Array.isArray(messages)) ? messages : [];
+  return all.filter(m => m.timestamp >= s && m.timestamp < e && m.role !== 'system');
+}
+
+function fmtDiaryMsgs(list) {
+  return list.map(m => {
+    const t = new Date(m.timestamp);
+    const hm = String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0');
+    const txt = (typeof m.content === 'string' ? m.content : '').replace(/</g, '＜');
+    return `[${hm}] ${m.role === 'user' ? '用户' : '我'}: ${txt}`;
+  }).join('\n');
+}
+
+async function buildDiaryPrompt(target) {
+  const wd = '日一二三四五六'[dateKeyToRefDate(target).getDay()];
+  const cur = await getMessagesForDay(target);
+  const earlier = [];
+  for (let i = 1; i <= 2; i++) {
+    const k = addDaysKey(target, -i);
+    const list = await getMessagesForDay(k);
+    if (list.length) earlier.push({ k, i, list });
+  }
+
+  let u = `<diary_task>\n你正在 ${target}（星期${wd}）当天夜里睡前写日记。对你来说现在就是 ${target}，你不知道之后任何日期发生的事。请用 ${target} 当天的口吻来写。\n</diary_task>\n\n`;
+  u += cur.length
+    ? `<target_day date="${target}" message_count="${cur.length}">\n${fmtDiaryMsgs(cur)}\n</target_day>\n\n`
+    : `<target_day date="${target}" message_count="0">\n当天没有任何聊天。\n</target_day>\n\n`;
+  if (earlier.length) {
+    u += `<earlier_days>\n` + earlier.map(e =>
+      `<day date="${e.k}" label="${e.i}天前" use="context_only">\n${fmtDiaryMsgs(e.list)}\n</day>`).join('\n') +
+      `\n</earlier_days>\n\n`;
+  }
+  u += `<rules>
+1. 日记只记录 ${target} 这一天。
+2. <earlier_days> 里的内容不是 ${target} 发生的事，只能作为过去的事提及（如"昨天…""前天…"），且仅在相关时才提。
+3. 忽略你可能收到的其他任何日期或时间信息，对你来说现在就是 ${target}。
+4. 若 message_count 为 0，自然地写出当天没有聊天，然后根据你自己的人设和日常生活来写，不强制任何特定情绪。
+5. 不要提及或猜测没有提供记录的日期。
+6. ${DIARY_FORMAT_HINT}
+</rules>`;
+  return { prompt: u, count: cur.length };
+}
+
+async function llmCall(url, opts, ms = 90000) {
+  const ctrl = new AbortController();
+  let timer;
+  const timeout = new Promise((_, rej) => { timer = setTimeout(() => { ctrl.abort(); rej(new Error('llm timeout')); }, ms); });
+  try {
+    return await Promise.race([
+      (async () => {
+        const r = await fetch(url, { ...opts, signal: ctrl.signal });
+        if (!r.ok) throw new Error('http ' + r.status);
+        return await r.json();
+      })(),
+      timeout
+    ]);
+  } finally { clearTimeout(timer); }
+}
+
+async function generateDiary(target) {
+  const cfg = loadConfig();
+  const sys = buildSystemPrompt(cfg.systemPrompt, { diary: true, refDate: dateKeyToRefDate(target) });
+  const { prompt, count } = await buildDiaryPrompt(target);
+  const url = `${cfg.apiBase.replace(/\/+$/, '')}/chat/completions`;
+  const data = await llmCall(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cfg.apiKey}` },
+    body: JSON.stringify({
+      model: cfg.model,
+      messages: [{ role: 'system', content: sys }, { role: 'user', content: prompt }],
+      temperature: 0.85,
+      stream: false,
+      max_tokens: 2048
+    })
+  });
+  let text = data?.choices?.[0]?.message?.content?.trim();
+  if (!text) throw new Error('empty diary');
+  text = text.replace(/^#[^\n]*\n/gm, '').replace(/^##[^\n]*\n/gm, '').replace(/^\*\*[^\n]*\*\*\s*\n/gm, '').replace(/^杰西卡的日记[：:]?\s*\n?/m, '').replace(/^日记[：:]?\s*\n?/m, '').replace(/^---+\s*\n?/gm, '').replace(/^\s*\n/gm, '').trim();
+  return { text, count };
+}
+
+function buildDiaryRecord(dateKey, content, messageCount) {
+  return {
+    content,
+    mood: getMoodEmoji(),
+    timestamp: dateKeyToRefDate(dateKey).getTime(),
+    dateKey,
+    aiGenerated: true,
+    summaryType: 'daily',
+    messageCount: messageCount || 0,
+    comments: [],
+    reactions: {}
+  };
+}
+
+function refreshJpUI() {
+  try { renderJpPreview(); renderJpView(); renderJpModalStrip(); } catch (e) { console.warn(e); }
+  if (typeof V2Search !== 'undefined' && V2Search._ready) {
+    try { V2Search.indexDiary(jpEntries); } catch (e) {}
+  }
+}
+
+// ===== C. runDiaryCycle =====
+let _diaryInflight = null;
+
+function runDiaryCycle() {
+  if (_diaryInflight) return _diaryInflight;
+  _diaryInflight = (async () => {
+    try { if (Date.now() - Number(localStorage.getItem(DIARY_FAIL_KEY) || 0) < DIARY_FAIL_COOLDOWN) return; } catch (e) {}
+    if (typeof messages === 'undefined' || !Array.isArray(messages) || !messages.length) return;
+
+    const now = new Date();
+    const gen = getDiaryGenTime();
+    const pastGenTime = now.getHours() * 60 + now.getMinutes() >= gen.h * 60 + gen.m;
+    const discarded = new Set(getDiscardedDates() || []);
+    const targets = [localDateKey(-1)];
+    if (pastGenTime) targets.push(localDateKey(0));
+    const wanted = targets.filter(d => !discarded.has(d));
+    if (!wanted.length) return;
+
+    const token = Date.now() + ':' + Math.random().toString(36).slice(2);
+    if (!acquireLock(token)) return;
+    let changed = false;
+    try {
+      const db = await getDiaryDb();
+      for (const d of wanted) {
+        try {
+          if (!heartbeatLock(token)) break;
+          if (await diaryExists(db, d)) continue;
+          const { text, count } = await generateDiary(d);
+          if (new Set(getDiscardedDates() || []).has(d)) continue;
+          if (!heartbeatLock(token)) break;
+          const r = await saveIfAbsent(db, d, buildDiaryRecord(d, text, count));
+          if (r === 'saved' || r === 'exists') changed = true;
+        } catch (e) {
+          console.warn('[diary] failed for', d, e);
+          try { localStorage.setItem(DIARY_FAIL_KEY, String(Date.now())); } catch (_) {}
+        }
+      }
+    } finally {
+      releaseLock(token);
+    }
+    if (changed) { try { await loadJpEntries(); refreshJpUI(); } catch (e) { console.warn(e); } }
+  })().finally(() => { _diaryInflight = null; });
+  return _diaryInflight;
+}
+
+function scheduleDailySummary() {
+  if (!window._diaryHooked) {
+    window._diaryHooked = true;
+    setInterval(() => runDiaryCycle(), 5 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') runDiaryCycle(); });
+    window.addEventListener('pageshow', () => runDiaryCycle());
+    setTimeout(() => runDiaryCycle(), 3000);
+  }
 }
 
 // ============================================================
@@ -17806,7 +17978,7 @@ window.initApp = async function(){
       // Refresh status on return
       try { refreshStatus(); } catch(e) {}
       // 前台恢复时补写漏掉的日记
-      try { window._checkDailySummary && window._checkDailySummary(); } catch(e) {}
+      try { runDiaryCycle(); } catch(e) {}
     }
   });
   setInterval(() => {
